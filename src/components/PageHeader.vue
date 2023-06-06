@@ -49,4 +49,7 @@ const handleSelect = (key: string, keyPath: string[]) => {
 .flex-grow {
   flex-grow: 1;
 }
+.el-icon i {
+  color: red;
+}
 </style>

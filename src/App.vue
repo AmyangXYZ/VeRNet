@@ -9,7 +9,7 @@ import { RouterView } from 'vue-router'
       <Header />
     </el-header>
     <el-container>
-      <el-aside width="300px">Aaaaside</el-aside>
+      <el-aside width="200px">Aaaaside</el-aside>
       <el-container>
         <el-main><RouterView /></el-main>
         <el-footer>Footer</el-footer>

@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import * as echarts from 'echarts/core'
 import { ScatterChart } from 'echarts/charts'
 import { GridComponent, MarkLineComponent } from 'echarts/components'
@@ -6,14 +6,16 @@ import { CanvasRenderer } from 'echarts/renderers'
 
 echarts.use([ScatterChart, GridComponent, MarkLineComponent, CanvasRenderer])
 
-import { useDark } from '@vueuse/core'
+import type { TopoConfig, Node, Packet } from './defs'
+import { PKT_TYPE, NODE_AXN } from './defs'
 
+import { useDark } from '@vueuse/core'
 const isDark = useDark()
 
-export function useTopology(chartDom: any) {
-  const nodes = ref([])
 
-  const option = {
+export function useDrawTopology(config: TopoConfig, chartDom: any) :any {
+  let chart: any
+  const option: any = {
     grid: {
       top: '1%',
       bottom: '1%',
@@ -25,7 +27,7 @@ export function useTopology(chartDom: any) {
       type: 'value',
       data: [],
       interval: 1,
-      max: 20,
+      max: config.grid_x,
       axisLabel: {
         show: false
       },
@@ -44,7 +46,7 @@ export function useTopology(chartDom: any) {
     yAxis: {
       name: 'grid_y',
       min: 0,
-      max: 20,
+      max: config.grid_y,
       type: 'value',
       interval: 1,
       data: [],
@@ -67,7 +69,7 @@ export function useTopology(chartDom: any) {
         z: 10,
         name: 'Node',
         type: 'scatter',
-        symbolSize: 15,
+        symbolSize: 16,
         data: [],
         itemStyle: {
           opacity: 1,
@@ -75,7 +77,7 @@ export function useTopology(chartDom: any) {
         },
         label: {
           show: true,
-          fontSize: 10.5,
+          fontSize: 11,
           fontWeight: 600,
           color: 'white',
           formatter: (item: any) => {
@@ -87,7 +89,7 @@ export function useTopology(chartDom: any) {
           symbol: 'none',
           lineStyle: {
             width: 1,
-            color: 'grey',
+            // color: 'grey',
             type: 'dashed'
           },
           data: [],
@@ -97,93 +99,129 @@ export function useTopology(chartDom: any) {
       }
     ]
   }
+  const nodes = ref<Node[]>([{ id: 0, pos: [], w: {}, neighbors: [] }])
+  createTopo()
 
-  let chart = {}
-
-  function draw() {
-    option.series[0].data = []
-    option.series[0].markLine.data = []
-    option.xAxis.max = network.value.settings.grid_x
-    option.yAxis.max = network.value.settings.grid_y
-
-    for (let i in nodes.value) {
-      option.series[0].data.push({
-        value: nodes.value[i].pos,
-        name: nodes.value[i].id
-      })
-    }
-
-    let drawnLinks = {}
-    for (let j = 0; j < nodes.value.length - 1; j++) {
-      let start = nodes.value[j]
-      if (start.neighbors == null) {
-        continue
+  function createTopo() {
+    for (let i = 1; i <= config.num_nodes; i++) {
+      const n: Node = {
+        id: i,
+        pos: [
+          Math.floor(Math.random() * (config.grid_x - 1)) + 1,
+          Math.floor(Math.random() * (config.grid_y - 1)) + 1
+        ],
+        neighbors: [],
+        w: new Worker(new URL('./node.ts', import.meta.url), { type: 'module' })
       }
-      for (let k = 0; k < start.neighbors.length; k++) {
-        let end = nodes.value[start.neighbors[k]]
-        let name = start.id > end.id ? `${start.id}-${end.id}` : `${end.id}-${start.id}`
-        if (drawnLinks[name] == null) {
-          drawnLinks[name] = 1
-          option.series[0].markLine.data.push([
-            {
-              name: name,
-              label: {
-                show: false
-              },
-              coord: start.pos
-            },
-            {
-              coord: end.pos,
-              lineStyle: {
-                width: 1
+      nodes.value.push(n)
+
+      // assign id
+      n.w.postMessage(<Packet>{ type: PKT_TYPE.Action, act: NODE_AXN.assign_id, payload: [i] })
+
+      n.w.onmessage = (e: any) => {
+        const pkt = e.data
+        if (pkt.type == PKT_TYPE.Stat) {
+          n.neighbors = pkt.payload.neighbors
+          // console.log(nodes.value[n.id].neighbors)
+          // n.id += pkt.payload.rx_cnt
+          // nodes.value[n.id].id +=10
+        } else {
+          // forward mgmt and data packets
+          if (pkt.dst != -1) {
+            const nn = nodes.value[pkt.dst]
+            if (nn != null) {
+              const distance = Math.sqrt(
+                Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
+              )
+              if (distance <= config.tx_range) {
+                nn.w.postMessage(pkt)
               }
             }
-          ])
-        }
-      }
-    }
-    chart.setOption(option)
-  }
-
-  function highlightApp(id) {
-    if (id == -1) {
-      for (let x = 0; x < option.series[0].data.length; x++) {
-        option.series[0].data[x].itemStyle = {}
-      }
-      for (let y = 0; y < option.series[0].markLine.data.length; y++) {
-        option.series[0].markLine.data[y][1].lineStyle = {}
-      }
-    } else {
-      for (let x = 0; x < option.series[0].data.length; x++) {
-        option.series[0].data[x].itemStyle = { opacity: 0.2 }
-      }
-      for (let y = 0; y < option.series[0].markLine.data.length; y++) {
-        option.series[0].markLine.data[y][1].lineStyle = { width: 1, opacity: 0.2 }
-      }
-      let app = network.value.apps[selectedAppID.value]
-      for (let i in app.tasks) {
-        let task = app.tasks[i]
-        for (let j in task.path) {
-          option.series[0].data[task.path[j]].itemStyle = { color: 'orange' }
-          if (j < task.path.length - 1) {
-            let link = [task.path[j], task.path[parseInt(j) + 1]]
-            for (let li = 0; li < option.series[0].markLine.data.length; li++) {
-              let l = option.series[0].markLine.data[li]
-              if (l[0].name == `${link[0]}-${link[1]}` || l[0].name == `${link[1]}-${link[0]}`) {
-                l[1].lineStyle = { width: 2 }
+          } else {
+            for (const nn of nodes.value) {
+              const distance = Math.sqrt(
+                Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
+              )
+              if (nn.id != n.id && distance <= config.tx_range) {
+                nn.w.postMessage(pkt)
               }
             }
           }
         }
       }
     }
+
+    for (const n of nodes.value) {
+      if (n.id != 0)
+        // broadcast beacon
+        n.w.postMessage(<Packet>{ type: PKT_TYPE.Action, act: NODE_AXN.beacon })
+    }
+  }
+
+  function draw() {
+    option.series[0].data = []
+    option.series[0].markLine.data = []
+
+    for (const n of nodes.value) {
+      option.series[0].data.push({
+        value: n.pos,
+        name: n.id
+      })
+    }
+
+    const drawnLinks: any = {}
+    for (const n of nodes.value) {
+      if (n.neighbors.length > 0) {
+        for (const nn of n.neighbors) {
+          const nbr = nodes.value[nn]
+          if (nbr != null) {
+            const name = n.id > nbr.id ? `${n.id}-${nbr.id}` : `${nbr.id}-${n.id}`
+            if (drawnLinks[name] == null) {
+              drawnLinks[name] = 1
+              option.series[0].markLine.data.push([
+                {
+                  name: name,
+                  label: {
+                    show: false
+                  },
+                  coord: n.pos
+                },
+                {
+                  coord: nbr.pos,
+                  lineStyle: {
+                    width: 1
+                  }
+                }
+              ])
+            }
+          }
+        }
+      }
+    }
+
     chart.setOption(option)
   }
 
   onMounted(() => {
-    chart = echarts.init(chartDom.value, isDark ? 'dark' : 'macarons')
+    chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
     draw()
   })
 
-  return { nodes }
+  watch(
+    nodes,
+    () => {
+      console.log(1111111111)
+      console.log(nodes.value[1].neighbors)
+      draw()
+    },
+    { deep: true }
+  )
+
+  watch(isDark, () => {
+    chart.dispose()
+    chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
+    draw()
+  })
+
+  return nodes
 }

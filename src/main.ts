@@ -7,7 +7,10 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import App from './App.vue'
 import router from './router'
 
-import 'vuesax3/dist/vuesax.css' 
+import 'vuesax3/dist/vuesax.css'
+
+import './utils/seedrandom.min.js'
+// Math.seedrandom('123')
 
 const app = createApp(App)
 
