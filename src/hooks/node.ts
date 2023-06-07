@@ -1,6 +1,6 @@
 // run as a Web worker
 import type { Packet, Statistics } from './defs'
-import { PKT_TYPE, NODE_AXN } from './defs'
+import { PKT_TYPE, NODE_CMD } from './defs'
 
 const stats: Statistics = {
   id: 0,
@@ -19,18 +19,18 @@ function report() {
   })
 }
 
-setInterval(report, 2000)
+// setInterval(report, 2000)
 
 onmessage = (e: any) => {
   const pkt: Packet = e.data
   switch (pkt.type) {
     case PKT_TYPE.CMD:
       switch (pkt.cmd) {
-        case NODE_AXN.assign_id:
+        case NODE_CMD.assign_id:
           stats.id = pkt.payload[0]
           // console.log(`I am node ${id}`)
           break
-        case NODE_AXN.beacon:
+        case NODE_CMD.beacon:
           postMessage(<Packet>{
             uid: Math.floor(Math.random() * 65535),
             time: +Date.now(),
@@ -45,7 +45,7 @@ onmessage = (e: any) => {
           stats.pkt_seq++
           stats.tx_cnt++
           break
-        case NODE_AXN.send:
+        case NODE_CMD.send:
           postMessage(<Packet>{
             uid: Math.floor(Math.random() * 65535),
             type: PKT_TYPE.DATA,

@@ -6,10 +6,10 @@ import type { TopoConfig } from '@/hooks/defs'
 
 const config = reactive<TopoConfig>({
   seed: 123,
-  num_nodes: 20,
+  num_nodes: 50,
   grid_x: 32,
   grid_y: 32,
-  tx_range: 8
+  tx_range: 6
 })
 const chartDom = ref(null)
 useTopology(config, chartDom)
@@ -88,7 +88,7 @@ useTopology(config, chartDom)
   text-align: center;
 }
 .in {
-  width: 90px;
+  width: 88px;
 }
 .chart {
   width: 100%;

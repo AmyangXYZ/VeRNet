@@ -11,7 +11,7 @@ echarts.use([ScatterChart, GridComponent, MarkLineComponent, CanvasRenderer])
 import { Packets } from './useStates'
 
 import type { TopoConfig, Node, Packet } from './defs'
-import { PKT_TYPE, NODE_AXN } from './defs'
+import { PKT_TYPE, NODE_CMD } from './defs'
 
 import { useDark } from '@vueuse/core'
 const isDark = useDark()
@@ -105,10 +105,10 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
   }
   const nodes = ref<Node[]>([])
 
-  createTopo()
-
-  function createTopo() {
+  createNodes()
+  function createNodes() {
     const rand = new SeededRandom(config.seed)
+    const joined: any = {}
 
     let pkt_cnt: number = 0
     Packets.value = []
@@ -134,15 +134,21 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
       }
       nodes.value.push(n)
       // assign id
-      n.w.postMessage(<Packet>{ type: PKT_TYPE.CMD, cmd: NODE_AXN.assign_id, payload: [i] })
+      n.w.postMessage(<Packet>{ type: PKT_TYPE.CMD, cmd: NODE_CMD.assign_id, payload: [i] })
 
       n.w.onmessage = (e: any) => {
         const pkt = e.data
         if (pkt.type == PKT_TYPE.STAT) {
           n.neighbors = pkt.payload.neighbors
-          nextTick(() => {
-            draw()
-          })
+          if (joined[n.id] == null) {
+            joined[n.id] = true
+            n.w.postMessage(<Packet>{ type: PKT_TYPE.CMD, cmd: NODE_CMD.beacon })
+            setTimeout(async () => {
+              nextTick(() => {
+                draw()
+              })
+            }, 5)
+          }
         } else {
           // forward mgmt and data packets
           pkt.no = ++pkt_cnt
@@ -171,12 +177,14 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
         }
       }
     }
-
-    for (const n of nodes.value) {
-      if (n.id != 0)
-        // broadcast beacon
-        n.w.postMessage(<Packet>{ type: PKT_TYPE.CMD, cmd: NODE_AXN.beacon })
-    }
+    joined[1] = true
+    nodes.value[1].w.postMessage(<Packet>{ type: PKT_TYPE.CMD, cmd: NODE_CMD.beacon })
+    // for (const n of nodes.value) {
+    //   if (n.id != 0) {
+    //     // broadcast beacon
+    //     n.w.postMessage(<Packet>{ type: PKT_TYPE.CMD, cmd: NODE_CMD.beacon })
+    //   }
+    // }
   }
 
   function draw() {
@@ -233,10 +241,7 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
   watch(
     config,
     () => {
-      // chart.dispose()
-      // chart.clear()
-      // chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
-      createTopo()
+      createNodes()
       draw()
     },
     { deep: true }

@@ -6,7 +6,7 @@ import ChannelChart from '@/components/ChannelChart.vue';
 
 <template>
   <el-row :gutter="30">
-    <el-col :span="11"><Topology /></el-col>
+    <el-col :span="12"><Topology /></el-col>
     <el-col :span="11">
       <ChannelChart />
       <PacketSniffer />

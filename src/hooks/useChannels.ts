@@ -1,10 +1,10 @@
 import { watch, onMounted, nextTick } from 'vue'
 import * as echarts from 'echarts/core'
 import { ScatterChart } from 'echarts/charts'
-import { GridComponent } from 'echarts/components'
+import { GridComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 
-echarts.use([ScatterChart, GridComponent, CanvasRenderer])
+echarts.use([ScatterChart, TooltipComponent, GridComponent, CanvasRenderer])
 
 import type { ChannelConfig } from './defs'
 
@@ -16,6 +16,9 @@ const isDark = useDark()
 export function useChannels(config: ChannelConfig, chartDom: any) {
   let chart: any
   const option: any = {
+    tooltip: {
+      trigger: 'item'
+    },
     grid: {
       top: '1%',
       bottom: '32px',
@@ -52,10 +55,10 @@ export function useChannels(config: ChannelConfig, chartDom: any) {
       option.yAxis.data.push(c)
       option.series.push({
         name: `Channel ${c}`,
-        symbol: 'path://M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z',
+        symbol: 'circle',
         symbolSize: 10,
         type: 'scatter',
-        data: [],
+        data: []
         // animation:false,
       })
     }
@@ -70,12 +73,18 @@ export function useChannels(config: ChannelConfig, chartDom: any) {
   watch(
     Packets,
     () => {
-      nextTick(() => {
-        const pkt = Packets.value[Packets.value.length - 1]
-        option.xAxis.data.push(pkt.time)
-        option.series[pkt.ch].data.push([pkt.time, pkt.ch])
-        chart.setOption(option)
-      })
+      if (Packets.value.length > 0) {
+        nextTick(() => {
+          const pkt = Packets.value[Packets.value.length - 1]
+
+          option.xAxis.data.push(pkt.time)
+          option.series[pkt.ch].data.push({
+            name: '0x' + pkt.uid.toString(16).toUpperCase().padStart(4, '0'),
+            value: [pkt.time, pkt.ch]
+          })
+          chart.setOption(option)
+        })
+      }
     },
     { deep: true }
   )

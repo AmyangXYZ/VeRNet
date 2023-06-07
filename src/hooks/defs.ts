@@ -48,7 +48,7 @@ export enum PKT_TYPE {
   STAT
 }
 
-export enum NODE_AXN {
+export enum NODE_CMD {
   assign_id,
   beacon,
   send
