@@ -10,8 +10,9 @@ echarts.use([ScatterChart, GridComponent, MarkLineComponent, CanvasRenderer])
 
 import { Packets } from './useStates'
 
-import type { TopoConfig, Node, Packet } from './defs'
-import { PKT_TYPE, NODE_CMD } from './defs'
+import type { TopoConfig, Node } from './defs'
+import type { Packet } from './packet'
+import { PKT_TYPE, CMD_TYPE, pkt2Buf, buf2Pkt } from './packet'
 
 import { useDark } from '@vueuse/core'
 const isDark = useDark()
@@ -110,7 +111,6 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
     const rand = new SeededRandom(config.seed)
     const joined: any = {}
 
-    let pkt_cnt: number = 0
     Packets.value = []
 
     // clear old nodes
@@ -134,15 +134,28 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
       }
       nodes.value.push(n)
       // assign id
-      n.w.postMessage(<Packet>{ type: PKT_TYPE.CMD, cmd: NODE_CMD.assign_id, payload: [i] })
+      const buf: ArrayBuffer = pkt2Buf(<Packet>{
+        type: PKT_TYPE.CMD,
+        src: 0,
+        dst: n.id,
+        len: 2,
+        payload: [CMD_TYPE.ASSIGN_ID, n.id]
+      })
+      n.w.postMessage(buf, [buf])
 
       n.w.onmessage = (e: any) => {
-        const pkt = e.data
-        if (pkt.type == PKT_TYPE.STAT) {
-          n.neighbors = pkt.payload.neighbors
+        const pkt = buf2Pkt(e.data)
+        if (pkt.type == PKT_TYPE.CMD) {
+          n.neighbors = pkt.payload
           if (joined[n.id] == null) {
             joined[n.id] = true
-            n.w.postMessage(<Packet>{ type: PKT_TYPE.CMD, cmd: NODE_CMD.beacon })
+            const buf: ArrayBuffer = pkt2Buf(<Packet>{
+              type: PKT_TYPE.CMD,
+              dst: n.id,
+              len: 1,
+              payload: [CMD_TYPE.BEACON]
+            })
+            n.w.postMessage(buf, [buf])
             setTimeout(async () => {
               nextTick(() => {
                 draw()
@@ -151,17 +164,16 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
           }
         } else {
           // forward mgmt and data packets
-          pkt.no = ++pkt_cnt
           Packets.value.push(pkt)
 
-          if (pkt.dst != -1) {
+          if (pkt.dst != 0xffff) {
             const nn = nodes.value[pkt.dst]
             if (nn != null) {
               const distance = Math.sqrt(
                 Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
               )
               if (distance <= config.tx_range) {
-                nn.w.postMessage(pkt)
+                nn.w.postMessage(e.data, [e.data])
               }
             }
           } else {
@@ -170,21 +182,23 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
                 Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
               )
               if (nn.id > 0 && nn.id != n.id && distance <= config.tx_range) {
-                nn.w.postMessage(pkt)
+                const dup: ArrayBuffer = e.data.slice(0)
+                nn.w.postMessage(dup, [dup])
               }
             }
           }
         }
       }
     }
+
     joined[1] = true
-    nodes.value[1].w.postMessage(<Packet>{ type: PKT_TYPE.CMD, cmd: NODE_CMD.beacon })
-    // for (const n of nodes.value) {
-    //   if (n.id != 0) {
-    //     // broadcast beacon
-    //     n.w.postMessage(<Packet>{ type: PKT_TYPE.CMD, cmd: NODE_CMD.beacon })
-    //   }
-    // }
+    const buf: ArrayBuffer = pkt2Buf(<Packet>{
+      type: PKT_TYPE.CMD,
+      dst: 1,
+      len: 1,
+      payload: [CMD_TYPE.BEACON]
+    })
+    nodes.value[1].w.postMessage(buf, [buf])
   }
 
   function draw() {

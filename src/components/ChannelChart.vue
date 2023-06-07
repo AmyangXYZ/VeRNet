@@ -11,7 +11,7 @@ useChannels(config, chartDom)
 </script>
 
 <template>
-  <el-card style="margin-bottom: 20px;">
+  <el-card style="margin-bottom: 20px">
     <template #header>
       <div class="card-header">Channels</div>
     </template>

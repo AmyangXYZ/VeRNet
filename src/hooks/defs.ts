@@ -19,37 +19,10 @@ export interface ChannelConfig {
   num_channels: number
 }
 
-export interface Packet {
-  no: number // row number in table
-  type: number
-  cmd: number
-  ch: number
-  uid: number
-  seq: number
-  src: number
-  dst: number
-  len: number
-  time: number
-  payload: any
-}
-
 export interface Statistics {
   id: number
   neighbors: number[]
   pkt_seq: number
   rx_cnt: number
   tx_cnt: number
-}
-
-export enum PKT_TYPE {
-  CMD,
-  MGMT,
-  DATA,
-  STAT
-}
-
-export enum NODE_CMD {
-  assign_id,
-  beacon,
-  send
 }

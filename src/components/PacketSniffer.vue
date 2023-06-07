@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { Packets } from '@/hooks/useStates'
-import { PKT_TYPE } from '@/hooks/defs'
+import { PKT_TYPE } from '@/hooks/packet'
 
 const tableRef = ref()
 watch(
@@ -20,8 +20,8 @@ const columns = ref<any[]>([
     title: 'No.',
     dataKey: 'no',
     width: 50,
-    align: 'center'
-    // cellRenderer: ({ cellData: no }:any) => no,
+    align: 'center',
+    cellRenderer: (cell: any) => cell.rowIndex + 1
   },
   {
     key: 'time',
@@ -95,7 +95,7 @@ const columns = ref<any[]>([
     <el-auto-resizer>
       <template #default="{ width }">
         <el-table-v2
-        class="table"
+          class="table"
           stripe
           ref="tableRef"
           :columns="columns"
@@ -116,7 +116,7 @@ const columns = ref<any[]>([
   width: 100%;
 }
 .table {
-  font-size: .8rem;
-  font-family:  Menlo;
+  font-size: 0.8rem;
+  font-family: Menlo;
 }
 </style>

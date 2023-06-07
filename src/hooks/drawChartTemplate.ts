@@ -11,13 +11,11 @@ import { Packets } from './useStates'
 import { useDark } from '@vueuse/core'
 const isDark = useDark()
 
-export function useChannels(chartDom:any) {
+export function useChannels(chartDom: any) {
   let chart: any
   const option: any = {
-    grid: {
-        
-    },
-  } 
+    grid: {}
+  }
 
   function draw() {
     chart.setOption(option)

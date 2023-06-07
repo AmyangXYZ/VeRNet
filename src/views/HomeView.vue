@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Topology from '../components/NetworkTopology.vue'
 import PacketSniffer from '@/components/PacketSniffer.vue'
-import ChannelChart from '@/components/ChannelChart.vue';
+import ChannelChart from '@/components/ChannelChart.vue'
 </script>
 
 <template>

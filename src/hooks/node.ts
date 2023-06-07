@@ -1,6 +1,7 @@
 // run as a Web worker
-import type { Packet, Statistics } from './defs'
-import { PKT_TYPE, NODE_CMD } from './defs'
+import type { Statistics } from './defs'
+import type { Packet } from './packet'
+import { PKT_TYPE, CMD_TYPE, pkt2Buf, buf2Pkt } from './packet'
 
 const stats: Statistics = {
   id: 0,
@@ -11,52 +12,60 @@ const stats: Statistics = {
 }
 
 function report() {
-  postMessage(<Packet>{
-    type: PKT_TYPE.STAT,
+  const buf: ArrayBuffer = pkt2Buf(<Packet>{
+    type: PKT_TYPE.CMD,
     src: stats.id,
     dst: 0,
-    payload: stats
+    time: +Date.now(),
+    len: stats.neighbors.length,
+    payload: stats.neighbors
   })
+  postMessage(buf, [buf])
 }
 
 // setInterval(report, 2000)
 
 onmessage = (e: any) => {
-  const pkt: Packet = e.data
+  const pkt: Packet = buf2Pkt(e.data)
   switch (pkt.type) {
     case PKT_TYPE.CMD:
-      switch (pkt.cmd) {
-        case NODE_CMD.assign_id:
-          stats.id = pkt.payload[0]
-          // console.log(`I am node ${id}`)
+      switch (pkt.payload[0]) {
+        case CMD_TYPE.ASSIGN_ID:
+          stats.id = pkt.payload[1]
+          // console.log(`I am node ${stats.id}`)
           break
-        case NODE_CMD.beacon:
-          postMessage(<Packet>{
-            uid: Math.floor(Math.random() * 65535),
-            time: +Date.now(),
-            ch: Math.floor(Math.random() * 8),
+        case CMD_TYPE.BEACON: {
+          const buf: ArrayBuffer = pkt2Buf(<Packet>{
+            uid: Math.floor(Math.random() * 0xffff),
             type: PKT_TYPE.MGMT,
+            ch: Math.floor(Math.random() * 8),
             src: stats.id,
-            dst: -1,
+            dst: 0xffff,
             seq: stats.pkt_seq,
+            time: +Date.now(),
             len: 0,
             payload: []
           })
+          postMessage(buf, [buf])
           stats.pkt_seq++
           stats.tx_cnt++
           break
-        case NODE_CMD.send:
-          postMessage(<Packet>{
+        }
+        case CMD_TYPE.SEND: {
+          const buf: ArrayBuffer = pkt2Buf(<Packet>{
             uid: Math.floor(Math.random() * 65535),
             type: PKT_TYPE.DATA,
             src: stats.id,
             dst: pkt.dst,
-            payload: pkt.payload,
             seq: stats.pkt_seq,
-            len: pkt.payload.length
+            time: +Date.now(),
+            len: pkt.payload.length,
+            payload: pkt.payload
           })
+          postMessage(buf, [buf])
           stats.pkt_seq++
           break
+        }
       }
       break
     case PKT_TYPE.MGMT:
