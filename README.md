@@ -1,4 +1,4 @@
-# RTWN-Emulator
+# VeRNet: Vue.js Real-time Network Emulator
 
 This template should help get you started developing with Vue 3 in Vite.
 
