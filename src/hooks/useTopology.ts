@@ -16,7 +16,7 @@ import { PKT_TYPE, NODE_AXN } from './defs'
 import { useDark } from '@vueuse/core'
 const isDark = useDark()
 
-export function useDrawTopology(config: TopoConfig, chartDom: any): any {
+export function useTopology(config: TopoConfig, chartDom: any): any {
   let chart: any
 
   const option: any = {
@@ -134,11 +134,11 @@ export function useDrawTopology(config: TopoConfig, chartDom: any): any {
       }
       nodes.value.push(n)
       // assign id
-      n.w.postMessage(<Packet>{ type: PKT_TYPE.Action, act: NODE_AXN.assign_id, payload: [i] })
+      n.w.postMessage(<Packet>{ type: PKT_TYPE.CMD, cmd: NODE_AXN.assign_id, payload: [i] })
 
       n.w.onmessage = (e: any) => {
         const pkt = e.data
-        if (pkt.type == PKT_TYPE.Stat) {
+        if (pkt.type == PKT_TYPE.STAT) {
           n.neighbors = pkt.payload.neighbors
           nextTick(() => {
             draw()
@@ -175,7 +175,7 @@ export function useDrawTopology(config: TopoConfig, chartDom: any): any {
     for (const n of nodes.value) {
       if (n.id != 0)
         // broadcast beacon
-        n.w.postMessage(<Packet>{ type: PKT_TYPE.Action, act: NODE_AXN.beacon })
+        n.w.postMessage(<Packet>{ type: PKT_TYPE.CMD, cmd: NODE_AXN.beacon })
     }
   }
 

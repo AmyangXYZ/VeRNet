@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { Packets } from '@/hooks/useStates'
+import { PKT_TYPE } from '@/hooks/defs'
 
-const tableRef = ref(null)
+const tableRef = ref()
 watch(
   Packets,
   () => {
@@ -18,57 +19,58 @@ const columns = ref<any[]>([
     key: 'no',
     title: 'No.',
     dataKey: 'no',
-    width: 60,
+    width: 50,
     align: 'center'
-    // cellRenderer: ({ cellData: uid }) => {uid},
+    // cellRenderer: ({ cellData: no }:any) => no,
+  },
+  {
+    key: 'time',
+    title: 'TIME',
+    dataKey: 'time',
+    width: 100,
+    align: 'center',
+    cellRenderer: ({ cellData: time }: any) =>
+      new Date(time - new Date(time).getTimezoneOffset() * 60 * 1000)
+        .toISOString()
+        .substring(11, 23)
+        .replace('T', ' ')
   },
   {
     key: 'uid',
     title: 'UID',
     dataKey: 'uid',
     width: 80,
-    align: 'center'
-    // cellRenderer: ({ cellData: uid }) => {uid},
-  },
-  {
-    key: 'time',
-    title: 'TIME',
-    dataKey: 'time',
-    width: 140,
-    align: 'center'
-    // cellRenderer: ({ cellData: uid }) => {uid},
+    align: 'center',
+    cellRenderer: ({ cellData: uid }: any) => '0x' + uid.toString(16).toUpperCase().padStart(4, '0')
   },
   {
     key: 'type',
     title: 'TYPE',
     dataKey: 'type',
-    width: 60,
-    align: 'center'
-    // cellRenderer: ({ cellData: name }) => <ElTag>{name}</ElTag>,
+    width: 50,
+    align: 'center',
+    cellRenderer: ({ cellData: type }: any) => PKT_TYPE[type]
   },
   {
     key: 'src',
     title: 'SRC',
     dataKey: 'src',
-    width: 60,
+    width: 40,
     align: 'center'
-    // cellRenderer: ({ cellData: name }) => <ElTag>{name}</ElTag>,
   },
   {
     key: 'dst',
     title: 'DST',
     dataKey: 'dst',
-    width: 60,
+    width: 40,
     align: 'center'
-    // cellRenderer: ({ cellData: name }) => <ElTag>{name}</ElTag>,
   },
   {
     key: 'seq',
     title: 'SEQ',
     dataKey: 'seq',
-    width: 60,
+    width: 40,
     align: 'center'
-    // cellRenderer: ({ cellData: name }) => <ElTag>{name}</ElTag>,
   },
   {
     key: 'len',
@@ -76,7 +78,6 @@ const columns = ref<any[]>([
     dataKey: 'len',
     width: 60,
     align: 'center'
-    // cellRenderer: ({ cellData: name }) => <ElTag>{name}</ElTag>,
   },
   {
     key: 'payload',
@@ -84,7 +85,6 @@ const columns = ref<any[]>([
     dataKey: 'payload',
     width: 60,
     align: 'center'
-    // cellRenderer: ({ cellData: name }) => <ElTag>{name}</ElTag>,
   }
 ])
 </script>
@@ -95,13 +95,15 @@ const columns = ref<any[]>([
     <el-auto-resizer>
       <template #default="{ width }">
         <el-table-v2
+        class="table"
           stripe
           ref="tableRef"
           :columns="columns"
           :data="Packets"
           :width="width"
-          :height="400"
-          :row-height="24"
+          :height="180"
+          :row-height="18"
+          :header-height="32"
           fixed
         />
       </template>
@@ -112,5 +114,9 @@ const columns = ref<any[]>([
 <style scoped>
 .card {
   width: 100%;
+}
+.table {
+  font-size: .8rem;
+  font-family:  Menlo;
 }
 </style>

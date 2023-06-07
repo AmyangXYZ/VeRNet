@@ -15,11 +15,16 @@ export interface Node {
   neighbors: number[]
 }
 
+export interface ChannelConfig {
+  num_channels: number
+}
+
 export interface Packet {
   no: number // row number in table
   type: number
-  act: number
-  uid: string // display in hex
+  cmd: number
+  ch: number
+  uid: number
   seq: number
   src: number
   dst: number
@@ -37,10 +42,10 @@ export interface Statistics {
 }
 
 export enum PKT_TYPE {
-  Action,
-  Mgmt,
-  Data,
-  Stat
+  CMD,
+  MGMT,
+  DATA,
+  STAT
 }
 
 export enum NODE_AXN {

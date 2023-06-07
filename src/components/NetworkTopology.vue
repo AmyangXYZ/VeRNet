@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { useDrawTopology } from '@/hooks/useTopology'
+import { useTopology } from '@/hooks/useTopology'
 import { Operation } from '@element-plus/icons-vue'
 import type { TopoConfig } from '@/hooks/defs'
 
 const config = reactive<TopoConfig>({
   seed: 123,
-  num_nodes: 25,
-  grid_x: 25,
-  grid_y: 25,
-  tx_range: 7
+  num_nodes: 20,
+  grid_x: 32,
+  grid_y: 32,
+  tx_range: 8
 })
 const chartDom = ref(null)
-useDrawTopology(config, chartDom)
+useTopology(config, chartDom)
 </script>
 
 <template>
@@ -26,7 +26,6 @@ useDrawTopology(config, chartDom)
               <Operation />
             </el-icon>
           </el-button>
-
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item>
@@ -69,7 +68,6 @@ useDrawTopology(config, chartDom)
                   </el-col>
                 </el-row>
               </el-dropdown-item>
-              <!-- <el-dropdown-item divided>Action 5</el-dropdown-item> -->
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -94,6 +92,6 @@ useDrawTopology(config, chartDom)
 }
 .chart {
   width: 100%;
-  height: 400px;
+  height: 500px;
 }
 </style>

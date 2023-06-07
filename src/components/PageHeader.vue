@@ -18,7 +18,7 @@ const handleSelect = (key: string, keyPath: string[]) => {
     :ellipsis="false"
     @select="handleSelect"
   >
-    <el-menu-item index="0">LOGO</el-menu-item>
+    <el-menu-item index="0">VeRNet</el-menu-item>
     <div class="flex-grow" />
     <el-menu-item index="1">Processing Center</el-menu-item>
     <el-sub-menu index="2">
@@ -48,8 +48,5 @@ const handleSelect = (key: string, keyPath: string[]) => {
 <style scoped>
 .flex-grow {
   flex-grow: 1;
-}
-.el-icon i {
-  color: red;
 }
 </style>

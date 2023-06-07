@@ -12,7 +12,7 @@ const stats: Statistics = {
 
 function report() {
   postMessage(<Packet>{
-    type: PKT_TYPE.Stat,
+    type: PKT_TYPE.STAT,
     src: stats.id,
     dst: 0,
     payload: stats
@@ -24,17 +24,18 @@ setInterval(report, 2000)
 onmessage = (e: any) => {
   const pkt: Packet = e.data
   switch (pkt.type) {
-    case PKT_TYPE.Action:
-      switch (pkt.act) {
+    case PKT_TYPE.CMD:
+      switch (pkt.cmd) {
         case NODE_AXN.assign_id:
           stats.id = pkt.payload[0]
           // console.log(`I am node ${id}`)
           break
         case NODE_AXN.beacon:
           postMessage(<Packet>{
-            uid: '0x' + Math.floor(Math.random() * 65535).toString(16),
+            uid: Math.floor(Math.random() * 65535),
             time: +Date.now(),
-            type: PKT_TYPE.Mgmt,
+            ch: Math.floor(Math.random() * 8),
+            type: PKT_TYPE.MGMT,
             src: stats.id,
             dst: -1,
             seq: stats.pkt_seq,
@@ -47,7 +48,7 @@ onmessage = (e: any) => {
         case NODE_AXN.send:
           postMessage(<Packet>{
             uid: Math.floor(Math.random() * 65535),
-            type: PKT_TYPE.Data,
+            type: PKT_TYPE.DATA,
             src: stats.id,
             dst: pkt.dst,
             payload: pkt.payload,
@@ -58,14 +59,14 @@ onmessage = (e: any) => {
           break
       }
       break
-    case PKT_TYPE.Mgmt:
+    case PKT_TYPE.MGMT:
       // console.log(`[${stats.id}] received beacon from node ${pkt.src}`)
       stats.rx_cnt++
       stats.neighbors.push(pkt.src)
       report()
 
       break
-    case PKT_TYPE.Data:
+    case PKT_TYPE.DATA:
       break
   }
 }
