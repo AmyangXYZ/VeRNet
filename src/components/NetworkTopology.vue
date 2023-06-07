@@ -1,13 +1,8 @@
 <script setup lang="ts">
-import { ref,watch } from 'vue'
+import { ref } from 'vue'
 import { useDrawTopology } from '@/hooks/useTopology'
 const chartDom = ref(null)
-const nodes = useDrawTopology({ num_nodes: 8, grid_x: 25, grid_y: 25, tx_range:10 }, chartDom)
-console.log(nodes.value[1].neighbors)
-setTimeout(()=>{console.log(nodes.value[1].neighbors)},3000)
-watch(nodes,()=>{
-  console.log(2222)
-})
+const nodes = useDrawTopology({ num_nodes: 20, grid_x: 25, grid_y: 25, tx_range: 8 }, chartDom)
 </script>
 
 <template>

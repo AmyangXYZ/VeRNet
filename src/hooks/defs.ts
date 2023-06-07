@@ -21,13 +21,15 @@ export interface Packet {
   seq: number
   src: number
   dst: number
-  channel: number
+  len: number
+  time: number
   payload: any
 }
 
 export interface Statistics {
   id: number
   neighbors: number[]
+  pkt_seq: number
   rx_cnt: number
   tx_cnt: number
 }
