@@ -1,6 +1,7 @@
 // all types and enums here
 
 export interface TopoConfig {
+  seed: number
   num_nodes: number
   grid_x: number
   grid_y: number
@@ -15,9 +16,10 @@ export interface Node {
 }
 
 export interface Packet {
+  no: number // row number in table
   type: number
   act: number
-  uid: number
+  uid: string // display in hex
   seq: number
   src: number
   dst: number

@@ -15,6 +15,14 @@ watch(
 
 const columns = ref<any[]>([
   {
+    key: 'no',
+    title: 'No.',
+    dataKey: 'no',
+    width: 60,
+    align: 'center'
+    // cellRenderer: ({ cellData: uid }) => {uid},
+  },
+  {
     key: 'uid',
     title: 'UID',
     dataKey: 'uid',
@@ -82,18 +90,27 @@ const columns = ref<any[]>([
 </script>
 
 <template>
-  <el-auto-resizer>
-    <template #default="{ height, width }">
-      <el-table-v2
-        stripe
-        ref="tableRef"
-        :columns="columns"
-        :data="Packets"
-        :width="width"
-        :height="height"
-        :row-height="30"
-        fixed
-      />
-    </template>
-  </el-auto-resizer>
+  <el-card class="card">
+    <template #header> Packets </template>
+    <el-auto-resizer>
+      <template #default="{ width }">
+        <el-table-v2
+          stripe
+          ref="tableRef"
+          :columns="columns"
+          :data="Packets"
+          :width="width"
+          :height="400"
+          :row-height="24"
+          fixed
+        />
+      </template>
+    </el-auto-resizer>
+  </el-card>
 </template>
+
+<style scoped>
+.card {
+  width: 100%;
+}
+</style>

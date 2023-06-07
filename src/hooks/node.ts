@@ -18,6 +18,7 @@ function report() {
     payload: stats
   })
 }
+
 setInterval(report, 2000)
 
 onmessage = (e: any) => {
@@ -31,14 +32,14 @@ onmessage = (e: any) => {
           break
         case NODE_AXN.beacon:
           postMessage(<Packet>{
-            uid: Math.floor(Math.random() * 65535),
+            uid: '0x' + Math.floor(Math.random() * 65535).toString(16),
             time: +Date.now(),
             type: PKT_TYPE.Mgmt,
             src: stats.id,
             dst: -1,
             seq: stats.pkt_seq,
-            len:0,
-            payload:[]
+            len: 0,
+            payload: []
           })
           stats.pkt_seq++
           stats.tx_cnt++

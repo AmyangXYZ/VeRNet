@@ -9,9 +9,6 @@ import router from './router'
 
 import 'vuesax3/dist/vuesax.css'
 
-import './utils/seedrandom.min.js'
-// Math.seedrandom('123')
-
 const app = createApp(App)
 
 app.use(router)

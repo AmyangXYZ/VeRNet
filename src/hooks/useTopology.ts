@@ -1,4 +1,6 @@
-import { reactive, onMounted, watch,nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
+import { SeededRandom } from './seed'
+
 import * as echarts from 'echarts/core'
 import { ScatterChart } from 'echarts/charts'
 import { GridComponent, MarkLineComponent } from 'echarts/components'
@@ -6,7 +8,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 
 echarts.use([ScatterChart, GridComponent, MarkLineComponent, CanvasRenderer])
 
-import {Packets} from './useStates'
+import { Packets } from './useStates'
 
 import type { TopoConfig, Node, Packet } from './defs'
 import { PKT_TYPE, NODE_AXN } from './defs'
@@ -16,6 +18,7 @@ const isDark = useDark()
 
 export function useDrawTopology(config: TopoConfig, chartDom: any): any {
   let chart: any
+
   const option: any = {
     grid: {
       top: '1%',
@@ -28,7 +31,7 @@ export function useDrawTopology(config: TopoConfig, chartDom: any): any {
       type: 'value',
       data: [],
       interval: 1,
-      max: config.grid_x,
+      max: 20,
       axisLabel: {
         show: false
       },
@@ -47,7 +50,7 @@ export function useDrawTopology(config: TopoConfig, chartDom: any): any {
     yAxis: {
       name: 'grid_y',
       min: 0,
-      max: config.grid_y,
+      max: 20,
       type: 'value',
       interval: 1,
       data: [],
@@ -100,21 +103,36 @@ export function useDrawTopology(config: TopoConfig, chartDom: any): any {
       }
     ]
   }
-  const nodes = reactive<Node[]>([{ id: 0, pos: [], w: {}, neighbors: [] }])
+  const nodes = ref<Node[]>([])
+
   createTopo()
 
   function createTopo() {
+    const rand = new SeededRandom(config.seed)
+
+    let pkt_cnt: number = 0
+    Packets.value = []
+
+    // clear old nodes
+    if (nodes.value.length > 1) {
+      for (const n of nodes.value) {
+        if (n.id > 0) {
+          n.w.terminate()
+        }
+      }
+    }
+    nodes.value = [{ id: 0, pos: [], w: {}, neighbors: [] }]
     for (let i = 1; i <= config.num_nodes; i++) {
       const n: Node = {
         id: i,
         pos: [
-          Math.floor(Math.random() * (config.grid_x - 1)) + 1,
-          Math.floor(Math.random() * (config.grid_y - 1)) + 1
+          Math.floor(rand.next() * (config.grid_x - 1)) + 1,
+          Math.floor(rand.next() * (config.grid_y - 1)) + 1
         ],
         neighbors: [],
         w: new Worker(new URL('./node.ts', import.meta.url), { type: 'module' })
       }
-      nodes.push(n)
+      nodes.value.push(n)
       // assign id
       n.w.postMessage(<Packet>{ type: PKT_TYPE.Action, act: NODE_AXN.assign_id, payload: [i] })
 
@@ -122,14 +140,16 @@ export function useDrawTopology(config: TopoConfig, chartDom: any): any {
         const pkt = e.data
         if (pkt.type == PKT_TYPE.Stat) {
           n.neighbors = pkt.payload.neighbors
-          nextTick(()=>{
+          nextTick(() => {
             draw()
           })
         } else {
           // forward mgmt and data packets
+          pkt.no = ++pkt_cnt
           Packets.value.push(pkt)
+
           if (pkt.dst != -1) {
-            const nn = nodes[pkt.dst]
+            const nn = nodes.value[pkt.dst]
             if (nn != null) {
               const distance = Math.sqrt(
                 Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
@@ -139,7 +159,7 @@ export function useDrawTopology(config: TopoConfig, chartDom: any): any {
               }
             }
           } else {
-            for (const nn of nodes) {
+            for (const nn of nodes.value) {
               const distance = Math.sqrt(
                 Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
               )
@@ -152,7 +172,7 @@ export function useDrawTopology(config: TopoConfig, chartDom: any): any {
       }
     }
 
-    for (const n of nodes) {
+    for (const n of nodes.value) {
       if (n.id != 0)
         // broadcast beacon
         n.w.postMessage(<Packet>{ type: PKT_TYPE.Action, act: NODE_AXN.beacon })
@@ -160,10 +180,12 @@ export function useDrawTopology(config: TopoConfig, chartDom: any): any {
   }
 
   function draw() {
+    option.xAxis.max = config.grid_x
+    option.yAxis.max = config.grid_y
     option.series[0].data = []
     option.series[0].markLine.data = []
 
-    for (const n of nodes) {
+    for (const n of nodes.value) {
       option.series[0].data.push({
         value: n.pos,
         name: n.id
@@ -171,10 +193,10 @@ export function useDrawTopology(config: TopoConfig, chartDom: any): any {
     }
 
     const drawnLinks: any = {}
-    for (const n of nodes) {
+    for (const n of nodes.value) {
       if (n.neighbors.length > 0) {
         for (const nn of n.neighbors) {
-          const nbr = nodes[nn]
+          const nbr = nodes.value[nn]
           if (nbr != null) {
             const name = n.id > nbr.id ? `${n.id}-${nbr.id}` : `${nbr.id}-${n.id}`
             if (drawnLinks[name] == null) {
@@ -208,10 +230,17 @@ export function useDrawTopology(config: TopoConfig, chartDom: any): any {
     draw()
   })
 
-  watch(nodes, () => {
-    console.log(1111111111)
-    draw()
-  })
+  watch(
+    config,
+    () => {
+      // chart.dispose()
+      // chart.clear()
+      // chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
+      createTopo()
+      draw()
+    },
+    { deep: true }
+  )
 
   watch(isDark, () => {
     chart.dispose()

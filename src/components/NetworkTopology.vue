@@ -1,18 +1,97 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useDrawTopology } from '@/hooks/useTopology'
+import { Operation } from '@element-plus/icons-vue'
+import type { TopoConfig } from '@/hooks/defs'
+
+const config = reactive<TopoConfig>({
+  seed: 123,
+  num_nodes: 25,
+  grid_x: 25,
+  grid_y: 25,
+  tx_range: 7
+})
 const chartDom = ref(null)
-const nodes = useDrawTopology({ num_nodes: 20, grid_x: 25, grid_y: 25, tx_range: 8 }, chartDom)
+useDrawTopology(config, chartDom)
 </script>
 
 <template>
   <el-card class="topo">
-    <template #header> Topology </template>
-    <div class="chart" :key="nodes" ref="chartDom"></div>
+    <template #header>
+      <div class="card-header">
+        Topology
+        <el-dropdown :hide-on-click="false">
+          <el-button type="info" circle size="small">
+            <el-icon size="16">
+              <Operation />
+            </el-icon>
+          </el-button>
+
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>
+                <el-row class="item">
+                  <el-col :span="11">seed </el-col>
+                  <el-col :span="11">
+                    <el-input-number class="in" v-model="config.seed" size="small" />
+                  </el-col>
+                </el-row>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-row class="item">
+                  <el-col :span="11">num_nodes </el-col>
+                  <el-col :span="11">
+                    <el-input-number class="in" v-model="config.num_nodes" size="small" />
+                  </el-col>
+                </el-row>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-row class="item">
+                  <el-col :span="11">grid_x </el-col>
+                  <el-col :span="11">
+                    <el-input-number class="in" v-model="config.grid_x" size="small" />
+                  </el-col>
+                </el-row>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-row class="item">
+                  <el-col :span="11">grid_y </el-col>
+                  <el-col :span="11">
+                    <el-input-number class="in" v-model="config.grid_y" size="small" />
+                  </el-col>
+                </el-row>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-row class="item">
+                  <el-col :span="11">tx_range </el-col>
+                  <el-col :span="11">
+                    <el-input-number class="in" v-model="config.tx_range" size="small" />
+                  </el-col>
+                </el-row>
+              </el-dropdown-item>
+              <!-- <el-dropdown-item divided>Action 5</el-dropdown-item> -->
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+    </template>
+    <div class="chart" ref="chartDom"></div>
   </el-card>
 </template>
 
 <style scoped>
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.item {
+  width: 180px;
+  text-align: center;
+}
+.in {
+  width: 90px;
+}
 .chart {
   width: 100%;
   height: 400px;
