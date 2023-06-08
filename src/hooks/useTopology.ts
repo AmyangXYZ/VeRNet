@@ -8,15 +8,22 @@ import { CanvasRenderer } from 'echarts/renderers'
 
 echarts.use([ScatterChart, GridComponent, MarkLineComponent, CanvasRenderer])
 
-import { Packets } from './useStates'
+import { SchConfig, ASN, Packets } from './useStates'
 
-import type { TopoConfig, Node, Packet, CMD_INIT_PAYLOAD, CMD_RUN_PAYLOAD } from './defs'
-import { PKT_TYPE } from './defs'
+import type {
+  TopologyConfig,
+  Node,
+  Packet,
+  CMD_ASN_PAYLOAD,
+  CMD_INIT_PAYLOAD,
+  CMD_RUN_PAYLOAD
+} from './defs'
+import { PKT_ADDR, PKT_TYPE } from './defs'
 
 import { useDark } from '@vueuse/core'
 const isDark = useDark()
 
-export function useTopology(config: TopoConfig, chartDom: any): any {
+export function useTopology(config: TopologyConfig, chartDom: any): any {
   let chart: any
 
   const option: any = {
@@ -73,15 +80,15 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
         z: 10,
         name: 'Node',
         type: 'scatter',
-        symbolSize: 16,
+        symbolSize: 17,
         data: [],
         itemStyle: {
-          opacity: 1,
-          color: 'rgba(52,136,255,1)'
+          opacity: 1
+          // color: 'rgba(52,136,255,1)'
         },
         label: {
           show: true,
-          fontSize: 11,
+          fontSize: 10.5,
           fontWeight: 600,
           color: 'white',
           formatter: (item: any) => {
@@ -120,7 +127,8 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
         }
       }
     }
-    nodes.value = [{ id: 0, pos: [], w: {}, neighbors: [] }]
+    nodes.value = [{ id: 0, pos: [], w: {}, neighbors: [] }] // placeholder
+
     for (let i = 1; i <= config.num_nodes; i++) {
       const n: Node = {
         id: i,
@@ -137,48 +145,74 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
         type: PKT_TYPE.CMD_INIT,
         src: 0,
         dst: n.id,
-        len: 2,
-        payload: <CMD_INIT_PAYLOAD>{ id: n.id, pos: n.pos }
+        len: 3,
+        payload: <CMD_INIT_PAYLOAD>{
+          id: n.id,
+          pos: n.pos,
+          sch_config: SchConfig
+        }
       })
 
+      // act as controller that handles packets sent from each node
       n.w.onmessage = ({ data: pkt }: any) => {
-        if (pkt.type == PKT_TYPE.CMD_STAT) {
-          n.neighbors = pkt.payload.slice(1)
-          if (joined[n.id] == null) {
-            joined[n.id] = true
-            n.w.postMessage(<Packet>{
-              type: PKT_TYPE.CMD_RUN,
-              dst: n.id,
-              len: 1
-              // payload:
-            })
-            setTimeout(async () => {
-              nextTick(() => {
-                draw()
-              })
-            }, 5)
+        if (pkt.dst == PKT_ADDR.CONTROLLER) {
+          // mgmt or debug/stats packets to controller
+          switch (pkt.type) {
+            case PKT_TYPE.CMD_STAT:
+              break
+            case PKT_TYPE.ASSOC_REQ:
+              // new node join
+              // console.log(`new node join: ${pkt.payload.id}->${pkt.payload.parent}`)
+              if (joined[pkt.payload.id] == null) {
+                joined[pkt.payload.id] = true
+
+                nodes.value[pkt.payload.id].neighbors.push(pkt.payload.parent)
+                nodes.value[pkt.payload.parent].neighbors.push(pkt.payload.id)
+
+                nodes.value[pkt.payload.id].w.postMessage(<Packet>{
+                  type: PKT_TYPE.MGMT_SCH,
+                  dst: pkt.payload.id,
+                  len: 1
+                  // payload:
+                })
+                setTimeout(async () => {
+                  nextTick(() => {
+                    draw()
+                  })
+                }, 5)
+              }
+              break
+            default:
+              break
           }
         } else {
-          // forward mgmt and data packets
-          Packets.value.push(pkt)
+          // normal mgmt or data packets to be forwarded
 
-          if (pkt.dst != -1) {
-            const nn = nodes.value[pkt.dst]
-            if (nn != null) {
-              const distance = Math.sqrt(
-                Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
-              )
-              if (distance <= config.tx_range) {
-                nn.w.postMessage(pkt)
+          // check channel interference
+          channels[pkt.ch].push(pkt)
+          if (channels[pkt.ch].length == 1 || pkt.type == PKT_TYPE.ACK) {
+            Packets.value.push(pkt)
+
+            if (pkt.dst == PKT_ADDR.BROADCAST) {
+              for (const nn of nodes.value) {
+                // check if in tx_range
+                const distance = Math.sqrt(
+                  Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
+                )
+                if (nn.id > 0 && nn.id != n.id && distance <= config.tx_range) {
+                  nn.w.postMessage(pkt)
+                }
               }
-            }
-          } else {
-            for (const nn of nodes.value) {
-              const distance = Math.sqrt(
-                Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
-              )
-              if (nn.id > 0 && nn.id != n.id && distance <= config.tx_range) {
-                nn.w.postMessage(pkt)
+            } else {
+              const nn = nodes.value[pkt.dst]
+              if (nn != null) {
+                // check if in tx_range
+                const distance = Math.sqrt(
+                  Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
+                )
+                if (distance <= config.tx_range) {
+                  nn.w.postMessage(pkt)
+                }
               }
             }
           }
@@ -195,6 +229,8 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
       payload: <CMD_RUN_PAYLOAD>{}
     })
   }
+
+  let channels: any = {}
 
   function draw() {
     option.xAxis.max = config.grid_x
@@ -245,6 +281,24 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
   onMounted(() => {
     chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
     draw()
+  })
+
+  watch(ASN, () => {
+    if (nodes.value.length > 1) {
+      channels = {}
+      for (let c = 1; c <= 8; c++) {
+        channels[c] = []
+      }
+      for (const n of nodes.value) {
+        if (n.id > 0) {
+          n.w.postMessage(<Packet>{
+            type: PKT_TYPE.CMD_ASN,
+            dst: n.id,
+            payload: <CMD_ASN_PAYLOAD>{ asn: ASN.value }
+          })
+        }
+      }
+    }
   })
 
   watch(

@@ -1,19 +1,23 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useTopology } from '@/hooks/useTopology'
-import { TopoConfig } from '@/hooks/useStates'
+import { SchConfig, ASN } from '@/hooks/useStates'
+import { useSchedule } from '@/hooks/useSchedule'
 
 import { Operation } from '@element-plus/icons-vue'
 
-const chartDom = ref(null)
-useTopology(TopoConfig, chartDom)
+setInterval(() => {
+  ASN.value++
+}, 100)
+const chartDom = ref()
+useSchedule(SchConfig, chartDom)
 </script>
 
 <template>
-  <el-card class="topo">
+  <el-card>
     <template #header>
       <div class="card-header">
-        Topology
+        Schedule
+        <el-button style="margin-top: 12px" @click="ASN++">Next slot</el-button>
         <el-dropdown :hide-on-click="false">
           <el-button type="info" circle size="small">
             <el-icon size="16">
@@ -24,41 +28,25 @@ useTopology(TopoConfig, chartDom)
             <el-dropdown-menu>
               <el-dropdown-item>
                 <el-row class="item">
-                  <el-col :span="11">seed </el-col>
+                  <el-col :span="11">num_slots </el-col>
                   <el-col :span="11">
-                    <el-input-number class="in" v-model="TopoConfig.seed" size="small" />
+                    <el-input-number class="in" v-model="SchConfig.num_slots" size="small" />
                   </el-col>
                 </el-row>
               </el-dropdown-item>
               <el-dropdown-item>
                 <el-row class="item">
-                  <el-col :span="11">num_nodes </el-col>
+                  <el-col :span="11">num_channels </el-col>
                   <el-col :span="11">
-                    <el-input-number class="in" v-model="TopoConfig.num_nodes" size="small" />
+                    <el-input-number class="in" v-model="SchConfig.num_channels" size="small" />
                   </el-col>
                 </el-row>
               </el-dropdown-item>
               <el-dropdown-item>
                 <el-row class="item">
-                  <el-col :span="11">grid_x </el-col>
+                  <el-col :span="11">num_shared_slots </el-col>
                   <el-col :span="11">
-                    <el-input-number class="in" v-model="TopoConfig.grid_x" size="small" />
-                  </el-col>
-                </el-row>
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <el-row class="item">
-                  <el-col :span="11">grid_y </el-col>
-                  <el-col :span="11">
-                    <el-input-number class="in" v-model="TopoConfig.grid_y" size="small" />
-                  </el-col>
-                </el-row>
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <el-row class="item">
-                  <el-col :span="11">tx_range </el-col>
-                  <el-col :span="11">
-                    <el-input-number class="in" v-model="TopoConfig.tx_range" size="small" />
+                    <el-input-number class="in" v-model="SchConfig.num_shared_slots" size="small" />
                   </el-col>
                 </el-row>
               </el-dropdown-item>
@@ -67,6 +55,7 @@ useTopology(TopoConfig, chartDom)
         </el-dropdown>
       </div>
     </template>
+
     <div class="chart" ref="chartDom"></div>
   </el-card>
 </template>
@@ -86,6 +75,6 @@ useTopology(TopoConfig, chartDom)
 }
 .chart {
   width: 100%;
-  height: 500px;
+  height: 200px;
 }
 </style>

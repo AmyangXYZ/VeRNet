@@ -55,6 +55,6 @@ const handleClose = (key: string, keyPath: string[]) => {
 <style>
 .sidebar {
   width: 180px;
-  height: calc(100vh - 4rem - 58px) !important;
+  height: 100%;
 }
 </style>
