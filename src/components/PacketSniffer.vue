@@ -39,7 +39,7 @@ const columns = ref<any[]>([
     key: 'uid',
     title: 'UID',
     dataKey: 'uid',
-    width: 80,
+    width: 70,
     align: 'center',
     cellRenderer: ({ cellData: uid }: any) => '0x' + uid.toString(16).toUpperCase().padStart(4, '0')
   },
@@ -47,7 +47,7 @@ const columns = ref<any[]>([
     key: 'type',
     title: 'TYPE',
     dataKey: 'type',
-    width: 50,
+    width: 70,
     align: 'center',
     cellRenderer: ({ cellData: type }: any) => PKT_TYPE[type]
   },
@@ -84,7 +84,8 @@ const columns = ref<any[]>([
     title: 'PAYLOAD',
     dataKey: 'payload',
     width: 60,
-    align: 'center'
+    align: 'center',
+    cellRenderer: ({ cellData: payload }: any) => JSON.stringify(payload)
   }
 ])
 </script>

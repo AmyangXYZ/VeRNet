@@ -10,8 +10,8 @@ echarts.use([ScatterChart, GridComponent, MarkLineComponent, CanvasRenderer])
 
 import { Packets } from './useStates'
 
-import type { TopoConfig, Node, Packet } from './defs'
-import { PKT_TYPE, CMD_TYPE } from './defs'
+import type { TopoConfig, Node, Packet, CMD_INIT_PAYLOAD, CMD_RUN_PAYLOAD } from './defs'
+import { PKT_TYPE } from './defs'
 
 import { useDark } from '@vueuse/core'
 const isDark = useDark()
@@ -134,35 +134,29 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
       nodes.value.push(n)
       // assign id
       n.w.postMessage(<Packet>{
-        type: PKT_TYPE.CMD,
+        type: PKT_TYPE.CMD_INIT,
         src: 0,
         dst: n.id,
         len: 2,
-        payload: [CMD_TYPE.ASSIGN_ID, n.id]
+        payload: <CMD_INIT_PAYLOAD>{ id: n.id, pos: n.pos }
       })
 
       n.w.onmessage = ({ data: pkt }: any) => {
-        if (pkt.type == PKT_TYPE.CMD) {
-          switch (pkt.payload[0]) {
-            case CMD_TYPE.NEIGHBOR:
-              n.neighbors = pkt.payload.slice(1)
-              if (joined[n.id] == null) {
-                joined[n.id] = true
-                n.w.postMessage(<Packet>{
-                  type: PKT_TYPE.CMD,
-                  dst: n.id,
-                  len: 1,
-                  payload: [CMD_TYPE.BEACON]
-                })
-                setTimeout(async () => {
-                  nextTick(() => {
-                    draw()
-                  })
-                }, 5)
-              }
-              break
-            case CMD_TYPE.STAT:
-              break
+        if (pkt.type == PKT_TYPE.CMD_STAT) {
+          n.neighbors = pkt.payload.slice(1)
+          if (joined[n.id] == null) {
+            joined[n.id] = true
+            n.w.postMessage(<Packet>{
+              type: PKT_TYPE.CMD_RUN,
+              dst: n.id,
+              len: 1
+              // payload:
+            })
+            setTimeout(async () => {
+              nextTick(() => {
+                draw()
+              })
+            }, 5)
           }
         } else {
           // forward mgmt and data packets
@@ -195,10 +189,10 @@ export function useTopology(config: TopoConfig, chartDom: any): any {
     // let root node start beacon process
     joined[1] = true
     nodes.value[1].w.postMessage(<Packet>{
-      type: PKT_TYPE.CMD,
+      type: PKT_TYPE.CMD_RUN,
       dst: 1,
       len: 1,
-      payload: [CMD_TYPE.BEACON]
+      payload: <CMD_RUN_PAYLOAD>{}
     })
   }
 

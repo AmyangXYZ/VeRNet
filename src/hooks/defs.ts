@@ -28,30 +28,39 @@ export interface Packet {
   seq: number
   time: number
   len: number
-  payload: number[]
+  payload: any
 }
 
 export enum PKT_TYPE {
-  CMD,
-  MGMT,
+  CMD_INIT,
+  CMD_RUN,
+  CMD_SEND,
+  CMD_STAT,
+
+  MGMT_DIO,
+  MGMT_DAO,
+
   DATA
 }
 
-export enum MGMT_TYPE {
-  ASSOC_REQ,
-  ASSOC_RESP,
-  BEACON,
+export interface CMD_INIT_PAYLOAD {
+  id: number
+  pos: number[]
 }
 
-export enum CMD_TYPE {
-  ASSIGN_ID,
-  BEACON,
-  NEIGHBOR,
-  SEND,
-  STAT
+// export interface CMD_RUN_PAYLOAD extends CMD_PAYLOAD {}
+
+export interface CMD_RUN_PAYLOAD {}
+
+export interface MGMT_DIO_PAYLOAD {
+  dodag_id: number
+  rank: number
 }
+
+export interface MGMT_DAO_PAYLOAD {}
 
 export interface Statistics {
+  pkt_seq: number
   rx_cnt: number
   tx_cnt: number
 }
