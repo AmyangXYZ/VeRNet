@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { Packets } from '@/hooks/useStates'
-import { PKT_TYPE } from '@/hooks/packet'
+import { PKT_TYPE } from '@/hooks/defs'
 
 const tableRef = ref()
 watch(
