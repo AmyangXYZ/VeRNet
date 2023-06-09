@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useChannels } from '@/hooks/useChannels'
-import type { ChannelConfig } from '@/hooks/defs'
+import type { ChannelConfig } from '@/hooks/typedefs'
 
 const config = reactive<ChannelConfig>({
   num_channels: 8

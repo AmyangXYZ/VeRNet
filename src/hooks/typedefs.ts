@@ -22,7 +22,8 @@ export interface ScheduleConfig {
 }
 
 export interface Cell {
-  assigned: boolean
+  slot: number
+  ch: number
   src: number
   dst: number
 }
@@ -38,6 +39,10 @@ export interface Packet {
   asn: number
   len: number
   payload: any
+
+  // for display on table
+  id: number
+  children: any[]
 }
 
 export enum PKT_ADDR {
@@ -48,13 +53,14 @@ export enum PKT_ADDR {
 
 export enum PKT_TYPE {
   ACK,
-
+  // direct commands or stats between node and controller
   CMD_ASN,
   CMD_INIT,
   CMD_RUN,
   CMD_SEND,
   CMD_STAT,
 
+  // management
   BEACON,
   ASSOC_REQ,
   ASSOC_RSP,

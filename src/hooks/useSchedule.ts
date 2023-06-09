@@ -6,7 +6,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 
 echarts.use([LineChart, GridComponent, CanvasRenderer])
 
-import type { ScheduleConfig } from './defs'
+import type { ScheduleConfig } from './typedefs'
 
 import { useDark } from '@vueuse/core'
 const isDark = useDark()

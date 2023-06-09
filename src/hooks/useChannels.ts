@@ -6,7 +6,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 
 echarts.use([ScatterChart, TooltipComponent, DataZoomComponent, GridComponent, CanvasRenderer])
 
-import type { ScheduleConfig } from './defs'
+import type { ScheduleConfig } from './typedefs'
 
 import { ASN, Packets } from './useStates'
 
@@ -22,7 +22,7 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
     },
     grid: {
       top: '1%',
-      bottom: '56px',
+      bottom: '54px',
       left: '32px',
       right: '1%'
     },
@@ -78,7 +78,7 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
   function initChart() {
     option.xAxis.data = []
     option.yAxis.data = []
-    // option.series = []
+    option.series[0].data = []
     for (let c = 1; c <= config.num_channels; c++) {
       option.yAxis.data.push(`${c}`)
     }
@@ -94,6 +94,13 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
   })
 
   watch(ASN, () => {
+    if (ASN.value == 0) {
+      chart.dispose()
+      chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
+      initChart()
+      option.dataZoom[0].startValue = ASN.value - zoomWindow
+      chart.setOption(option)
+    }
     if (ASN.value > zoomWindow) {
       option.xAxis.data.push(ASN.value)
       option.dataZoom[0].startValue = ASN.value - zoomWindow

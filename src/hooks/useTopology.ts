@@ -13,12 +13,13 @@ import { SchConfig, ASN, Packets } from './useStates'
 import type {
   TopologyConfig,
   Node,
+  Cell,
   Packet,
   CMD_ASN_PAYLOAD,
   CMD_INIT_PAYLOAD,
-  CMD_RUN_PAYLOAD
-} from './defs'
-import { PKT_ADDR, PKT_TYPE } from './defs'
+  ASSOC_RSP_PAYLOAD
+} from './typedefs'
+import { PKT_ADDR, PKT_TYPE } from './typedefs'
 
 import { useDark } from '@vueuse/core'
 const isDark = useDark()
@@ -117,6 +118,7 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
     const rand = new SeededRandom(config.seed)
     const joined: any = {}
 
+    ASN.value = 0
     Packets.value = []
 
     // clear old nodes
@@ -152,6 +154,20 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
           sch_config: SchConfig
         }
       })
+      if (n.id == 1) {
+        const assocRsp: Packet = <Packet>{
+          type: PKT_TYPE.ASSOC_RSP,
+          src: 0,
+          dst: n.id,
+          len: 4,
+          asn: 1,
+          payload: <ASSOC_RSP_PAYLOAD>{
+            id: n.id,
+            schedule: <Cell[]>[{ slot: 1, ch: 1, src: n.id, dst: -1 }]
+          }
+        }
+        n.w.postMessage(assocRsp)
+      }
 
       // act as controller that handles packets sent from each node
       n.w.onmessage = ({ data: pkt }: any) => {
@@ -168,13 +184,29 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
 
                 nodes.value[pkt.payload.id].neighbors.push(pkt.payload.parent)
                 nodes.value[pkt.payload.parent].neighbors.push(pkt.payload.id)
-
-                nodes.value[pkt.payload.id].w.postMessage(<Packet>{
-                  type: PKT_TYPE.MGMT_SCH,
+                const assocRsp: Packet = <Packet>{
+                  type: PKT_TYPE.ASSOC_RSP,
+                  uid: Math.floor(Math.random() * 0xffff),
+                  ch: 2,
+                  src: 0,
                   dst: pkt.payload.id,
-                  len: 1
-                  // payload:
-                })
+                  seq: 0,
+                  asn: ASN.value,
+                  len: 4,
+                  payload: <ASSOC_RSP_PAYLOAD>{
+                    id: pkt.payload.id,
+                    schedule: <Cell[]>[
+                      { slot: pkt.payload.id + 20, ch: 1, src: pkt.payload.id, dst: -1 }
+                    ]
+                  }
+                }
+                assocRsp.id = Packets.value.length
+                assocRsp.children = [
+                  { payload_detail: JSON.stringify(assocRsp.payload).replace(/"/g, '') }
+                ]
+                Packets.value.push(assocRsp)
+                nodes.value[pkt.payload.id].w.postMessage(assocRsp)
+
                 setTimeout(async () => {
                   nextTick(() => {
                     draw()
@@ -191,6 +223,12 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
           // check channel interference
           channels[pkt.ch].push(pkt)
           if (channels[pkt.ch].length == 1 || pkt.type == PKT_TYPE.ACK) {
+            pkt.id = Packets.value.length
+            pkt.children = [
+              {
+                payload_detail: JSON.stringify(pkt.payload).replace(/"/g, '')
+              }
+            ]
             Packets.value.push(pkt)
 
             if (pkt.dst == PKT_ADDR.BROADCAST) {
@@ -219,15 +257,6 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
         }
       }
     }
-
-    // let root node start beacon process
-    joined[1] = true
-    nodes.value[1].w.postMessage(<Packet>{
-      type: PKT_TYPE.CMD_RUN,
-      dst: 1,
-      len: 1,
-      payload: <CMD_RUN_PAYLOAD>{}
-    })
   }
 
   let channels: any = {}

@@ -1,19 +1,19 @@
 // global states and configs
 
 import { ref, reactive } from 'vue'
-import type { Packet } from './defs'
+import type { Packet } from './typedefs'
 
-import type { TopologyConfig, ScheduleConfig } from './defs'
+import type { TopologyConfig, ScheduleConfig } from './typedefs'
 
 export const SchConfig: ScheduleConfig = {
-  num_slots: 20,
+  num_slots: 100,
   num_channels: 8,
-  num_shared_slots: 4
+  num_shared_slots: 10
 }
 
 export const TopoConfig = reactive<TopologyConfig>({
   seed: 123,
-  num_nodes: 50,
+  num_nodes: 20,
   grid_x: 32,
   grid_y: 32,
   tx_range: 10

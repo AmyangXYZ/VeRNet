@@ -7,7 +7,8 @@ import { Operation } from '@element-plus/icons-vue'
 
 setInterval(() => {
   ASN.value++
-}, 100)
+}, 50)
+// ASN.value++
 const chartDom = ref()
 useSchedule(SchConfig, chartDom)
 </script>

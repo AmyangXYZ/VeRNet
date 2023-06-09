@@ -3,10 +3,9 @@ import ChannelChart from '@/components/ChannelChart.vue'
 
 import { ref, watch, nextTick } from 'vue'
 import { Packets } from '@/hooks/useStates'
-import { PKT_TYPE } from '@/hooks/defs'
+import { type Packet, PKT_TYPE } from '@/hooks/typedefs'
 
 import { Filter } from '@element-plus/icons-vue'
-
 const filter = ref()
 
 const tableRef = ref()
@@ -20,14 +19,14 @@ watch(
   { deep: true }
 )
 
-const columns = ref<any[]>([
+const columns: any = [
   {
-    key: 'no',
+    key: 'id',
     title: 'No.',
-    dataKey: 'no',
-    width: 50,
+    dataKey: 'id',
+    width: 60,
     align: 'center',
-    cellRenderer: (cell: any) => cell.rowIndex + 1
+    cellRenderer: ({ cellData: id }: any) => id+1
   },
   // {
   //   key: 'time',
@@ -45,14 +44,14 @@ const columns = ref<any[]>([
     key: 'asn',
     title: 'ASN',
     dataKey: 'asn',
-    width: 50,
+    width: 60,
     align: 'center'
   },
   {
     key: 'ch',
     title: 'CH',
     dataKey: 'ch',
-    width: 40,
+    width: 60,
     align: 'center'
   },
   {
@@ -67,7 +66,7 @@ const columns = ref<any[]>([
     key: 'type',
     title: 'TYPE',
     dataKey: 'type',
-    width: 80,
+    width: 100,
     align: 'center',
     cellRenderer: ({ cellData: type }: any) => PKT_TYPE[type]
   },
@@ -75,21 +74,21 @@ const columns = ref<any[]>([
     key: 'src',
     title: 'SRC',
     dataKey: 'src',
-    width: 40,
+    width: 60,
     align: 'center'
   },
   {
     key: 'dst',
     title: 'DST',
     dataKey: 'dst',
-    width: 40,
+    width: 60,
     align: 'center'
   },
   {
     key: 'seq',
     title: 'SEQ',
     dataKey: 'seq',
-    width: 40,
+    width: 60,
     align: 'center'
   },
   {
@@ -103,11 +102,15 @@ const columns = ref<any[]>([
     key: 'payload',
     title: 'PAYLOAD',
     dataKey: 'payload',
-    width: 200,
+    width: 60,
     align: 'center',
-    cellRenderer: ({ cellData: payload }: any) => JSON.stringify(payload)
+    cellRenderer: () => '...'
   }
-])
+]
+const Row = ({ cells, rowData }: any) => {
+  if (rowData.payload_detail) return rowData.payload_detail
+  return cells
+}
 </script>
 
 <template>
@@ -126,17 +129,19 @@ const columns = ref<any[]>([
     <el-auto-resizer>
       <template #default="{ width }">
         <el-table-v2
-          class="table"
-          stripe
           ref="tableRef"
+          class="table"
           :columns="columns"
           :data="Packets"
           :width="width"
           :height="280"
-          :row-height="18"
-          :header-height="28"
-          fixed
-        />
+          :expand-column-key="columns[9].key"
+          :estimated-row-height="18"
+        >
+          <template #row="props">
+            <Row v-bind="props" />
+          </template>
+        </el-table-v2>
       </template>
     </el-auto-resizer>
     <ChannelChart />
@@ -156,5 +161,6 @@ const columns = ref<any[]>([
 .table {
   font-size: 0.8rem;
   font-family: Menlo;
+  text-align: center;
 }
 </style>

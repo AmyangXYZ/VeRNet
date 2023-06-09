@@ -6,8 +6,8 @@ import type {
   BEACON_PAYLOAD,
   ASSOC_REQ_PAYLOAD,
   ScheduleConfig
-} from './defs'
-import { PKT_ADDR, PKT_TYPE } from './defs'
+} from './typedefs'
+import { PKT_ADDR, PKT_TYPE } from './typedefs'
 
 const BEACON_CHANNEL = 1
 const SHARED_CHANNEL = 2
@@ -54,9 +54,6 @@ onmessage = ({ data: pkt }: any) => {
       initSchedule(pkt.payload.sch_config)
       // console.log(`I am node ${self.id}`)
       break
-    case PKT_TYPE.CMD_RUN:
-      sendBeacon()
-      break
     case PKT_TYPE.CMD_SEND:
       queue.push(<Packet>{
         uid: Math.floor(Math.random() * 0xffff),
@@ -95,6 +92,7 @@ onmessage = ({ data: pkt }: any) => {
       ack.type = PKT_TYPE.ACK
       ack.src = self.id
       ack.dst = pkt.src
+      ack.len = 0
       ack.payload = {}
       postMessage(ack)
 
@@ -113,6 +111,14 @@ onmessage = ({ data: pkt }: any) => {
       }
       break
     }
+    case PKT_TYPE.ASSOC_RSP:
+      if (pkt.dst == self.id) {
+        for (const cell of pkt.payload.schedule) {
+          schedule[cell.slot][cell.ch] = cell
+        }
+        sendBeacon()
+      }
+      break
     case PKT_TYPE.DATA: {
       const ack: Packet = { ...pkt }
       ack.type = PKT_TYPE.ACK
@@ -143,13 +149,10 @@ function initSchedule(config: ScheduleConfig) {
   for (let s = 1; s <= config.num_slots; s++) {
     schedule[s] = new Array<Cell>(config.num_channels + 1)
   }
-  // beacon of root
-  if (self.id == 1) {
-    schedule[1][BEACON_CHANNEL] = <Cell>{ assigned: true, src: self.id, dst: PKT_ADDR.BROADCAST }
-  }
+
   // shared slots
   for (let s = 0; s < config.num_shared_slots; s++) {
-    schedule[s + 2][SHARED_CHANNEL] = <Cell>{ assigned: true, src: self.id, dst: PKT_ADDR.ANY }
+    schedule[s + 1][SHARED_CHANNEL] = <Cell>{ src: self.id, dst: PKT_ADDR.ANY }
   }
 }
 
@@ -164,7 +167,6 @@ function checkSchedule() {
         const cell = schedule[slot][ch]
         if (
           cell != null &&
-          cell.assigned &&
           cell.src == pkt.src &&
           ((cell.dst == PKT_ADDR.ANY && pkt.dst != PKT_ADDR.BROADCAST) || cell.dst == pkt.dst)
         ) {
