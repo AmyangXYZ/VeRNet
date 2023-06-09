@@ -224,11 +224,7 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
           channels[pkt.ch].push(pkt)
           if (channels[pkt.ch].length == 1 || pkt.type == PKT_TYPE.ACK) {
             pkt.id = Packets.value.length
-            pkt.children = [
-              {
-                payload_detail: JSON.stringify(pkt.payload).replace(/"/g, '')
-              }
-            ]
+            pkt.children = [{ payload_detail: JSON.stringify(pkt.payload).replace(/"/g, '') }]
             Packets.value.push(pkt)
 
             if (pkt.dst == PKT_ADDR.BROADCAST) {

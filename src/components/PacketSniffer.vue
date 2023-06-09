@@ -3,7 +3,7 @@ import ChannelChart from '@/components/ChannelChart.vue'
 
 import { ref, watch, nextTick } from 'vue'
 import { Packets } from '@/hooks/useStates'
-import { type Packet, PKT_TYPE } from '@/hooks/typedefs'
+import { PKT_TYPE } from '@/hooks/typedefs'
 
 import { Filter } from '@element-plus/icons-vue'
 const filter = ref()
@@ -26,7 +26,7 @@ const columns: any = [
     dataKey: 'id',
     width: 60,
     align: 'center',
-    cellRenderer: ({ cellData: id }: any) => id+1
+    cellRenderer: ({ cellData: id }: any) => id + 1
   },
   // {
   //   key: 'time',
@@ -107,6 +107,7 @@ const columns: any = [
     cellRenderer: () => '...'
   }
 ]
+
 const Row = ({ cells, rowData }: any) => {
   if (rowData.payload_detail) return rowData.payload_detail
   return cells
