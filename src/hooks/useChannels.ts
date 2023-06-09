@@ -31,7 +31,7 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
         type: 'slider',
         // startValue: 0,
         // endValue: 0,
-        maxValueSpan: zoomWindow,
+        // maxValueSpan: zoomWindow,
         throttle: 0,
         bottom: 0,
         height: 20

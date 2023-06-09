@@ -7,7 +7,7 @@ import type {
   ASSOC_REQ_PAYLOAD,
   ScheduleConfig
 } from './typedefs'
-import { PKT_ADDR, PKT_TYPE } from './typedefs'
+import { PKT_ADDR, PKT_TYPES } from './typedefs'
 
 const BEACON_CHANNEL = 1
 const SHARED_CHANNEL = 2
@@ -37,27 +37,27 @@ const stats: Statistics = {
 // handle packets
 onmessage = ({ data: pkt }: any) => {
   switch (pkt.type) {
-    case PKT_TYPE.ACK:
+    case PKT_TYPES.ACK:
       if (queue[0] != null && queue[0].uid == pkt.uid) {
         // console.log('recieved ack', pkt.uid)
         queue.shift()
       }
       break
-    case PKT_TYPE.CMD_ASN:
+    case PKT_TYPES.CMD_ASN:
       ASN = pkt.payload.asn
       // console.log(`[${self.id}] cur_asn: ${ASN}`)
       checkSchedule()
       break
-    case PKT_TYPE.CMD_INIT:
+    case PKT_TYPES.CMD_INIT:
       self.id = pkt.payload.id
       self.pos = pkt.payload.pos
       initSchedule(pkt.payload.sch_config)
       // console.log(`I am node ${self.id}`)
       break
-    case PKT_TYPE.CMD_SEND:
+    case PKT_TYPES.CMD_SEND:
       queue.push(<Packet>{
         uid: Math.floor(Math.random() * 0xffff),
-        type: PKT_TYPE.DATA,
+        type: PKT_TYPES.DATA,
         src: self.id,
         dst: pkt.dst,
         seq: ++stats.pkt_seq,
@@ -66,7 +66,7 @@ onmessage = ({ data: pkt }: any) => {
       })
       break
 
-    case PKT_TYPE.BEACON:
+    case PKT_TYPES.BEACON:
       // console.log(`[${self.id}] received beacon (DIO) from node ${pkt.src}`)
       stats.rx_cnt++
       if (self.id != 1 && self.parent == 0) {
@@ -75,7 +75,7 @@ onmessage = ({ data: pkt }: any) => {
         self.rank = pkt.payload.rank + 1
         queue.push(<Packet>{
           uid: Math.floor(Math.random() * 0xffff),
-          type: PKT_TYPE.ASSOC_REQ,
+          type: PKT_TYPES.ASSOC_REQ,
           src: self.id,
           dst: self.parent,
           seq: ++stats.pkt_seq,
@@ -84,12 +84,12 @@ onmessage = ({ data: pkt }: any) => {
         })
       }
       break
-    case PKT_TYPE.ASSOC_REQ: {
+    case PKT_TYPES.ASSOC_REQ: {
       // console.log(`[${self.id}] DAO from [${pkt.src}]`)
 
       // response ack
       const ack: Packet = { ...pkt }
-      ack.type = PKT_TYPE.ACK
+      ack.type = PKT_TYPES.ACK
       ack.src = self.id
       ack.dst = pkt.src
       ack.len = 0
@@ -111,7 +111,7 @@ onmessage = ({ data: pkt }: any) => {
       }
       break
     }
-    case PKT_TYPE.ASSOC_RSP:
+    case PKT_TYPES.ASSOC_RSP:
       if (pkt.dst == self.id) {
         for (const cell of pkt.payload.schedule) {
           schedule[cell.slot][cell.ch] = cell
@@ -119,9 +119,9 @@ onmessage = ({ data: pkt }: any) => {
         sendBeacon()
       }
       break
-    case PKT_TYPE.DATA: {
+    case PKT_TYPES.DATA: {
       const ack: Packet = { ...pkt }
-      ack.type = PKT_TYPE.ACK
+      ack.type = PKT_TYPES.ACK
       ack.src = self.id
       ack.dst = pkt.src
       ack.payload = {}
@@ -134,7 +134,7 @@ onmessage = ({ data: pkt }: any) => {
 function sendBeacon() {
   queue.push(<Packet>{
     uid: Math.floor(Math.random() * 0xffff),
-    type: PKT_TYPE.BEACON,
+    type: PKT_TYPES.BEACON,
     ch: BEACON_CHANNEL,
     src: self.id,
     dst: -1,
@@ -177,7 +177,7 @@ function checkSchedule() {
           stats.tx_cnt++
 
           // no need of ack, transmission finished
-          if (pkt.dst == PKT_ADDR.BROADCAST || pkt.type == PKT_TYPE.ACK) {
+          if (pkt.dst == PKT_ADDR.BROADCAST || pkt.type == PKT_TYPES.ACK) {
             queue.shift()
           }
           break

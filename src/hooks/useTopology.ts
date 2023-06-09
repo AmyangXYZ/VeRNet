@@ -1,4 +1,4 @@
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { onMounted, watch, nextTick } from 'vue'
 import { SeededRandom } from './seed'
 
 import * as echarts from 'echarts/core'
@@ -8,7 +8,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 
 echarts.use([ScatterChart, GridComponent, MarkLineComponent, CanvasRenderer])
 
-import { SchConfig, ASN, Packets } from './useStates'
+import { Nodes, SchConfig, ASN, Packets } from './useStates'
 
 import type {
   TopologyConfig,
@@ -19,12 +19,12 @@ import type {
   CMD_INIT_PAYLOAD,
   ASSOC_RSP_PAYLOAD
 } from './typedefs'
-import { PKT_ADDR, PKT_TYPE } from './typedefs'
+import { PKT_ADDR, PKT_TYPES } from './typedefs'
 
 import { useDark } from '@vueuse/core'
 const isDark = useDark()
 
-export function useTopology(config: TopologyConfig, chartDom: any): any {
+export function useTopology(config: TopologyConfig, chartDom: any) {
   let chart: any
 
   const option: any = {
@@ -111,25 +111,23 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
       }
     ]
   }
-  const nodes = ref<Node[]>([])
 
   createNodes()
   function createNodes() {
     const rand = new SeededRandom(config.seed)
-    const joined: any = {}
 
     ASN.value = 0
     Packets.value = []
 
     // clear old nodes
-    if (nodes.value.length > 1) {
-      for (const n of nodes.value) {
+    if (Nodes.value.length > 1) {
+      for (const n of Nodes.value) {
         if (n.id > 0) {
           n.w.terminate()
         }
       }
     }
-    nodes.value = [{ id: 0, pos: [], w: {}, neighbors: [] }] // placeholder
+    Nodes.value = [<Node>{ id: 0, pos: [], joined: false, w: {}, neighbors: [] }] // placeholder
 
     for (let i = 1; i <= config.num_nodes; i++) {
       const n: Node = {
@@ -138,25 +136,28 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
           Math.floor(rand.next() * (config.grid_x - 1)) + 1,
           Math.floor(rand.next() * (config.grid_y - 1)) + 1
         ],
+        joined: i == 1,
         neighbors: [],
         w: new Worker(new URL('./node.ts', import.meta.url), { type: 'module' })
       }
-      nodes.value.push(n)
+
+      Nodes.value.push(n)
       // assign id
       n.w.postMessage(<Packet>{
-        type: PKT_TYPE.CMD_INIT,
+        type: PKT_TYPES.CMD_INIT,
         src: 0,
         dst: n.id,
         len: 3,
         payload: <CMD_INIT_PAYLOAD>{
           id: n.id,
           pos: n.pos,
-          sch_config: SchConfig
+          sch_config: JSON.parse(JSON.stringify(SchConfig))
         }
       })
+
       if (n.id == 1) {
         const assocRsp: Packet = <Packet>{
-          type: PKT_TYPE.ASSOC_RSP,
+          type: PKT_TYPES.ASSOC_RSP,
           src: 0,
           dst: n.id,
           len: 4,
@@ -174,18 +175,18 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
         if (pkt.dst == PKT_ADDR.CONTROLLER) {
           // mgmt or debug/stats packets to controller
           switch (pkt.type) {
-            case PKT_TYPE.CMD_STAT:
+            case PKT_TYPES.CMD_STAT:
               break
-            case PKT_TYPE.ASSOC_REQ:
+            case PKT_TYPES.ASSOC_REQ:
               // new node join
               // console.log(`new node join: ${pkt.payload.id}->${pkt.payload.parent}`)
-              if (joined[pkt.payload.id] == null) {
-                joined[pkt.payload.id] = true
+              if (!Nodes.value[pkt.payload.id].joined) {
+                Nodes.value[pkt.payload.id].joined = true
 
-                nodes.value[pkt.payload.id].neighbors.push(pkt.payload.parent)
-                nodes.value[pkt.payload.parent].neighbors.push(pkt.payload.id)
+                Nodes.value[pkt.payload.id].neighbors.push(pkt.payload.parent)
+                Nodes.value[pkt.payload.parent].neighbors.push(pkt.payload.id)
                 const assocRsp: Packet = <Packet>{
-                  type: PKT_TYPE.ASSOC_RSP,
+                  type: PKT_TYPES.ASSOC_RSP,
                   uid: Math.floor(Math.random() * 0xffff),
                   ch: 2,
                   src: 0,
@@ -205,7 +206,7 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
                   { payload_detail: JSON.stringify(assocRsp.payload).replace(/"/g, '') }
                 ]
                 Packets.value.push(assocRsp)
-                nodes.value[pkt.payload.id].w.postMessage(assocRsp)
+                Nodes.value[pkt.payload.id].w.postMessage(assocRsp)
 
                 setTimeout(async () => {
                   nextTick(() => {
@@ -222,13 +223,13 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
 
           // check channel interference
           channels[pkt.ch].push(pkt)
-          if (channels[pkt.ch].length == 1 || pkt.type == PKT_TYPE.ACK) {
+          if (channels[pkt.ch].length == 1 || pkt.type == PKT_TYPES.ACK) {
             pkt.id = Packets.value.length
             pkt.children = [{ payload_detail: JSON.stringify(pkt.payload).replace(/"/g, '') }]
             Packets.value.push(pkt)
 
             if (pkt.dst == PKT_ADDR.BROADCAST) {
-              for (const nn of nodes.value) {
+              for (const nn of Nodes.value) {
                 // check if in tx_range
                 const distance = Math.sqrt(
                   Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
@@ -238,7 +239,7 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
                 }
               }
             } else {
-              const nn = nodes.value[pkt.dst]
+              const nn = Nodes.value[pkt.dst]
               if (nn != null) {
                 // check if in tx_range
                 const distance = Math.sqrt(
@@ -263,7 +264,7 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
     option.series[0].data = []
     option.series[0].markLine.data = []
 
-    for (const n of nodes.value) {
+    for (const n of Nodes.value) {
       option.series[0].data.push({
         value: n.pos,
         name: n.id
@@ -271,10 +272,10 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
     }
 
     const drawnLinks: any = {}
-    for (const n of nodes.value) {
+    for (const n of Nodes.value) {
       if (n.neighbors.length > 0) {
         for (const nn of n.neighbors) {
-          const nbr = nodes.value[nn]
+          const nbr = Nodes.value[nn]
           if (nbr != null) {
             const name = n.id > nbr.id ? `${n.id}-${nbr.id}` : `${nbr.id}-${n.id}`
             if (drawnLinks[name] == null) {
@@ -309,15 +310,15 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
   })
 
   watch(ASN, () => {
-    if (nodes.value.length > 1) {
+    if (Nodes.value.length > 1) {
       channels = {}
       for (let c = 1; c <= 8; c++) {
         channels[c] = []
       }
-      for (const n of nodes.value) {
+      for (const n of Nodes.value) {
         if (n.id > 0) {
           n.w.postMessage(<Packet>{
-            type: PKT_TYPE.CMD_ASN,
+            type: PKT_TYPES.CMD_ASN,
             dst: n.id,
             payload: <CMD_ASN_PAYLOAD>{ asn: ASN.value }
           })
@@ -340,6 +341,4 @@ export function useTopology(config: TopologyConfig, chartDom: any): any {
     chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
     draw()
   })
-
-  return nodes
 }

@@ -11,6 +11,7 @@ export interface TopologyConfig {
 export interface Node {
   id: number
   pos: number[]
+  joined: boolean
   neighbors: number[]
   w: any // a webworker
 }
@@ -42,7 +43,7 @@ export interface Packet {
 
   // for display on table
   id: number
-  children: any[]
+  children: any
 }
 
 export enum PKT_ADDR {
@@ -51,8 +52,9 @@ export enum PKT_ADDR {
   ANY = -2
 }
 
-export enum PKT_TYPE {
+export enum PKT_TYPES {
   ACK,
+
   // direct commands or stats between node and controller
   CMD_ASN,
   CMD_INIT,

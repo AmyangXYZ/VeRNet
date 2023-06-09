@@ -3,10 +3,15 @@ import ChannelChart from '@/components/ChannelChart.vue'
 
 import { ref, watch, nextTick } from 'vue'
 import { Packets } from '@/hooks/useStates'
-import { PKT_TYPE } from '@/hooks/typedefs'
+import { type Packet, PKT_TYPES } from '@/hooks/typedefs'
 
 import { Filter } from '@element-plus/icons-vue'
-const filter = ref()
+const filterRules = ref()
+
+function filterFunc(pkt: Packet) {
+  if (filterRules.value == null) return true
+  return eval(filterRules.value)
+}
 
 const tableRef = ref()
 watch(
@@ -68,7 +73,7 @@ const columns: any = [
     dataKey: 'type',
     width: 100,
     align: 'center',
-    cellRenderer: ({ cellData: type }: any) => PKT_TYPE[type]
+    cellRenderer: ({ cellData: type }: any) => PKT_TYPES[type]
   },
   {
     key: 'src',
@@ -120,7 +125,7 @@ const Row = ({ cells, rowData }: any) => {
       <div class="card-header">
         Packets
         <el-input
-          v-model="filter"
+          v-model="filterRules"
           class="filter-input"
           placeholder="src == 1 && type != ACK"
           :suffix-icon="Filter"
@@ -133,7 +138,7 @@ const Row = ({ cells, rowData }: any) => {
           ref="tableRef"
           class="table"
           :columns="columns"
-          :data="Packets"
+          :data="Packets.filter(filterFunc)"
           :width="width"
           :height="280"
           :expand-column-key="columns[9].key"
