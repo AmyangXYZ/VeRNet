@@ -11,15 +11,14 @@ import ScheduleTable from '@/components/ScheduleTable.vue'
     <el-container>
       <el-main>
         <el-row :gutter="20">
-          <el-col :span="12">
+          <el-col :span="13">
             <Topology />
           </el-col>
-          <el-col :span="12">
+          <el-col :span="10">
             <PacketSniffer />
           </el-col>
         </el-row>
         <ScheduleTable style="margin-top: 20px" />
-        
       </el-main>
       <el-footer>Footer</el-footer>
     </el-container>

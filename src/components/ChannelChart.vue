@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import { useChannels } from '@/hooks/useChannels'
-import type { ChannelConfig } from '@/hooks/typedefs'
+import { SchConfig } from '@/hooks/useStates'
 
-const config = reactive<ChannelConfig>({
-  num_channels: 8
-})
 const chartDom = ref(null)
-useChannels(config, chartDom)
+useChannels(SchConfig, chartDom)
 </script>
 
 <template>

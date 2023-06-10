@@ -16,7 +16,7 @@ function startASNTimer() {
   running.value = true
   asnTimer = setInterval(() => {
     ASN.value++
-  }, 800)
+  }, 1000)
 }
 
 function pauseASNTimer() {

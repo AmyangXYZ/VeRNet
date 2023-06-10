@@ -62,16 +62,16 @@ export function useTopology(chartDom: any) {
       itemStyle: {
         color: 'royalblue'
       },
-      environment: '#121212',
+      // environment: '#121212',
       boxWidth: 100,
       boxDepth: 100,
       boxHeight: 100,
       viewControl: {
-        distance: 200,
-        alpha: 60,
+        distance: 160,
+        // alpha: 70,
         maxAlpha: 180,
         maxBeta: 720,
-        center: [0, 0, 0]
+        center: [0, -30, 0]
       },
       regionHeight: 3,
       regions: [{ name: 'node22', itemStyle: { color: 'red' }, height: 20 }]
@@ -93,11 +93,12 @@ export function useTopology(chartDom: any) {
         coordinateSystem: 'geo3D',
         effect: {
           show: true,
-          trailColor:"white",
+          trailColor: 'white',
           trailWidth: 2.5,
           trailOpacity: 0.8,
           trailLength: 0.25,
-          constantSpeed: 80
+          // constantSpeed: 80
+          period: 0.8
         },
         blendMode: 'lighter',
         lineStyle: {
@@ -124,7 +125,7 @@ export function useTopology(chartDom: any) {
         }
       }
     }
-    Nodes.value = [<Node>{ id: 0, pos: [], joined: false, w: {}, neighbors: [] }] // placeholder
+    Nodes.value = [<Node>{ id: 0, pos: [0, 0], joined: false, w: {}, neighbors: [] }] // placeholder
 
     for (let i = 1; i <= TopoConfig.num_nodes; i++) {
       const n: Node = {
@@ -221,8 +222,14 @@ export function useTopology(chartDom: any) {
             channels[pkt.ch] = [pkt]
           }
           if (channels[pkt.ch].length == 1 || pkt.type == PKT_TYPES.ACK) {
+            // must use this format for the detailedView function of el-table-v2
             pkt.id = Packets.value.length
-            pkt.children = [{ payload_detail: JSON.stringify(pkt.payload).replace(/"/g, '') }]
+            pkt.children = [
+              {
+                id: `${Packets.value.length}-detail-content`,
+                detail: JSON.stringify(pkt.payload).replace(/"/g, '')
+              }
+            ]
             Packets.value.push(pkt)
 
             // draw animation
@@ -265,7 +272,11 @@ export function useTopology(chartDom: any) {
   function drawNodes() {
     for (const n of Nodes.value) {
       if (n.id == 0) continue
+      const center: Coordinate = n.pos // San Francisco, for example
+      const radius = 60 // 10 kilometers
+      const numSegments = 6 // The more segments, the smoother the circle
 
+      const coordinates = generateCircleCoordinates(center, radius, numSegments)
       gridMap.features.push({
         type: 'Feature',
         properties: {
@@ -273,15 +284,7 @@ export function useTopology(chartDom: any) {
           name: n.id
         },
         geometry: {
-          coordinates: [
-            [
-              [n.pos[0] - 0.2, n.pos[1] - 0.2],
-              [n.pos[0] - 0.2, n.pos[1] + 0.2],
-              [n.pos[0] + 0.2, n.pos[1] + 0.2],
-              [n.pos[0] + 0.2, n.pos[1] - 0.2],
-              [n.pos[0] - 0.2, n.pos[1] - 0.2]
-            ]
-          ],
+          coordinates: [coordinates],
           type: 'Polygon'
         }
       })
@@ -297,7 +300,9 @@ export function useTopology(chartDom: any) {
 
   watch(ASN, () => {
     option.series[1].data = []
-
+    nextTick(() => {
+      chart.setOption(option)
+    })
     if (Nodes.value.length > 1) {
       channels = {}
       for (let c = 1; c <= 8; c++) {
@@ -329,4 +334,31 @@ export function useTopology(chartDom: any) {
     chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
     drawNodes()
   })
+}
+
+type Coordinate = [number, number]
+
+function generateCircleCoordinates(
+  center: Coordinate,
+  radius: number,
+  numSegments: number
+): Coordinate[] {
+  const distanceX = radius / (111.32 * Math.cos((center[1] * Math.PI) / 180))
+  const distanceY = radius / 110.574
+
+  const coordinates: Coordinate[] = []
+
+  for (let i = 0; i < numSegments; i++) {
+    const theta = (i / numSegments) * (2 * Math.PI)
+    const dx = distanceX * Math.cos(theta)
+    const dy = distanceY * Math.sin(theta)
+
+    const point: Coordinate = [center[0] + dx, center[1] + dy]
+    coordinates.push(point)
+  }
+
+  // To close the circle, add the first point again at the end
+  coordinates.push(coordinates[0])
+
+  return coordinates
 }

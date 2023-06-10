@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="tsx">
 import ChannelChart from '@/components/ChannelChart.vue'
 
 import { ref, watch, nextTick } from 'vue'
@@ -13,19 +13,6 @@ function filterFunc(pkt: Packet) {
   return eval(filterRules.value)
 }
 
-const tableRef = ref()
-watch(
-  Packets,
-  () => {
-    if (Packets.value.length > 0) {
-      nextTick(() => {
-        tableRef.value?.scrollToRow(Packets.value.length)
-      })
-    }
-  },
-  { deep: true }
-)
-
 const columns: any = [
   {
     key: 'id',
@@ -33,7 +20,7 @@ const columns: any = [
     dataKey: 'id',
     width: 50,
     align: 'center',
-    cellRenderer: ({ cellData: id }: any) => id + 1
+    cellRenderer: ({ rowIndex }: any) => rowIndex + 1
   },
   // {
   //   key: 'time',
@@ -58,7 +45,7 @@ const columns: any = [
     key: 'asn',
     title: 'SLOT',
     dataKey: 'asn',
-    width: 50,
+    width: 40,
     align: 'center',
     cellRenderer: ({ cellData: asn }: any) => asn % SchConfig.num_slots
   },
@@ -66,7 +53,7 @@ const columns: any = [
     key: 'ch',
     title: 'CH',
     dataKey: 'ch',
-    width: 50,
+    width: 40,
     align: 'center'
   },
   {
@@ -87,7 +74,7 @@ const columns: any = [
     key: 'uid',
     title: 'UID',
     dataKey: 'uid',
-    width: 70,
+    width: 80,
     align: 'center',
     cellRenderer: ({ cellData: uid }: any) => '0x' + uid.toString(16).toUpperCase().padStart(4, '0')
   },
@@ -95,7 +82,7 @@ const columns: any = [
     key: 'type',
     title: 'TYPE',
     dataKey: 'type',
-    width: 90,
+    width: 100,
     align: 'center',
     cellRenderer: ({ cellData: type }: any) => PKT_TYPES[type]
   },
@@ -103,14 +90,14 @@ const columns: any = [
     key: 'seq',
     title: 'SEQ',
     dataKey: 'seq',
-    width: 60,
+    width: 40,
     align: 'center'
   },
   {
     key: 'len',
     title: 'LEN',
     dataKey: 'len',
-    width: 60,
+    width: 40,
     align: 'center'
   },
   {
@@ -123,10 +110,24 @@ const columns: any = [
   }
 ]
 
+const tableRef = ref()
+watch(
+  Packets,
+  () => {
+    if (Packets.value.length > 0) {
+      nextTick(() => {
+        tableRef.value?.scrollToRow(Packets.value.length)
+      })
+    }
+  },
+  { deep: true }
+)
+
 const Row = ({ cells, rowData }: any) => {
-  if (rowData.payload_detail) return rowData.payload_detail
+  if (rowData.detail) return <div class="row-detail">{rowData.detail}</div>
   return cells
 }
+Row.inheritAttrs = false
 </script>
 
 <template>
@@ -152,7 +153,7 @@ const Row = ({ cells, rowData }: any) => {
           :width="width"
           :height="280"
           :expand-column-key="columns[10].key"
-          :row-height="20"
+          :estimated-row-height="18"
           :header-height="28"
         >
           <template #row="props">
@@ -176,8 +177,12 @@ const Row = ({ cells, rowData }: any) => {
   height: 24px;
 }
 .table {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-family: Menlo;
+  text-align: center;
+}
+.row-detail {
+  width: 100%;
   text-align: center;
 }
 </style>

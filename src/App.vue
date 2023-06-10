@@ -9,7 +9,6 @@ import { RouterView } from 'vue-router'
       <Header />
     </el-header>
     <RouterView />
-    
   </el-container>
 </template>
 

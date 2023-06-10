@@ -10,7 +10,7 @@ export interface TopologyConfig {
 
 export interface Node {
   id: number
-  pos: number[]
+  pos: [number, number]
   joined: boolean
   neighbors: number[]
   w: any // a webworker
@@ -23,7 +23,7 @@ export interface ScheduleConfig {
 }
 
 export interface Cell {
-  type: number,
+  type: number
   slot: number
   ch: number
   src: number
