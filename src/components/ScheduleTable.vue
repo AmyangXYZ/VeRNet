@@ -6,7 +6,7 @@ import { useSchedule } from '@/hooks/useSchedule'
 import { Operation } from '@element-plus/icons-vue'
 
 const chartDom = ref()
-useSchedule(SchConfig, chartDom)
+useSchedule( chartDom)
 </script>
 
 <template>

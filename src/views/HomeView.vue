@@ -10,7 +10,7 @@ import ScheduleTable from '@/components/ScheduleTable.vue'
     <el-aside width="240px"><ControlPanel /></el-aside>
     <el-container>
       <el-main>
-        <el-row :gutter="30">
+        <el-row :gutter="20">
           <el-col :span="11">
             <Topology />
           </el-col>

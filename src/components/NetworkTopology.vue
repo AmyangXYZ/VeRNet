@@ -6,7 +6,7 @@ import { TopoConfig } from '@/hooks/useStates'
 import { Operation } from '@element-plus/icons-vue'
 
 const chartDom = ref(null)
-useTopology(TopoConfig, chartDom)
+useTopology(chartDom)
 </script>
 
 <template>

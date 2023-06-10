@@ -23,11 +23,17 @@ export interface ScheduleConfig {
 }
 
 export interface Cell {
-  dedicate: boolean, // or shared
+  type: number,
   slot: number
   ch: number
   src: number
   dst: number
+}
+
+export enum CELL_TYPES {
+  SHARED,
+  MGMT,
+  DATA
 }
 
 // Message is used for direct communication (debug, cmd, stats) between nodes and controller
@@ -39,7 +45,6 @@ export interface Message {
 export enum MSG_TYPES {
   ASN,
   INIT,
-  RUN,
   SEND,
   STAT,
   ASSOC_REQ

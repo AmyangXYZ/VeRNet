@@ -8,10 +8,10 @@ import type {
   ASSOC_REQ_PAYLOAD,
   ScheduleConfig
 } from './typedefs'
-import { MSG_TYPES, ADDR, PKT_TYPES } from './typedefs'
+import { MSG_TYPES, ADDR, PKT_TYPES, CELL_TYPES } from './typedefs'
 
 const SHARED_CHANNEL = 1
-const BEACON_PERIOD = 100
+const BEACON_PERIOD = 1 // # of slotframe
 
 // basic information
 const self: any = {
@@ -48,7 +48,7 @@ onmessage = (e: any) => {
         ASN = msg.payload.asn
         // console.log(`[${self.id}] cur_asn: ${ASN}`)
         // send beacon
-        if (self.joined && ASN % BEACON_PERIOD == 1) {
+        if (self.joined && ASN % (BEACON_PERIOD * (schedule.length - 1)) == 1) {
           queue.push(<Packet>{
             uid: Math.floor(Math.random() * 0xffff),
             type: PKT_TYPES.BEACON,
@@ -188,7 +188,7 @@ function initSchedule(config: ScheduleConfig) {
   // shared slots
   for (let s = 0; s < config.num_shared_slots; s++) {
     schedule[s + 1][SHARED_CHANNEL] = <Cell>{
-      dedicate: false,
+      type: CELL_TYPES.SHARED,
       slot: s,
       ch: SHARED_CHANNEL,
       src: self.id,

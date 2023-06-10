@@ -8,10 +8,9 @@ import { CanvasRenderer } from 'echarts/renderers'
 
 echarts.use([ScatterChart, GridComponent, MarkLineComponent, CanvasRenderer])
 
-import { Nodes, SchConfig, ASN, Packets } from './useStates'
+import { Nodes, TopoConfig, SchConfig, ASN, Packets } from './useStates'
 
 import type {
-  TopologyConfig,
   Node,
   Cell,
   Message,
@@ -20,12 +19,12 @@ import type {
   MSG_INIT_PAYLOAD,
   ASSOC_RSP_PAYLOAD
 } from './typedefs'
-import { MSG_TYPES, ADDR, PKT_TYPES } from './typedefs'
+import { MSG_TYPES, ADDR, PKT_TYPES, CELL_TYPES } from './typedefs'
 
 import { useDark } from '@vueuse/core'
 const isDark = useDark()
 
-export function useTopology(config: TopologyConfig, chartDom: any) {
+export function useTopology(chartDom: any) {
   let chart: any
   let channels: any = {}
 
@@ -117,7 +116,7 @@ export function useTopology(config: TopologyConfig, chartDom: any) {
   createNodes()
 
   function createNodes() {
-    const rand = new SeededRandom(config.seed)
+    const rand = new SeededRandom(TopoConfig.seed)
     ASN.value = 0
     Packets.value = []
 
@@ -131,12 +130,12 @@ export function useTopology(config: TopologyConfig, chartDom: any) {
     }
     Nodes.value = [<Node>{ id: 0, pos: [], joined: false, w: {}, neighbors: [] }] // placeholder
 
-    for (let i = 1; i <= config.num_nodes; i++) {
+    for (let i = 1; i <= TopoConfig.num_nodes; i++) {
       const n: Node = {
         id: i,
         pos: [
-          Math.floor(rand.next() * (config.grid_x - 1)) + 1,
-          Math.floor(rand.next() * (config.grid_y - 1)) + 1
+          Math.floor(rand.next() * (TopoConfig.grid_x - 1)) + 1,
+          Math.floor(rand.next() * (TopoConfig.grid_y - 1)) + 1
         ],
         joined: i == ADDR.ROOT,
         neighbors: [],
@@ -193,12 +192,14 @@ export function useTopology(config: TopologyConfig, chartDom: any) {
                     parent: parent,
                     schedule: <Cell[]>[
                       {
+                        type: CELL_TYPES.MGMT,
                         slot: msg.payload.id + 20,
                         ch: 1,
                         src: msg.payload.id,
                         dst: ADDR.BROADCAST
                       },
                       {
+                        type: CELL_TYPES.DATA,
                         slot: msg.payload.id + 60,
                         ch: Math.floor(Math.random() * 4) + 2,
                         src: msg.payload.id,
@@ -236,7 +237,7 @@ export function useTopology(config: TopologyConfig, chartDom: any) {
                 const distance = Math.sqrt(
                   Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
                 )
-                if (nn.id > 0 && nn.id != n.id && distance <= config.tx_range) {
+                if (nn.id > 0 && nn.id != n.id && distance <= TopoConfig.tx_range) {
                   nn.w.postMessage(pkt)
                 }
               }
@@ -247,7 +248,7 @@ export function useTopology(config: TopologyConfig, chartDom: any) {
                 const distance = Math.sqrt(
                   Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
                 )
-                if (distance <= config.tx_range) {
+                if (distance <= TopoConfig.tx_range) {
                   nn.w.postMessage(pkt)
                 }
               }
@@ -259,15 +260,19 @@ export function useTopology(config: TopologyConfig, chartDom: any) {
   }
 
   function draw() {
-    option.xAxis.max = config.grid_x
-    option.yAxis.max = config.grid_y
+    option.xAxis.max = TopoConfig.grid_x
+    option.yAxis.max = TopoConfig.grid_y
     option.series[0].data = []
     option.series[0].markLine.data = []
 
     for (const n of Nodes.value) {
       option.series[0].data.push({
         value: n.pos,
-        name: n.id
+        name: n.id,
+        itemStyle: {
+          color: n.joined ? 'royalblue' : '#999'
+          // opacity: n.joined?1:.4
+        }
       })
     }
 
@@ -328,7 +333,7 @@ export function useTopology(config: TopologyConfig, chartDom: any) {
   })
 
   watch(
-    config,
+    TopoConfig,
     () => {
       createNodes()
       draw()
