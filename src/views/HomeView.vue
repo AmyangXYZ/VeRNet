@@ -3,6 +3,7 @@ import ControlPanel from '@/components/ControlPanel.vue'
 import Topology from '../components/NetworkTopology.vue'
 import PacketSniffer from '@/components/PacketSniffer.vue'
 import ScheduleTable from '@/components/ScheduleTable.vue'
+import Topology3D from '@/components/Topology3D.vue';
 </script>
 
 <template>
@@ -19,6 +20,7 @@ import ScheduleTable from '@/components/ScheduleTable.vue'
           </el-col>
         </el-row>
         <ScheduleTable style="margin-top: 20px" />
+        <Topology3D/>
       </el-main>
       <el-footer>Footer</el-footer>
     </el-container>
