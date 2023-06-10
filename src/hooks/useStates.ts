@@ -12,16 +12,13 @@ export const SchConfig = reactive<ScheduleConfig>({
 })
 
 export const TopoConfig = reactive<TopologyConfig>({
-  seed: 123,
-  num_nodes: 20,
+  seed: 124,
+  num_nodes: 5,
   grid_x: 32,
   grid_y: 32,
-  tx_range: 10
+  tx_range: 20
 })
 
 export const Nodes = ref<Node[]>([])
 export const ASN = ref<number>(0)
-export const ASNTimer = setInterval(() => {
-  ASN.value++
-}, 10)
 export const Packets = ref<Packet[]>([])

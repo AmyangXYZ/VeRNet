@@ -23,12 +23,39 @@ export interface ScheduleConfig {
 }
 
 export interface Cell {
+  dedicate: boolean, // or shared
   slot: number
   ch: number
   src: number
   dst: number
 }
 
+// Message is used for direct communication (debug, cmd, stats) between nodes and controller
+export interface Message {
+  type: number
+  payload: any
+}
+
+export enum MSG_TYPES {
+  ASN,
+  INIT,
+  RUN,
+  SEND,
+  STAT,
+  ASSOC_REQ
+}
+
+export interface MSG_ASN_PAYLOAD {
+  asn: number
+}
+
+export interface MSG_INIT_PAYLOAD {
+  id: number
+  pos: number[]
+  sch_config: ScheduleConfig
+}
+
+// Packet is transfered among nodes, at data-link layer
 export interface Packet {
   uid: number
   type: number
@@ -41,50 +68,28 @@ export interface Packet {
   len: number
   payload: any
 
-  // for display on table
+  // for display on packet sniffer
   id: number
   children: any
 }
 
-export enum PKT_ADDR {
+export enum ADDR {
   CONTROLLER = 0,
+  ROOT = 1,
   BROADCAST = -1,
   ANY = -2
 }
 
 export enum PKT_TYPES {
   ACK,
-
-  // direct commands or stats between node and controller
-  CMD_ASN,
-  CMD_INIT,
-  CMD_RUN,
-  CMD_SEND,
-  CMD_STAT,
-
-  // management
   BEACON,
   ASSOC_REQ,
   ASSOC_RSP,
-
+  SCH_UPDATE,
   DATA
 }
 
-export interface CMD_ASN_PAYLOAD {
-  asn: number
-}
-
-export interface CMD_INIT_PAYLOAD {
-  id: number
-  pos: number[]
-  sch_config: ScheduleConfig
-}
-
-// export interface CMD_RUN_PAYLOAD extends CMD_PAYLOAD {}
-
-export interface CMD_RUN_PAYLOAD {}
-
-export interface BEACON_PAYLOAD {
+export interface PKT_BEACON_PAYLOAD {
   dodag_id: number
   rank: number
 }
@@ -95,7 +100,9 @@ export interface ASSOC_REQ_PAYLOAD {
 }
 
 export interface ASSOC_RSP_PAYLOAD {
+  permit: boolean
   id: number
+  parent: number
   schedule: Cell[]
 }
 

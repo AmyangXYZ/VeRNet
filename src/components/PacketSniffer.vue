@@ -2,7 +2,7 @@
 import ChannelChart from '@/components/ChannelChart.vue'
 
 import { ref, watch, nextTick } from 'vue'
-import { Packets } from '@/hooks/useStates'
+import { Packets, SchConfig } from '@/hooks/useStates'
 import { type Packet, PKT_TYPES } from '@/hooks/typedefs'
 
 import { Filter } from '@element-plus/icons-vue'
@@ -17,9 +17,11 @@ const tableRef = ref()
 watch(
   Packets,
   () => {
-    nextTick(() => {
-      tableRef.value?.scrollToRow(Packets.value.length)
-    })
+    if (Packets.value.length > 0) {
+      nextTick(() => {
+        tableRef.value?.scrollToRow(Packets.value.length)
+      })
+    }
   },
   { deep: true }
 )
@@ -53,17 +55,39 @@ const columns: any = [
     align: 'center'
   },
   {
+    key: 'asn',
+    title: 'SLOT',
+    dataKey: 'asn',
+    width: 50,
+    align: 'center',
+    cellRenderer: ({ cellData: asn }: any) => asn % SchConfig.num_slots
+  },
+  {
     key: 'ch',
     title: 'CH',
     dataKey: 'ch',
-    width: 60,
+    width: 50,
+    align: 'center'
+  },
+  {
+    key: 'src',
+    title: 'SRC',
+    dataKey: 'src',
+    width: 50,
+    align: 'center'
+  },
+  {
+    key: 'dst',
+    title: 'DST',
+    dataKey: 'dst',
+    width: 50,
     align: 'center'
   },
   {
     key: 'uid',
     title: 'UID',
     dataKey: 'uid',
-    width: 80,
+    width: 75,
     align: 'center',
     cellRenderer: ({ cellData: uid }: any) => '0x' + uid.toString(16).toUpperCase().padStart(4, '0')
   },
@@ -71,23 +95,9 @@ const columns: any = [
     key: 'type',
     title: 'TYPE',
     dataKey: 'type',
-    width: 100,
+    width: 90,
     align: 'center',
     cellRenderer: ({ cellData: type }: any) => PKT_TYPES[type]
-  },
-  {
-    key: 'src',
-    title: 'SRC',
-    dataKey: 'src',
-    width: 60,
-    align: 'center'
-  },
-  {
-    key: 'dst',
-    title: 'DST',
-    dataKey: 'dst',
-    width: 60,
-    align: 'center'
   },
   {
     key: 'seq',
@@ -127,7 +137,7 @@ const Row = ({ cells, rowData }: any) => {
         <el-input
           v-model="filterRules"
           class="filter-input"
-          placeholder="src == 1 && type != ACK"
+          placeholder="pkt.src == 1 && pkt.type != ACK"
           :suffix-icon="Filter"
         />
       </div>
@@ -141,8 +151,9 @@ const Row = ({ cells, rowData }: any) => {
           :data="Packets.filter(filterFunc)"
           :width="width"
           :height="280"
-          :expand-column-key="columns[9].key"
+          :expand-column-key="columns[10].key"
           :estimated-row-height="18"
+          :header-height="28"
         >
           <template #row="props">
             <Row v-bind="props" />

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Header from './components/PageHeader.vue'
-import SideBar from './components/SideBar.vue'
 import { RouterView } from 'vue-router'
 </script>
 
@@ -9,13 +8,8 @@ import { RouterView } from 'vue-router'
     <el-header>
       <Header />
     </el-header>
-    <el-container>
-      <el-aside width="200px"><SideBar /></el-aside>
-      <el-container>
-        <el-main><RouterView /></el-main>
-        <el-footer>Footer</el-footer>
-      </el-container>
-    </el-container>
+    <RouterView />
+    
   </el-container>
 </template>
 

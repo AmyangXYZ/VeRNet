@@ -15,7 +15,7 @@ const isDark = useDark()
 
 export function useChannels(config: ScheduleConfig, chartDom: any) {
   let chart: any
-  const zoomWindow: number = 16
+  const zoomWindow: number = 40
   const option: any = {
     tooltip: {
       trigger: 'item'
@@ -101,9 +101,11 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
       option.dataZoom[0].startValue = ASN.value - zoomWindow
       chart.setOption(option)
     }
-    if (ASN.value > zoomWindow) {
-      option.xAxis.data.push(ASN.value)
-      option.dataZoom[0].startValue = ASN.value - zoomWindow
+    if (ASN.value > option.xAxis.data.length) {
+      for (let s = ASN.value; s < ASN.value + 5; s++) {
+        option.xAxis.data.push(s)
+      }
+      option.dataZoom[0].startValue = ASN.value - zoomWindow + 5
       chart.setOption(option)
     }
   })

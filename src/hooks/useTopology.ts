@@ -14,18 +14,20 @@ import type {
   TopologyConfig,
   Node,
   Cell,
+  Message,
   Packet,
-  CMD_ASN_PAYLOAD,
-  CMD_INIT_PAYLOAD,
+  MSG_ASN_PAYLOAD,
+  MSG_INIT_PAYLOAD,
   ASSOC_RSP_PAYLOAD
 } from './typedefs'
-import { PKT_ADDR, PKT_TYPES } from './typedefs'
+import { MSG_TYPES, ADDR, PKT_TYPES } from './typedefs'
 
 import { useDark } from '@vueuse/core'
 const isDark = useDark()
 
 export function useTopology(config: TopologyConfig, chartDom: any) {
   let chart: any
+  let channels: any = {}
 
   const option: any = {
     grid: {
@@ -113,9 +115,9 @@ export function useTopology(config: TopologyConfig, chartDom: any) {
   }
 
   createNodes()
+
   function createNodes() {
     const rand = new SeededRandom(config.seed)
-
     ASN.value = 0
     Packets.value = []
 
@@ -136,77 +138,75 @@ export function useTopology(config: TopologyConfig, chartDom: any) {
           Math.floor(rand.next() * (config.grid_x - 1)) + 1,
           Math.floor(rand.next() * (config.grid_y - 1)) + 1
         ],
-        joined: i == 1,
+        joined: i == ADDR.ROOT,
         neighbors: [],
         w: new Worker(new URL('./node.ts', import.meta.url), { type: 'module' })
       }
 
       Nodes.value.push(n)
       // assign id
-      n.w.postMessage(<Packet>{
-        type: PKT_TYPES.CMD_INIT,
-        src: 0,
-        dst: n.id,
-        len: 3,
-        payload: <CMD_INIT_PAYLOAD>{
+      n.w.postMessage(<Message>{
+        type: MSG_TYPES.INIT,
+        payload: <MSG_INIT_PAYLOAD>{
           id: n.id,
           pos: n.pos,
           sch_config: JSON.parse(JSON.stringify(SchConfig))
         }
       })
 
-      if (n.id == 1) {
-        const assocRsp: Packet = <Packet>{
-          type: PKT_TYPES.ASSOC_RSP,
-          src: 0,
-          dst: n.id,
-          len: 4,
-          asn: 1,
-          payload: <ASSOC_RSP_PAYLOAD>{
-            id: n.id,
-            schedule: <Cell[]>[{ slot: 1, ch: 1, src: n.id, dst: -1 }]
-          }
-        }
-        n.w.postMessage(assocRsp)
-      }
-
-      // act as controller that handles packets sent from each node
-      n.w.onmessage = ({ data: pkt }: any) => {
-        if (pkt.dst == PKT_ADDR.CONTROLLER) {
-          // mgmt or debug/stats packets to controller
-          switch (pkt.type) {
-            case PKT_TYPES.CMD_STAT:
+      // handle messages and packets sent from each node
+      n.w.onmessage = (e: any) => {
+        // msg or pkt
+        if ('ch' in e.data == false) {
+          const msg: Message = e.data
+          switch (msg.type) {
+            case MSG_TYPES.STAT:
               break
-            case PKT_TYPES.ASSOC_REQ:
-              // new node join
-              // console.log(`new node join: ${pkt.payload.id}->${pkt.payload.parent}`)
-              if (!Nodes.value[pkt.payload.id].joined) {
-                Nodes.value[pkt.payload.id].joined = true
 
-                Nodes.value[pkt.payload.id].neighbors.push(pkt.payload.parent)
-                Nodes.value[pkt.payload.parent].neighbors.push(pkt.payload.id)
-                const assocRsp: Packet = <Packet>{
+            case MSG_TYPES.ASSOC_REQ: {
+              // new node join
+              // console.log(`new node join: ${msg.payload.id}->${msg.payload.parent}`)
+              const new_node: number = msg.payload.id
+              const parent: number = msg.payload.parent
+
+              // to improve
+              const topo_check = !Nodes.value[new_node].joined
+
+              if (topo_check) {
+                Nodes.value[new_node].joined = true
+
+                Nodes.value[new_node].neighbors.push(parent)
+                Nodes.value[parent].neighbors.push(new_node)
+
+                Nodes.value[ADDR.ROOT].w.postMessage(<Packet>{
                   type: PKT_TYPES.ASSOC_RSP,
                   uid: Math.floor(Math.random() * 0xffff),
                   ch: 2,
                   src: 0,
-                  dst: pkt.payload.id,
+                  dst: ADDR.ROOT,
                   seq: 0,
                   asn: ASN.value,
-                  len: 4,
+                  len: 7,
                   payload: <ASSOC_RSP_PAYLOAD>{
-                    id: pkt.payload.id,
+                    permit: true,
+                    id: new_node,
+                    parent: parent,
                     schedule: <Cell[]>[
-                      { slot: pkt.payload.id + 20, ch: 1, src: pkt.payload.id, dst: -1 }
+                      {
+                        slot: msg.payload.id + 20,
+                        ch: 1,
+                        src: msg.payload.id,
+                        dst: ADDR.BROADCAST
+                      },
+                      {
+                        slot: msg.payload.id + 60,
+                        ch: Math.floor(Math.random() * 4) + 2,
+                        src: msg.payload.id,
+                        dst: parent
+                      }
                     ]
                   }
-                }
-                assocRsp.id = Packets.value.length
-                assocRsp.children = [
-                  { payload_detail: JSON.stringify(assocRsp.payload).replace(/"/g, '') }
-                ]
-                Packets.value.push(assocRsp)
-                Nodes.value[pkt.payload.id].w.postMessage(assocRsp)
+                })
 
                 setTimeout(async () => {
                   nextTick(() => {
@@ -215,20 +215,22 @@ export function useTopology(config: TopologyConfig, chartDom: any) {
                 }, 5)
               }
               break
-            default:
-              break
+            }
           }
         } else {
-          // normal mgmt or data packets to be forwarded
-
-          // check channel interference
-          channels[pkt.ch].push(pkt)
+          const pkt: Packet = e.data
+          // check channel interference, only one packet can be transmitted on each channel in a slot
+          if (pkt.ch in channels) {
+            channels[pkt.ch].push(pkt)
+          } else {
+            channels[pkt.ch] = [pkt]
+          }
           if (channels[pkt.ch].length == 1 || pkt.type == PKT_TYPES.ACK) {
             pkt.id = Packets.value.length
             pkt.children = [{ payload_detail: JSON.stringify(pkt.payload).replace(/"/g, '') }]
             Packets.value.push(pkt)
 
-            if (pkt.dst == PKT_ADDR.BROADCAST) {
+            if (pkt.dst == ADDR.BROADCAST) {
               for (const nn of Nodes.value) {
                 // check if in tx_range
                 const distance = Math.sqrt(
@@ -255,8 +257,6 @@ export function useTopology(config: TopologyConfig, chartDom: any) {
       }
     }
   }
-
-  let channels: any = {}
 
   function draw() {
     option.xAxis.max = config.grid_x
@@ -318,9 +318,9 @@ export function useTopology(config: TopologyConfig, chartDom: any) {
       for (const n of Nodes.value) {
         if (n.id > 0) {
           n.w.postMessage(<Packet>{
-            type: PKT_TYPES.CMD_ASN,
+            type: MSG_TYPES.ASN,
             dst: n.id,
-            payload: <CMD_ASN_PAYLOAD>{ asn: ASN.value }
+            payload: <MSG_ASN_PAYLOAD>{ asn: ASN.value }
           })
         }
       }

@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useDark } from '@vueuse/core'
-import { Sunny, Moon } from '@element-plus/icons-vue'
 import VeRNETLogo from '@/assets/logo.png'
+import { Moon } from '@element-plus/icons-vue'
+import Light from './icons/IconLightMode.vue'
 
 const isDark = useDark()
 
@@ -14,7 +15,7 @@ const handleSelect = (key: string, keyPath: string[]) => {
 <template>
   <el-menu
     :default-active="activeIndex"
-    class="el-menu-demo"
+    class="header"
     mode="horizontal"
     :ellipsis="false"
     @select="handleSelect"
@@ -38,12 +39,13 @@ const handleSelect = (key: string, keyPath: string[]) => {
     </el-sub-menu>
     <el-menu-item style="margin: auto">
       <el-switch
+        class="theme-switch"
         v-model="isDark"
         inline-prompt
         :active-icon="Moon"
         active-color="dark"
-        :inactive-icon="Sunny"
-      ></el-switch>
+        :inactive-icon="Light"
+      />
     </el-menu-item>
   </el-menu>
 </template>
@@ -51,5 +53,8 @@ const handleSelect = (key: string, keyPath: string[]) => {
 <style scoped>
 .flex-grow {
   flex-grow: 1;
+}
+.theme-switch {
+  width: 60px;
 }
 </style>

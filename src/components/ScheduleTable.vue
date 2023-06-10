@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { SchConfig, ASN } from '@/hooks/useStates'
+import { SchConfig } from '@/hooks/useStates'
 import { useSchedule } from '@/hooks/useSchedule'
 
 import { Operation } from '@element-plus/icons-vue'
 
-
-// ASN.value++
 const chartDom = ref()
 useSchedule(SchConfig, chartDom)
 </script>
@@ -16,7 +14,6 @@ useSchedule(SchConfig, chartDom)
     <template #header>
       <div class="card-header">
         Schedule
-        <el-button style="margin-top: 12px" @click="ASN++">Next slot</el-button>
         <el-dropdown :hide-on-click="false">
           <el-button type="info" circle size="small">
             <el-icon size="16">
