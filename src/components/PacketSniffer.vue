@@ -31,7 +31,7 @@ const columns: any = [
     key: 'id',
     title: 'No.',
     dataKey: 'id',
-    width: 60,
+    width: 50,
     align: 'center',
     cellRenderer: ({ cellData: id }: any) => id + 1
   },
@@ -51,7 +51,7 @@ const columns: any = [
     key: 'asn',
     title: 'ASN',
     dataKey: 'asn',
-    width: 60,
+    width: 50,
     align: 'center'
   },
   {
@@ -73,21 +73,21 @@ const columns: any = [
     key: 'src',
     title: 'SRC',
     dataKey: 'src',
-    width: 50,
+    width: 40,
     align: 'center'
   },
   {
     key: 'dst',
     title: 'DST',
     dataKey: 'dst',
-    width: 50,
+    width: 40,
     align: 'center'
   },
   {
     key: 'uid',
     title: 'UID',
     dataKey: 'uid',
-    width: 75,
+    width: 70,
     align: 'center',
     cellRenderer: ({ cellData: uid }: any) => '0x' + uid.toString(16).toUpperCase().padStart(4, '0')
   },
@@ -152,7 +152,7 @@ const Row = ({ cells, rowData }: any) => {
           :width="width"
           :height="280"
           :expand-column-key="columns[10].key"
-          :estimated-row-height="18"
+          :row-height="20"
           :header-height="28"
         >
           <template #row="props">

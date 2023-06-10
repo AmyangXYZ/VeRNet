@@ -11,7 +11,7 @@ export const Packets = ref<Packet[]>([])
 
 export const TopoConfig = reactive<TopologyConfig>({
   seed: 124,
-  num_nodes: 5,
+  num_nodes: 20,
   grid_x: 32,
   grid_y: 32,
   tx_range: 20

@@ -2,11 +2,12 @@ import { onMounted, watch, nextTick } from 'vue'
 import { SeededRandom } from './seed'
 
 import * as echarts from 'echarts/core'
-import { ScatterChart } from 'echarts/charts'
-import { GridComponent, MarkLineComponent } from 'echarts/components'
+import { GeoComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
+import { Lines3DChart } from 'echarts-gl/charts'
+import { Geo3DComponent } from 'echarts-gl/components'
 
-echarts.use([ScatterChart, GridComponent, MarkLineComponent, CanvasRenderer])
+echarts.use([GeoComponent, Geo3DComponent, Lines3DChart, CanvasRenderer])
 
 import { Nodes, TopoConfig, SchConfig, ASN, Packets } from './useStates'
 
@@ -28,87 +29,82 @@ export function useTopology(chartDom: any) {
   let chart: any
   let channels: any = {}
 
+  const grid_size: number = 32
+  const gridMap: any = {
+    type: 'FeatureCollection',
+    features: [
+      // {
+      //   type: 'Feature',
+      //   properties: {},
+      //   geometry: {
+      //     coordinates: [
+      //       // [-grid_size, -grid_size],
+      //       // [grid_size*2, grid_size*2]
+      //     ],
+      //     type: 'LineString'
+      //   }
+      // }
+    ]
+  }
   const option: any = {
-    grid: {
-      top: '1%',
-      bottom: '1%',
-      left: '1%',
-      right: '1%'
-    },
-    xAxis: {
-      name: 'grid_x',
-      type: 'value',
-      data: [],
-      interval: 1,
-      max: 20,
-      axisLabel: {
-        show: false
+    geo3D: {
+      map: 'grid',
+      // silent: true,
+      label: {
+        show: true,
+        color: 'white'
       },
-      axisTick: {
-        show: false
+      shading: 'lambert',
+      groundPlane: {
+        show: true,
+        color: 'black'
       },
-      axisLine: {
-        show: false
+      itemStyle: {
+        color: 'royalblue'
       },
-      splitLine: {
-        show: true
+      environment: '#121212',
+      boxWidth: 100,
+      boxDepth: 100,
+      boxHeight: 100,
+      viewControl: {
+        distance: 200,
+        alpha: 60,
+        maxAlpha: 180,
+        maxBeta: 720,
+        center: [0, 0, 0]
       },
-      min: 0,
-      label: { show: false }
-    },
-    yAxis: {
-      name: 'grid_y',
-      min: 0,
-      max: 20,
-      type: 'value',
-      interval: 1,
-      data: [],
-      splitLine: {
-        show: true
-      },
-      axisTick: {
-        show: false
-      },
-      axisLine: {
-        show: false
-      },
-      axisLabel: {
-        show: false
-      },
-      label: { show: false }
+      regionHeight: 3,
+      regions: [{ name: 'node22', itemStyle: { color: 'red' }, height: 20 }]
     },
     series: [
       {
-        z: 10,
-        name: 'Node',
-        type: 'scatter',
-        symbolSize: 17,
-        data: [],
-        itemStyle: {
-          opacity: 1
-          // color: 'rgba(52,136,255,1)'
+        name: 'links',
+        type: 'lines3D',
+        coordinateSystem: 'geo3D',
+        lineStyle: {
+          width: 1,
+          opacity: 0.5
         },
-        label: {
+        data: []
+      },
+      {
+        name: 'Packets',
+        type: 'lines3D',
+        coordinateSystem: 'geo3D',
+        effect: {
           show: true,
-          fontSize: 10.5,
-          fontWeight: 600,
-          color: 'white',
-          formatter: (item: any) => {
-            return item.name
-          }
+          trailColor:"white",
+          trailWidth: 2.5,
+          trailOpacity: 0.8,
+          trailLength: 0.25,
+          constantSpeed: 80
         },
-        markLine: {
-          z: 1,
-          symbol: 'none',
-          lineStyle: {
-            width: 1,
-            // color: 'grey',
-            type: 'dashed'
-          },
-          data: [],
-          silent: true
+        blendMode: 'lighter',
+        lineStyle: {
+          width: 0.02,
+          opacity: 0.05
         },
-        animation: false
+        data: []
       }
     ]
   }
@@ -177,6 +173,10 @@ export function useTopology(chartDom: any) {
                 Nodes.value[new_node].neighbors.push(parent)
                 Nodes.value[parent].neighbors.push(new_node)
 
+                option.series[0].data.push([Nodes.value[new_node].pos, Nodes.value[parent].pos])
+                nextTick(() => {
+                  chart.setOption(option)
+                })
                 Nodes.value[ADDR.ROOT].w.postMessage(<Packet>{
                   type: PKT_TYPES.ASSOC_RSP,
                   uid: Math.floor(Math.random() * 0xffff),
@@ -208,12 +208,6 @@ export function useTopology(chartDom: any) {
                     ]
                   }
                 })
-
-                setTimeout(async () => {
-                  nextTick(() => {
-                    draw()
-                  })
-                }, 5)
               }
               break
             }
@@ -231,6 +225,15 @@ export function useTopology(chartDom: any) {
             pkt.children = [{ payload_detail: JSON.stringify(pkt.payload).replace(/"/g, '') }]
             Packets.value.push(pkt)
 
+            // draw animation
+            if (pkt.type != PKT_TYPES.ACK) {
+              const srcPos = Nodes.value[pkt.src].pos
+              const dstPos = pkt.dst == ADDR.BROADCAST ? srcPos : Nodes.value[pkt.dst].pos
+              option.series[1].data.push([srcPos, dstPos])
+              nextTick(() => {
+                chart.setOption(option)
+              })
+            }
             if (pkt.dst == ADDR.BROADCAST) {
               for (const nn of Nodes.value) {
                 // check if in tx_range
@@ -259,62 +262,42 @@ export function useTopology(chartDom: any) {
     }
   }
 
-  function draw() {
-    option.xAxis.max = TopoConfig.grid_x
-    option.yAxis.max = TopoConfig.grid_y
-    option.series[0].data = []
-    option.series[0].markLine.data = []
-
+  function drawNodes() {
     for (const n of Nodes.value) {
-      option.series[0].data.push({
-        value: n.pos,
-        name: n.id,
-        itemStyle: {
-          color: n.joined ? 'royalblue' : '#999'
-          // opacity: n.joined?1:.4
+      if (n.id == 0) continue
+
+      gridMap.features.push({
+        type: 'Feature',
+        properties: {
+          id: n.id,
+          name: n.id
+        },
+        geometry: {
+          coordinates: [
+            [
+              [n.pos[0] - 0.2, n.pos[1] - 0.2],
+              [n.pos[0] - 0.2, n.pos[1] + 0.2],
+              [n.pos[0] + 0.2, n.pos[1] + 0.2],
+              [n.pos[0] + 0.2, n.pos[1] - 0.2],
+              [n.pos[0] - 0.2, n.pos[1] - 0.2]
+            ]
+          ],
+          type: 'Polygon'
         }
       })
     }
-
-    const drawnLinks: any = {}
-    for (const n of Nodes.value) {
-      if (n.neighbors.length > 0) {
-        for (const nn of n.neighbors) {
-          const nbr = Nodes.value[nn]
-          if (nbr != null) {
-            const name = n.id > nbr.id ? `${n.id}-${nbr.id}` : `${nbr.id}-${n.id}`
-            if (drawnLinks[name] == null) {
-              drawnLinks[name] = 1
-              option.series[0].markLine.data.push([
-                {
-                  name: name,
-                  label: {
-                    show: false
-                  },
-                  coord: n.pos
-                },
-                {
-                  coord: nbr.pos,
-                  lineStyle: {
-                    width: 1
-                  }
-                }
-              ])
-            }
-          }
-        }
-      }
-    }
-
+    echarts.registerMap('grid', gridMap)
     chart.setOption(option)
   }
 
   onMounted(() => {
     chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
-    draw()
+    drawNodes()
   })
 
   watch(ASN, () => {
+    option.series[1].data = []
+
     if (Nodes.value.length > 1) {
       channels = {}
       for (let c = 1; c <= 8; c++) {
@@ -336,7 +319,7 @@ export function useTopology(chartDom: any) {
     TopoConfig,
     () => {
       createNodes()
-      draw()
+      drawNodes()
     },
     { deep: true }
   )
@@ -344,6 +327,6 @@ export function useTopology(chartDom: any) {
   watch(isDark, () => {
     chart.dispose()
     chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
-    draw()
+    drawNodes()
   })
 }

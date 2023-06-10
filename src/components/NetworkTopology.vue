@@ -10,7 +10,8 @@ useTopology(chartDom)
 </script>
 
 <template>
-  <el-card class="topo">
+  <div class="chart" ref="chartDom"></div>
+  <el-card v-show="false" class="topo">
     <template #header>
       <div class="card-header">
         Topology
@@ -67,7 +68,7 @@ useTopology(chartDom)
         </el-dropdown>
       </div>
     </template>
-    <div class="chart" ref="chartDom"></div>
+    <!-- <div class="chart" ref="chartDom"></div> -->
   </el-card>
 </template>
 
@@ -86,6 +87,6 @@ useTopology(chartDom)
 }
 .chart {
   width: 100%;
-  height: 500px;
+  height: 600px;
 }
 </style>
