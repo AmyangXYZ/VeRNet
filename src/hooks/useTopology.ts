@@ -46,7 +46,7 @@ export function useTopology(chartDom: any) {
           color: 'white'
         },
         environment: '#1e1e1e',
-    
+
         groundPlane: {
           // show: true,
           color: '#111'
@@ -55,8 +55,7 @@ export function useTopology(chartDom: any) {
           color: 'royalblue'
         },
         postEffect: {
-          enable: true,
-         
+          enable: true
         },
         boxWidth: 100,
         boxDepth: 100,
