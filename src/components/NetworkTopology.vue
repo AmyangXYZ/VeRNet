@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+
 import { useTopology } from '@/hooks/useTopology'
 import { TopoConfig } from '@/hooks/useStates'
 

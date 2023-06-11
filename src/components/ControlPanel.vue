@@ -9,7 +9,7 @@ import IconReset from './icons/IconReset.vue'
 
 const running = ref(false)
 
-const {start,reset} = useController()
+const { start, reset } = useController()
 
 let initiated = false
 
@@ -25,7 +25,7 @@ function startASNTimer() {
   running.value = true
   asnTimer = setInterval(() => {
     incASN()
-  }, 1000)
+  }, 1100)
 }
 
 function incASN() {

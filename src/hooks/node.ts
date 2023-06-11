@@ -61,10 +61,10 @@ onmessage = (e: any) => {
           })
         }
         checkSchedule()
-        
+
         // done
         postMessage(<Message>{
-          type: MSG_TYPES.DONE,
+          type: MSG_TYPES.DONE
         })
         break
       case MSG_TYPES.INIT:

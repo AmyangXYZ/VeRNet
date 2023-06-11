@@ -9,7 +9,7 @@ import { Geo3DComponent } from 'echarts-gl/components'
 
 echarts.use([GeoComponent, Geo3DComponent, Lines3DChart, CanvasRenderer])
 
-import { Nodes, TopoConfig, ASN, PacketsCurrent, SlotDone } from './useStates'
+import { Nodes, TopoConfig, PacketsCurrent, SlotDone } from './useStates'
 
 import type { Node } from './typedefs'
 import { ADDR, PKT_TYPES } from './typedefs'
@@ -39,45 +39,42 @@ export function useTopology(chartDom: any) {
   const option: any = {
     geo3D: [
       {
-      map: 'grid',
-      silent: true,
-      label: {
-        show: true,
-        color: 'white'
-      },
-      environment: '#222',
-      shading: 'realistic',
-      realisticMaterial: {
-        roughness: 0.8,
-        metalness: 0
-      },
-      groundPlane: {
-        show: true,
-        color: 'black'
-      },
-      itemStyle: {
-        color: 'royalblue'
-      },
-      postEffect: {
-        enable: true
-      },
-
-      boxWidth: 100,
-      boxDepth: 100,
-      boxHeight: 100,
-      viewControl: {
-        // autoRotate: true,
-        distance: 160,
-        // alpha: 70,
-        maxAlpha: 180,
-        maxBeta: 720,
-        center: [0, -30, 0],
-        // panMouseButton: 'left',
-        // rotateMouseButton: 'right'
-      },
-      regionHeight: 3,
-      regions: [{ name: 'node22', itemStyle: { color: 'red' }, height: 20 }]
-    }],
+        map: 'grid',
+        silent: true,
+        label: {
+          show: true,
+          color: 'white'
+        },
+        environment: '#1e1e1e',
+    
+        groundPlane: {
+          // show: true,
+          color: '#111'
+        },
+        itemStyle: {
+          color: 'royalblue'
+        },
+        postEffect: {
+          enable: true,
+         
+        },
+        boxWidth: 100,
+        boxDepth: 100,
+        boxHeight: 100,
+        viewControl: {
+          distance: 160,
+          maxAlpha: 180,
+          alpha: 60,
+          maxBeta: 720,
+          center: [0, -30, 0]
+          // panMouseButton: 'left',
+          // rotateMouseButton: 'right'
+        },
+        zlevel: -10,
+        regionHeight: 3,
+        regions: []
+      }
+    ],
     series: [
       {
         name: 'links',
@@ -85,9 +82,11 @@ export function useTopology(chartDom: any) {
         coordinateSystem: 'geo3D',
         lineStyle: {
           width: 1,
+          type: 'dashed',
           opacity: 0.2
         },
         data: [],
+        zlevel: -9,
         silent: true
       },
       {
@@ -99,18 +98,19 @@ export function useTopology(chartDom: any) {
           trailColor: 'white',
           trailWidth: 2,
           trailOpacity: 0.8,
-          trailLength: 0.15,
-          // constantSpeed: 40
-          delay:0,
-          period: .9
+          trailLength: 0.12,
+          // delay: 0,
+          // constantSpeed: 1,
+          period: 0.5
         },
-        // blendMode: 'lighter',
+        blendMode: 'lighter',
         lineStyle: {
-          width: 0.02,
-          opacity: 0.05
+          width: 0.01,
+          opacity: 0.01
         },
         data: [],
-        silent: true
+        silent: true,
+        zlevel: -8
       }
     ]
   }
@@ -170,33 +170,33 @@ export function useTopology(chartDom: any) {
     chart.setOption(option)
   }
 
+  const drawnLinks: any = {}
   function drawLinks() {
-    option.series[0].data = []
-    const drawnLinks: any = {}
+    // option.series[0].data = []
     for (const n of Nodes.value) {
       for (const nn of n.neighbors) {
         const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
         if (drawnLinks[linkName] == null) {
-          option.series[0].data.push([n.pos, Nodes.value[nn].pos])
-          // chart.appendData({
-          //   seriesIndex: 0,
-          //   data: [[n.pos, Nodes.value[nn].pos]]
-          // })
           drawnLinks[linkName] = true
+          option.series[0].data.push([n.pos, Nodes.value[nn].pos])
+          chart.appendData({
+            seriesIndex: 0,
+            data: [[n.pos, Nodes.value[nn].pos]]
+          })
         }
       }
     }
   }
 
   function drawCurrentPackets() {
-    option.series[1].data = []
+    // option.series[1].data = []
     for (const pkt of PacketsCurrent.value) {
       if (pkt.type != PKT_TYPES.ACK && pkt.dst != ADDR.BROADCAST) {
-        option.series[1].data.push([Nodes.value[pkt.src].pos, Nodes.value[pkt.dst].pos])
-        // chart.appendData({
-        //   seriesIndex: 1,
-        //   data: [[Nodes.value[pkt.src].pos, Nodes.value[pkt.dst].pos]]
-        // })
+        // option.series[1].data.push([Nodes.value[pkt.src].pos, Nodes.value[pkt.dst].pos])
+        chart.appendData({
+          seriesIndex: 1,
+          data: [[Nodes.value[pkt.src].pos, Nodes.value[pkt.dst].pos]]
+        })
       }
     }
   }
@@ -235,9 +235,10 @@ export function useTopology(chartDom: any) {
       if (SlotDone.value) {
         drawLinks()
         drawCurrentPackets()
-        chart.setOption(option,{ replaceMerge: 'series' })
+        // chart.setOption(option)
       } else {
-        // chart.setOption(option, { replaceMerge: 'series' })
+        // clear packets in last slot
+        chart.setOption(option)
       }
     },
     { deep: true }
