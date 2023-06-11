@@ -7,7 +7,11 @@ import type { TopologyConfig, ScheduleConfig } from './typedefs'
 
 export const Nodes = ref<Node[]>([])
 export const ASN = ref<number>(0)
+export const SlotDone = ref(false)
+// all packets, for display in table
 export const Packets = ref<Packet[]>([])
+// packets in the current slot, for animation
+export const PacketsCurrent = ref<Packet[]>([])
 
 export const TopoConfig = reactive<TopologyConfig>({
   seed: 124,

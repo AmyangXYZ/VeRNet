@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Nodes, ASN, Packets } from '@/hooks/useStates'
+import { Nodes, ASN, SlotDone, Packets } from '@/hooks/useStates'
+import { useController } from '@/hooks/useController'
 import IconPlay from './icons/IconPlay.vue'
 import IconStep from './icons/IconStep.vue'
 import IconPause from './icons/IconPause.vue'
@@ -8,15 +9,28 @@ import IconReset from './icons/IconReset.vue'
 
 const running = ref(false)
 
+const {start,reset} = useController()
+
+let initiated = false
+
 const stage = ref(0)
 
 let asnTimer: any
 
 function startASNTimer() {
+  if (!initiated) {
+    start()
+    initiated = true
+  }
   running.value = true
   asnTimer = setInterval(() => {
-    ASN.value++
+    incASN()
   }, 1000)
+}
+
+function incASN() {
+  SlotDone.value = false
+  ASN.value++
 }
 
 function pauseASNTimer() {
@@ -24,12 +38,20 @@ function pauseASNTimer() {
   clearInterval(asnTimer)
 }
 function resetASNTimer() {
+  reset()
   running.value = false
   clearInterval(asnTimer)
   ASN.value = 0
 }
 
 const topoProgress = ref(0)
+
+// watch(SlotDone, () => {
+//   console.log(ASN.value,SlotDone.value)
+//   if (SlotDone.value) {
+//     incASN()
+//   }
+// })
 
 watch(
   Nodes,
@@ -70,7 +92,7 @@ watch(
               <IconPlay />
             </el-icon>
           </el-button>
-          <el-button class="btn" :disabled="running" size="small" type="info" @click="ASN++">
+          <el-button class="btn" :disabled="running" size="small" type="info" @click="incASN">
             <el-icon size="20">
               <IconStep />
             </el-icon>

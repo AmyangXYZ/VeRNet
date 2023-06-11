@@ -10,7 +10,7 @@ export interface TopologyConfig {
 
 export interface Node {
   id: number
-  pos: [number, number]
+  pos: number[]
   joined: boolean
   neighbors: number[]
   w: any // a webworker
@@ -43,8 +43,9 @@ export interface Message {
 }
 
 export enum MSG_TYPES {
-  ASN,
   INIT,
+  ASN,
+  DONE, // finished all activities of the current slot
   SEND,
   STAT,
   ASSOC_REQ

@@ -42,10 +42,10 @@ const columns: any = [
     align: 'center'
   },
   {
-    key: 'asn',
+    key: 'ch',
     title: 'SLOT',
-    dataKey: 'asn',
-    width: 40,
+    dataKey: 'ch',
+    width: 35,
     align: 'center',
     cellRenderer: ({ cellData: asn }: any) => asn % SchConfig.num_slots
   },
@@ -53,7 +53,7 @@ const columns: any = [
     key: 'ch',
     title: 'CH',
     dataKey: 'ch',
-    width: 40,
+    width: 35,
     align: 'center'
   },
   {
@@ -74,7 +74,7 @@ const columns: any = [
     key: 'uid',
     title: 'UID',
     dataKey: 'uid',
-    width: 80,
+    width: 65,
     align: 'center',
     cellRenderer: ({ cellData: uid }: any) => '0x' + uid.toString(16).toUpperCase().padStart(4, '0')
   },
@@ -82,7 +82,7 @@ const columns: any = [
     key: 'type',
     title: 'TYPE',
     dataKey: 'type',
-    width: 100,
+    width: 85,
     align: 'center',
     cellRenderer: ({ cellData: type }: any) => PKT_TYPES[type]
   },
@@ -104,9 +104,9 @@ const columns: any = [
     key: 'payload',
     title: 'PAYLOAD',
     dataKey: 'payload',
-    width: 60,
+    width: 50,
     align: 'center',
-    cellRenderer: () => '...'
+    cellRenderer: () => ''
   }
 ]
 
@@ -154,7 +154,7 @@ Row.inheritAttrs = false
           :height="280"
           :expand-column-key="columns[10].key"
           :estimated-row-height="18"
-          :header-height="28"
+          :header-height="24"
         >
           <template #row="props">
             <Row v-bind="props" />
@@ -175,6 +175,7 @@ Row.inheritAttrs = false
 .filter-input {
   width: 240px;
   height: 24px;
+  font-size: 0.77rem;
 }
 .table {
   font-size: 0.72rem;
