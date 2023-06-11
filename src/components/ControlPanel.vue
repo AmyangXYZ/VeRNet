@@ -29,6 +29,10 @@ function startASNTimer() {
 }
 
 function incASN() {
+  if (!initiated) {
+    start()
+    initiated = true
+  }
   SlotDone.value = false
   ASN.value++
 }

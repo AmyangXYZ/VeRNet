@@ -25,11 +25,14 @@ export function useTopology(chartDom: any) {
     features: [
       // {
       //   type: 'Feature',
-      //   properties: {},
+      //   properties: {
+      //     // id: 100,
+      //     // name: 100
+      //   },
       //   geometry: {
       //     coordinates: [
-      //       // [-grid_size, -grid_size],
-      //       // [grid_size*2, grid_size*2]
+      //       // [-TopoConfig.grid_x, -TopoConfig.grid_y],
+      //       // [TopoConfig.grid_x, TopoConfig.grid_y]
       //     ],
       //     type: 'LineString'
       //   }
@@ -81,7 +84,6 @@ export function useTopology(chartDom: any) {
         coordinateSystem: 'geo3D',
         lineStyle: {
           width: 1,
-          type: 'dashed',
           opacity: 0.2
         },
         data: [],

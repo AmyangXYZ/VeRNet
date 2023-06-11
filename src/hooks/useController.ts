@@ -71,14 +71,14 @@ export function useController() {
                     schedule: <Cell[]>[
                       {
                         type: CELL_TYPES.MGMT,
-                        slot: msg.payload.id + 20,
+                        slot: msg.payload.id+6,
                         ch: 1,
                         src: msg.payload.id,
                         dst: ADDR.BROADCAST
                       },
                       {
                         type: CELL_TYPES.DATA,
-                        slot: msg.payload.id + 60,
+                        slot: msg.payload.id +12,
                         ch: Math.floor(Math.random() * 4) + 2,
                         src: msg.payload.id,
                         dst: parent

@@ -14,17 +14,17 @@ export const Packets = ref<Packet[]>([])
 export const PacketsCurrent = ref<Packet[]>([])
 
 export const TopoConfig = reactive<TopologyConfig>({
-  seed: 124,
-  num_nodes: 20,
+  seed: 12,
+  num_nodes: 5,
   grid_x: 32,
   grid_y: 32,
   tx_range: 20
 })
 
 export const SchConfig = reactive<ScheduleConfig>({
-  num_slots: 100,
+  num_slots: 20,
   num_channels: 8,
-  num_shared_slots: 10
+  num_shared_slots: 5
 })
 
 export const Schedule = ref<Cell[][]>([[]])

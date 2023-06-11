@@ -43,14 +43,6 @@ const columns: any = [
   },
   {
     key: 'ch',
-    title: 'SLOT',
-    dataKey: 'ch',
-    width: 35,
-    align: 'center',
-    cellRenderer: ({ cellData: asn }: any) => asn % SchConfig.num_slots
-  },
-  {
-    key: 'ch',
     title: 'CH',
     dataKey: 'ch',
     width: 35,
@@ -152,7 +144,7 @@ Row.inheritAttrs = false
           :data="Packets.filter(filterFunc)"
           :width="width"
           :height="280"
-          :expand-column-key="columns[10].key"
+          :expand-column-key="columns[9].key"
           :estimated-row-height="18"
           :header-height="24"
         >
