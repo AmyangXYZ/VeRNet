@@ -37,7 +37,8 @@ export function useTopology(chartDom: any) {
     ]
   }
   const option: any = {
-    geo3D: {
+    geo3D: [
+      {
       map: 'grid',
       silent: true,
       label: {
@@ -60,22 +61,23 @@ export function useTopology(chartDom: any) {
       postEffect: {
         enable: true
       },
-     
+
       boxWidth: 100,
       boxDepth: 100,
       boxHeight: 100,
       viewControl: {
-        autoRotate: true,
+        // autoRotate: true,
         distance: 160,
         // alpha: 70,
         maxAlpha: 180,
         maxBeta: 720,
         center: [0, -30, 0],
-        panMouseButton: 'left',
+        // panMouseButton: 'left',
+        // rotateMouseButton: 'right'
       },
       regionHeight: 3,
       regions: [{ name: 'node22', itemStyle: { color: 'red' }, height: 20 }]
-    },
+    }],
     series: [
       {
         name: 'links',
@@ -83,7 +85,7 @@ export function useTopology(chartDom: any) {
         coordinateSystem: 'geo3D',
         lineStyle: {
           width: 1,
-          opacity: 0.5
+          opacity: 0.2
         },
         data: [],
         silent: true
@@ -95,11 +97,12 @@ export function useTopology(chartDom: any) {
         effect: {
           show: true,
           trailColor: 'white',
-          trailWidth: 2.5,
+          trailWidth: 2,
           trailOpacity: 0.8,
-          trailLength: 0.25,
-          // constantSpeed: 80
-          period: .8
+          trailLength: 0.15,
+          // constantSpeed: 40
+          delay:0,
+          period: .9
         },
         // blendMode: 'lighter',
         lineStyle: {
@@ -175,6 +178,10 @@ export function useTopology(chartDom: any) {
         const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
         if (drawnLinks[linkName] == null) {
           option.series[0].data.push([n.pos, Nodes.value[nn].pos])
+          // chart.appendData({
+          //   seriesIndex: 0,
+          //   data: [[n.pos, Nodes.value[nn].pos]]
+          // })
           drawnLinks[linkName] = true
         }
       }
@@ -186,6 +193,10 @@ export function useTopology(chartDom: any) {
     for (const pkt of PacketsCurrent.value) {
       if (pkt.type != PKT_TYPES.ACK && pkt.dst != ADDR.BROADCAST) {
         option.series[1].data.push([Nodes.value[pkt.src].pos, Nodes.value[pkt.dst].pos])
+        // chart.appendData({
+        //   seriesIndex: 1,
+        //   data: [[Nodes.value[pkt.src].pos, Nodes.value[pkt.dst].pos]]
+        // })
       }
     }
   }
@@ -221,11 +232,12 @@ export function useTopology(chartDom: any) {
   watch(
     SlotDone,
     () => {
-      console.log(ASN.value, SlotDone.value)
       if (SlotDone.value) {
         drawLinks()
         drawCurrentPackets()
-        chart.setOption(option, { lazyUpdate: true })
+        chart.setOption(option,{ replaceMerge: 'series' })
+      } else {
+        // chart.setOption(option, { replaceMerge: 'series' })
       }
     },
     { deep: true }
