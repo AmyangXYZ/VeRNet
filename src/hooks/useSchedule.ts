@@ -10,9 +10,6 @@ import { CELL_TYPES, type Cell } from './typedefs'
 
 import { SchConfig, Schedule } from './useStates'
 
-import { useDark } from '@vueuse/core'
-const isDark = useDark()
-
 export function useSchedule(chartDom: any) {
   let chart: any
   const option: any = {
@@ -98,13 +95,7 @@ export function useSchedule(chartDom: any) {
   }
 
   onMounted(() => {
-    chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
-    draw()
-  })
-
-  watch(isDark, () => {
-    chart.dispose()
-    chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
+    chart = echarts.init(chartDom.value)
     draw()
   })
 }

@@ -1,4 +1,4 @@
-import { onMounted, toRaw, watch } from 'vue'
+import { onMounted, watch } from 'vue'
 import { SeededRandom } from './seed'
 
 import * as echarts from 'echarts/core'
@@ -100,9 +100,9 @@ export function useTopology(chartDom: any) {
           maxAlpha: 180,
           alpha: 60,
           maxBeta: 720,
-          center: [0, -15, 0]
-          // panMouseButton: 'left',
-          // rotateMouseButton: 'right'
+          center: [0, -15, 0],
+          panMouseButton: 'left',
+          rotateMouseButton: 'right'
         },
         zlevel: -10,
         regionHeight: 3,
@@ -175,7 +175,7 @@ export function useTopology(chartDom: any) {
     for (const n of Nodes.value) {
       if (n.id == 0) continue
       const center = n.pos // San Francisco, for example
-      const radius = 5
+      const radius = 7
       const numSegments = 8 // The more segments, the smoother the circle
 
       const coordinates = generateNodeCoordinates(center, radius, numSegments)

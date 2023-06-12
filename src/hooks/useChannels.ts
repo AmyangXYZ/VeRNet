@@ -1,28 +1,25 @@
-import { watch, onMounted, nextTick } from 'vue'
+import { watch, onMounted } from 'vue'
 import * as echarts from 'echarts/core'
-import { ScatterChart } from 'echarts/charts'
+import { LineChart } from 'echarts/charts'
 import { DataZoomComponent, GridComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 
-echarts.use([ScatterChart, TooltipComponent, DataZoomComponent, GridComponent, CanvasRenderer])
+echarts.use([LineChart, TooltipComponent, DataZoomComponent, GridComponent, CanvasRenderer])
 
 import type { ScheduleConfig } from './typedefs'
 
-import { ASN, Packets } from './useStates'
-
-import { useDark } from '@vueuse/core'
-const isDark = useDark()
+import { ASN, PacketsCurrent, SchConfig, SlotDone } from './useStates'
 
 export function useChannels(config: ScheduleConfig, chartDom: any) {
   let chart: any
-  const zoomWindow: number = 40
+  const zoomWindow: number = 60
   const option: any = {
     tooltip: {
-      trigger: 'item'
+      trigger: 'axis'
     },
     grid: {
-      top: '1%',
-      bottom: '54px',
+      top: '34px',
+      bottom: '27px',
       left: '32px',
       right: '1%'
     },
@@ -42,45 +39,65 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
       type: 'category',
       nameLocation: 'center',
       nameGap: 20,
-      minInterval: 1,
+      position: 'top',
       axisLine: {
         show: true
+      },
+      axisTick: { interval: 2 },
+      axisLabel: {
+        interval: 0,
+        formatter: (i: any) => {
+          if (i % 3 == 2) {
+            return (parseInt(i) + 1) / 3
+          }
+          return ''
+        }
       },
       data: [],
       animation: false
     },
     yAxis: {
       name: 'Channels',
+      type: 'value',
       nameLocation: 'center',
       nameGap: 20,
-      type: 'category',
+      interval: 1,
       axisLabel: {
+        interval: 3,
         show: true,
-        interval: 0
+        formatter: (i: any) => {
+          if (i % 3 == 2) {
+            return (parseInt(i) + 1) / 3
+          }
+          return ''
+        }
       },
-      splitLine: { show: true, interval: 0 },
+      splitLine: { show: false },
       data: [],
       inverse: true
     },
-    series: [
-      {
-        name: `Packet`,
-        symbol: 'circle',
-        symbolSize: 10,
-        type: 'scatter',
-        data: [],
-        // animationDurationUpdate:200,
-        animation: false
-      }
-    ]
+    series: []
   }
 
   function initChart() {
     option.xAxis.data = []
     option.yAxis.data = []
-    option.series[0].data = []
+    option.series = []
     for (let c = 1; c <= config.num_channels; c++) {
-      option.yAxis.data.push(`${c}`)
+      option.yAxis.data.push(c * 3, c * 3 + 1, c * 3 + 2)
+      option.series.push({
+        name: `Packet`,
+        step: 'middle',
+        type: 'line',
+        data: [c * 3],
+        symbol: 'none',
+        lineStyle: {
+          width: 1.5
+          // color:"purple"
+        }
+        // animationDurationUpdate: 10000
+        // animation: false
+      })
     }
     for (let t = 1; t <= zoomWindow; t++) {
       option.xAxis.data.push(`${t}`)
@@ -89,47 +106,47 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
   }
 
   onMounted(() => {
-    chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
+    chart = echarts.init(chartDom.value)
     initChart()
   })
 
-  watch(ASN, () => {
-    if (ASN.value == 0) {
-      chart.dispose()
-      chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
-      initChart()
-      option.dataZoom[0].startValue = ASN.value - zoomWindow
-      chart.setOption(option)
+  watch(SlotDone, () => {
+    if (SlotDone.value) {
+      for (let c = 1; c <= SchConfig.num_channels; c++) {
+        if (PacketsCurrent.value.filter((pkt) => pkt.ch == c).length > 0) {
+          option.series[c - 1].data.push(c * 3 - 1.9, c * 3)
+        } else {
+          option.series[c - 1].data.push(c * 3, c * 3)
+        }
+      }
+    } else {
+      for (let c = 1; c <= SchConfig.num_channels; c++) {
+        option.series[c - 1].data.push(c * 3)
+      }
     }
-    if (ASN.value > option.xAxis.data.length) {
-      for (let s = ASN.value; s < ASN.value + 5; s++) {
+    if (ASN.value * 3 > option.xAxis.data.length) {
+      for (let s = ASN.value * 3; s < ASN.value * 3 + 3; s++) {
         option.xAxis.data.push(s)
       }
-      option.dataZoom[0].startValue = ASN.value - zoomWindow + 5
-      chart.setOption(option)
     }
+    option.dataZoom[0].startValue = option.xAxis.data.length - zoomWindow
+    chart.setOption(option)
   })
 
-  watch(
-    Packets,
-    () => {
-      if (Packets.value.length > 0) {
-        nextTick(() => {
-          const pkt = Packets.value[Packets.value.length - 1]
-          option.series[0].data.push({
-            name: '0x' + pkt.uid.toString(16).toUpperCase().padStart(4, '0'),
-            value: [pkt.asn - 1, pkt.ch - 1]
-          })
-
-          chart.setOption(option)
-        })
-      }
-    },
-    { deep: true }
-  )
-  watch(isDark, () => {
-    chart.dispose()
-    chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
-    initChart()
-  })
+  // watch(ASN, () => {
+  //   if (ASN.value == 0) {
+  //     chart.dispose()
+  //     chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
+  //     initChart()
+  //     option.dataZoom[0].startValue = option.xAxis.data.length  - zoomWindow
+  //     chart.setOption(option)
+  //   }
+  //   if (ASN.value*3 > option.xAxis.data.length) {
+  //     for (let s = ASN.value*3; s < ASN.value*3 +3; s++) {
+  //       option.xAxis.data.push(s)
+  //     }
+  //     option.dataZoom[0].startValue = option.xAxis.data.length - zoomWindow
+  //     chart.setOption(option)
+  //   }
+  // })
 }

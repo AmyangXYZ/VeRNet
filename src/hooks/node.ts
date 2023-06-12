@@ -9,7 +9,7 @@ import type {
 } from './typedefs'
 import { MSG_TYPES, ADDR, PKT_TYPES, CELL_TYPES } from './typedefs'
 
-const SHARED_CHANNEL = 1
+const SHARED_CHANNEL = 3
 const BEACON_PERIOD = 1 // # of slotframe
 
 const self: any = {
