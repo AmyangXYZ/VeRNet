@@ -3,7 +3,6 @@ import type {
   Cell,
   Message,
   Packet,
-  Statistics,
   PKT_BEACON_PAYLOAD,
   ASSOC_REQ_PAYLOAD,
   ScheduleConfig
@@ -22,16 +21,13 @@ const self: any = {
   children: <number[]>[],
   schedule: <Cell[][]>[],
   queue: <Packet[]>[],
-  routingTable: {} // dst: next-hop
-}
-
-let ASN = 0
-
-const stats: Statistics = {
+  routingTable: {}, // dst: next-hop
   pkt_seq: -1,
   rx_cnt: 0,
   tx_cnt: 0
 }
+
+let ASN = 0
 
 // handle messages and packets
 onmessage = (e: any) => {
@@ -51,7 +47,7 @@ onmessage = (e: any) => {
             ch: SHARED_CHANNEL,
             src: self.id,
             dst: -1,
-            seq: ++stats.pkt_seq,
+            seq: ++self.pkt_seq,
             len: 1,
             payload: <PKT_BEACON_PAYLOAD>{ dodag_id: 1, rank: self.rank }
           })
@@ -85,7 +81,7 @@ onmessage = (e: any) => {
           type: PKT_TYPES.DATA,
           src: self.id,
           dst: msg.payload.dst,
-          seq: ++stats.pkt_seq,
+          seq: ++self.pkt_seq,
           len: msg.payload.len,
           payload: msg.payload.payload
         })
@@ -129,7 +125,7 @@ onmessage = (e: any) => {
               type: PKT_TYPES.ASSOC_REQ,
               src: self.id,
               dst: pkt.src,
-              seq: ++stats.pkt_seq,
+              seq: ++self.pkt_seq,
               len: 2,
               payload: <ASSOC_REQ_PAYLOAD>{ id: self.id, parent: pkt.src }
             })
@@ -147,7 +143,7 @@ onmessage = (e: any) => {
           if (self.id != ADDR.ROOT) {
             pkt.src = self.id
             pkt.dst = self.parent
-            pkt.seq = ++stats.pkt_seq
+            pkt.seq = ++self.pkt_seq
             self.queue.push(pkt)
           } else {
             postMessage(<Message>{
@@ -166,6 +162,10 @@ onmessage = (e: any) => {
             for (const cell of pkt.payload.schedule) {
               self.schedule[cell.slot][cell.ch] = cell
             }
+            postMessage(<Message>{
+              type: MSG_TYPES.STAT,
+              payload: self
+            })
           }
           if (pkt.payload.parent == self.id && pkt.payload.permit) {
             self.children.push(pkt.payload.id)
@@ -178,14 +178,13 @@ onmessage = (e: any) => {
             pkt.src = self.id
             if (self.children.indexOf(pkt.payload.id) > -1) {
               pkt.dst = pkt.payload.id
-              pkt.seq = ++stats.pkt_seq
+              pkt.seq = ++self.pkt_seq
               self.queue.push(pkt)
             } else {
               // not related to self
-
-              for (let i = 0; i < self.children.length; i++) {
+              if (self.routingTable[pkt.payload.id] != null) {
                 pkt.dst = self.routingTable[pkt.payload.id]
-                pkt.seq = ++stats.pkt_seq
+                pkt.seq = ++self.pkt_seq
                 self.queue.push(pkt)
               }
             }
@@ -234,7 +233,7 @@ function checkScheduleTx() {
           pkt.asn = ASN
           pkt.time = +Date.now()
           postMessage(pkt)
-          stats.tx_cnt++
+          self.tx_cnt++
 
           // no need of ack, transmission finished
           if (pkt.dst == ADDR.BROADCAST || pkt.type == PKT_TYPES.ACK) {
@@ -249,7 +248,7 @@ function checkScheduleTx() {
 
 // check if is ready for rx
 function checkScheduleRx(pkt: Packet): boolean {
-  // nodes haven't joined are always active 
+  // nodes haven't joined are always active
   if (!self.joined) return true
 
   let slot = ASN % (self.schedule.length - 1)
@@ -261,7 +260,7 @@ function checkScheduleRx(pkt: Packet): boolean {
       cell != null &&
       (cell.dst == pkt.src || pkt.dst == ADDR.BROADCAST || cell.type == CELL_TYPES.SHARED)
     ) {
-      stats.rx_cnt++
+      self.rx_cnt++
       return true
     }
   }

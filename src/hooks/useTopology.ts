@@ -1,4 +1,4 @@
-import { onMounted, watch } from 'vue'
+import { onMounted, toRaw, watch } from 'vue'
 import { SeededRandom } from './seed'
 
 import * as echarts from 'echarts/core'
@@ -18,104 +18,6 @@ import { useDark } from '@vueuse/core'
 const isDark = useDark()
 
 export function useTopology(chartDom: any) {
-  let chart: any
-
-  const gridMap: any = {
-    type: 'FeatureCollection',
-    features: [
-      // {
-      //   type: 'Feature',
-      //   properties: {
-      //     // id: 100,
-      //     // name: 100
-      //   },
-      //   geometry: {
-      //     coordinates: [
-      //       // [-TopoConfig.grid_x, -TopoConfig.grid_y],
-      //       // [TopoConfig.grid_x, TopoConfig.grid_y]
-      //     ],
-      //     type: 'LineString'
-      //   }
-      // }
-    ]
-  }
-  const option: any = {
-    geo3D: [
-      {
-        map: 'grid',
-        silent: true,
-        label: {
-          show: true,
-          color: 'white'
-        },
-        environment: '#1e1e1e',
-
-        groundPlane: {
-          // show: true,
-          color: '#111'
-        },
-        itemStyle: {
-          color: 'royalblue'
-        },
-        postEffect: {
-          enable: true
-        },
-        boxWidth: 100,
-        boxDepth: 100,
-        boxHeight: 100,
-        viewControl: {
-          distance: 160,
-          maxAlpha: 180,
-          alpha: 60,
-          maxBeta: 720,
-          center: [0, -30, 0]
-          // panMouseButton: 'left',
-          // rotateMouseButton: 'right'
-        },
-        zlevel: -10,
-        regionHeight: 3,
-        regions: []
-      }
-    ],
-    series: [
-      {
-        name: 'links',
-        type: 'lines3D',
-        coordinateSystem: 'geo3D',
-        lineStyle: {
-          width: 1,
-          opacity: 0.2
-        },
-        data: [],
-        zlevel: -9,
-        silent: true
-      },
-      {
-        name: 'Packets',
-        type: 'lines3D',
-        coordinateSystem: 'geo3D',
-        effect: {
-          show: true,
-          trailColor: 'white',
-          trailWidth: 2,
-          trailOpacity: 0.8,
-          trailLength: 0.12,
-          // delay: 0,
-          // constantSpeed: 1,
-          period: 0.5
-        },
-        blendMode: 'lighter',
-        lineStyle: {
-          width: 0.01,
-          opacity: 0.01
-        },
-        data: [],
-        silent: true,
-        zlevel: -8
-      }
-    ]
-  }
-
   createNodes()
 
   function createNodes() {
@@ -147,11 +49,133 @@ export function useTopology(chartDom: any) {
     }
   }
 
+  let chart: any
+
+  const paddingGrid = 2
+  const gridMap: any = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: {
+          id: 0,
+          name: 'base'
+        },
+        geometry: {
+          coordinates: [
+            [
+              [0 - paddingGrid, 0 - paddingGrid],
+              [0 - paddingGrid, TopoConfig.grid_y + paddingGrid],
+              [TopoConfig.grid_x + paddingGrid, TopoConfig.grid_y + paddingGrid],
+              [TopoConfig.grid_x + paddingGrid, 0 - paddingGrid],
+              [0 - paddingGrid, 0 - paddingGrid]
+            ]
+          ],
+          type: 'Polygon'
+        }
+      }
+    ]
+  }
+  const option: any = {
+    geo3D: [
+      {
+        map: 'grid',
+        silent: true,
+        label: {
+          show: true,
+          color: 'white'
+        },
+        environment: '#1e1e1e',
+        itemStyle: {
+          color: 'royalblue'
+        },
+        postEffect: {
+          enable: true
+        },
+        boxWidth: 100,
+        boxDepth: 100,
+        boxHeight: 1,
+        viewControl: {
+          distance: 120,
+          maxAlpha: 180,
+          alpha: 60,
+          maxBeta: 720,
+          center: [0, -15, 0]
+          // panMouseButton: 'left',
+          // rotateMouseButton: 'right'
+        },
+        zlevel: -10,
+        regionHeight: 3,
+        regions: [{ name: 'base', height: 1, itemStyle: { color: '#111' }, label: { show: false } }]
+      }
+    ],
+    series: [
+      {
+        name: 'links',
+        type: 'lines3D',
+        coordinateSystem: 'geo3D',
+        lineStyle: {
+          width: 1.5,
+          opacity: 0.2
+        },
+        data: [],
+        zlevel: -9,
+        silent: true
+      },
+      {
+        name: 'Packets',
+        type: 'lines3D',
+        coordinateSystem: 'geo3D',
+        effect: {
+          show: true,
+          trailColor: 'white',
+          trailWidth: 2,
+          trailOpacity: 0.8,
+          trailLength: 0.12,
+          delay: 0,
+          // constantSpeed: 1,
+          period: .6
+        },
+        blendMode: 'lighter',
+        lineStyle: {
+          width: 0.01,
+          opacity: 0.01
+        },
+        data: [],
+        silent: true,
+        zlevel: -8
+      },
+      {
+        name: 'BroadcastPackets',
+        type: 'lines3D',
+        coordinateSystem: 'geo3D',
+        effect: {
+          show: true,
+          trailColor: 'white',
+          trailWidth: 2,
+          trailOpacity: 0.8,
+          trailLength: 0.12,
+          delay: 0,
+          constantSpeed: 1,
+          // period: 2
+        },
+        blendMode: 'lighter',
+        lineStyle: {
+          width: 0.01,
+          opacity: 0.01
+        },
+        data: [],
+        silent: true,
+        zlevel: -7
+      }
+    ]
+  }
+
   function drawNodes() {
     for (const n of Nodes.value) {
       if (n.id == 0) continue
       const center = n.pos // San Francisco, for example
-      const radius = 60 // 10 kilometers
+      const radius = 5
       const numSegments = 8 // The more segments, the smoother the circle
 
       const coordinates = generateNodeCoordinates(center, radius, numSegments)
@@ -159,7 +183,7 @@ export function useTopology(chartDom: any) {
         type: 'Feature',
         properties: {
           id: n.id,
-          name: n.id
+          name: `${n.id}`
         },
         geometry: {
           coordinates: [coordinates],
@@ -167,7 +191,7 @@ export function useTopology(chartDom: any) {
         }
       })
     }
-    echarts.registerMap('grid', gridMap)
+    echarts.registerMap('grid', gridMap, {})
     chart.setOption(option)
   }
 
@@ -199,6 +223,19 @@ export function useTopology(chartDom: any) {
           data: [[Nodes.value[pkt.src].pos, Nodes.value[pkt.dst].pos]]
         })
       }
+      // if (pkt.dst == ADDR.BROADCAST) {
+      //   const coords = generateNodeCoordinates(Nodes.value[pkt.src].pos, 100, 50)
+      //   const data = []
+      //   for (const coord of coords) {
+      //     data.push([toRaw(Nodes.value[pkt.src].pos), coord])
+      //   }
+        
+        // console.log(coords, data)
+        // chart.appendData({
+        //   seriesIndex: 2,
+        //   data: data
+        // })
+      // }
     }
   }
 
@@ -207,8 +244,8 @@ export function useTopology(chartDom: any) {
     radius: number,
     numSegments: number
   ): number[][] {
-    const distanceX = radius / (111.32 * Math.cos((center[1] * Math.PI) / 180))
-    const distanceY = radius / 110.574
+    const distanceX = radius / (10 * Math.cos((center[1] * Math.PI) / 180))
+    const distanceY = radius / 10
     const coordinates: number[][] = []
 
     for (let i = 0; i < numSegments; i++) {

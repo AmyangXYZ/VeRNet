@@ -33,6 +33,9 @@ export function useController() {
           const msg: Message = e.data
           switch (msg.type) {
             case MSG_TYPES.STAT:
+              n.joined = true
+              n.neighbors.push(msg.payload.parent)
+              Nodes.value[msg.payload.parent].neighbors.push(n.id)
               break
             case MSG_TYPES.DONE:
               doneCnt++
@@ -50,11 +53,6 @@ export function useController() {
               const topo_check = !Nodes.value[new_node].joined
 
               if (topo_check) {
-                Nodes.value[new_node].joined = true
-
-                Nodes.value[new_node].neighbors.push(parent)
-                Nodes.value[parent].neighbors.push(new_node)
-
                 Nodes.value[ADDR.ROOT].w.postMessage(<Packet>{
                   type: PKT_TYPES.ASSOC_RSP,
                   uid: Math.floor(Math.random() * 0xffff),
@@ -71,17 +69,24 @@ export function useController() {
                     schedule: <Cell[]>[
                       {
                         type: CELL_TYPES.MGMT,
-                        slot: msg.payload.id+6,
+                        slot: new_node + 6,
                         ch: 1,
-                        src: msg.payload.id,
+                        src: new_node,
                         dst: ADDR.BROADCAST
                       },
                       {
-                        type: CELL_TYPES.DATA,
-                        slot: msg.payload.id +12,
+                        type: CELL_TYPES.MGMT,
+                        slot: msg.payload.id + 12,
                         ch: Math.floor(Math.random() * 4) + 2,
-                        src: msg.payload.id,
+                        src: new_node,
                         dst: parent
+                      },
+                      {
+                        type: CELL_TYPES.MGMT,
+                        slot:new_node + 12,
+                        ch: Math.floor(Math.random() * 4) + 2,
+                        src: parent,
+                        dst: new_node
                       }
                     ]
                   }
