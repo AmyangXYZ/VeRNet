@@ -9,12 +9,14 @@ import type {
 } from './typedefs'
 import { MSG_TYPES, ADDR, PKT_TYPES, CELL_TYPES } from './typedefs'
 
-const SHARED_CHANNEL = 3
+const BEACON_CHANNEL = 1
 const BEACON_PERIOD = 1 // # of slotframe
+const SHARED_CHANNEL = 2
 
 const self: any = {
   id: 0,
   joined: false,
+  joining: false,
   parent: 0,
   rank: 0,
   children: <number[]>[],
@@ -43,7 +45,6 @@ onmessage = (e: any) => {
           self.queue.push(<Packet>{
             uid: Math.floor(Math.random() * 0xffff),
             type: PKT_TYPES.BEACON,
-            ch: SHARED_CHANNEL,
             src: self.id,
             dst: -1,
             seq: ++self.pkt_seq,
@@ -65,12 +66,6 @@ onmessage = (e: any) => {
         initSchedule(msg.payload.sch_config)
         if (self.id == ADDR.ROOT) {
           self.joined = true
-          self.schedule[1][SHARED_CHANNEL] = <Cell>{
-            slot: 1,
-            ch: SHARED_CHANNEL,
-            src: self.id,
-            dst: ADDR.BROADCAST
-          }
         }
         // console.log(`I am node ${self.id}`)
         break
@@ -116,8 +111,8 @@ onmessage = (e: any) => {
 
         case PKT_TYPES.BEACON:
           // console.log(`[${self.id}] received beacon (DIO) from node ${pkt.src}`)
-
-          if (self.id != ADDR.ROOT && !self.joined) {
+          if (self.id != ADDR.ROOT && !self.joined && !self.joining) {
+            self.joining = true
             // self.rank = pkt.payload.rank + 1
             self.queue.push(<Packet>{
               uid: Math.floor(Math.random() * 0xffff),
@@ -155,6 +150,7 @@ onmessage = (e: any) => {
         case PKT_TYPES.ASSOC_RSP:
           if (pkt.payload.id == self.id && pkt.payload.permit) {
             self.joined = true
+            self.joining = false
             self.parent = pkt.payload.parent
             self.routingTable[ADDR.CONTROLLER] = self.parent
 
@@ -165,6 +161,17 @@ onmessage = (e: any) => {
               type: MSG_TYPES.STAT,
               payload: self
             })
+
+            self.queue.push(<Packet>{
+              uid: Math.floor(Math.random() * 0xffff),
+              type: PKT_TYPES.BEACON,
+              src: self.id,
+              dst: -1,
+              seq: ++self.pkt_seq,
+              len: 1,
+              payload: <PKT_BEACON_PAYLOAD>{ dodag_id: 1, rank: self.rank }
+            })
+            // console.log()
           }
           if (pkt.payload.parent == self.id && pkt.payload.permit) {
             self.children.push(pkt.payload.id)
@@ -202,6 +209,15 @@ function initSchedule(config: ScheduleConfig) {
     self.schedule[s] = new Array<Cell>(config.num_channels + 1)
   }
 
+  // root's beacon
+  if (self.id == ADDR.ROOT) {
+    self.schedule[1][BEACON_CHANNEL] = <Cell>{
+      slot: 1,
+      ch: BEACON_CHANNEL,
+      src: self.id,
+      dst: ADDR.BROADCAST
+    }
+  }
   // shared slots
   for (let s = 0; s < config.num_shared_slots; s++) {
     self.schedule[s + 1][SHARED_CHANNEL] = <Cell>{

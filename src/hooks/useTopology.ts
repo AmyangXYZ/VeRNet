@@ -143,7 +143,7 @@ export function useTopology(chartDom: any) {
           trailLength: 0.12,
           delay: 0,
           // constantSpeed: 1,
-          period: 0.6
+          period: 0.45
         },
         blendMode: 'lighter',
         lineStyle: {

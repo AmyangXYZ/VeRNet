@@ -89,9 +89,9 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
         lineStyle: {
           width: 1.5
           // color:"purple"
-        }
+        },
         // animationDurationUpdate: 10000
-        // animation: false
+        animation: false
       })
     }
     for (let t = 1; t <= zoomWindow; t++) {
@@ -120,7 +120,7 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
       }
     }
     if (ASN.value * 3 > option.xAxis.data.length) {
-      for (let s = ASN.value * 3; s < ASN.value * 3 + 3; s++) {
+      for (let s = ASN.value * 3; s < ASN.value * 3 + zoomWindow / 2 - 3; s++) {
         option.xAxis.data.push(s)
       }
     }

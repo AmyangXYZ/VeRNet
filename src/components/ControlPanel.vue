@@ -25,7 +25,7 @@ function startASNTimer() {
   running.value = true
   asnTimer = setInterval(() => {
     incASN()
-  }, 400)
+  }, 500)
 }
 
 function incASN() {

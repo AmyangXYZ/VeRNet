@@ -74,20 +74,20 @@ export function useController() {
                         src: new_node,
                         dst: ADDR.BROADCAST
                       },
-                      {
-                        type: CELL_TYPES.MGMT,
-                        slot: msg.payload.id + 12,
-                        ch: Math.floor(Math.random() * 4) + 2,
-                        src: new_node,
-                        dst: parent
-                      },
-                      {
-                        type: CELL_TYPES.MGMT,
-                        slot:new_node + 12,
-                        ch: Math.floor(Math.random() * 4) + 2,
-                        src: parent,
-                        dst: new_node
-                      }
+                      // {
+                      //   type: CELL_TYPES.MGMT,
+                      //   slot: msg.payload.id + 12,
+                      //   ch: Math.floor(Math.random() * 4) + 2,
+                      //   src: new_node,
+                      //   dst: parent
+                      // },
+                      // {
+                      //   type: CELL_TYPES.MGMT,
+                      //   slot:new_node + 12,
+                      //   ch: Math.floor(Math.random() * 4) + 2,
+                      //   src: parent,
+                      //   dst: new_node
+                      // }
                     ]
                   }
                 })

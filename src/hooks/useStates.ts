@@ -18,13 +18,13 @@ export const TopoConfig = reactive<TopologyConfig>({
   num_nodes: 20,
   grid_x: 32,
   grid_y: 32,
-  tx_range: 8
+  tx_range: 10
 })
 
 export const SchConfig = reactive<ScheduleConfig>({
-  num_slots: 50,
+  num_slots: 32,
   num_channels: 8,
-  num_shared_slots: 40
+  num_shared_slots: 20
 })
 
 export const Schedule = ref<Cell[][]>([[]])
