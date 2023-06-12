@@ -18,7 +18,7 @@ export const TopoConfig = reactive<TopologyConfig>({
   num_nodes: 20,
   grid_x: 32,
   grid_y: 32,
-  tx_range: 9
+  tx_range: 8
 })
 
 export const SchConfig = reactive<ScheduleConfig>({

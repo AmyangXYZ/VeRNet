@@ -14,7 +14,6 @@ const BEACON_PERIOD = 1 // # of slotframe
 
 const self: any = {
   id: 0,
-  pos: <number[]>[],
   joined: false,
   parent: 0,
   rank: 0,

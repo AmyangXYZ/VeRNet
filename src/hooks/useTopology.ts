@@ -1,13 +1,8 @@
 import { onMounted, watch } from 'vue'
 import { SeededRandom } from './seed'
 
-import * as echarts from 'echarts/core'
-import { GeoComponent } from 'echarts/components'
-import { CanvasRenderer } from 'echarts/renderers'
-import { Lines3DChart } from 'echarts-gl/charts'
-import { Geo3DComponent } from 'echarts-gl/components'
-
-echarts.use([GeoComponent, Geo3DComponent, Lines3DChart, CanvasRenderer])
+import * as echarts from 'echarts'
+import 'echarts-gl'
 
 import { Nodes, TopoConfig, PacketsCurrent, SlotDone } from './useStates'
 
@@ -51,7 +46,7 @@ export function useTopology(chartDom: any) {
 
   let chart: any
 
-  const paddingGrid = 2
+  // const paddingGrid = 2
   const gridMap: any = {
     type: 'FeatureCollection',
     features: [
@@ -63,13 +58,13 @@ export function useTopology(chartDom: any) {
         },
         geometry: {
           coordinates: [
-            [
-              [0 - paddingGrid, 0 - paddingGrid],
-              [0 - paddingGrid, TopoConfig.grid_y + paddingGrid],
-              [TopoConfig.grid_x + paddingGrid, TopoConfig.grid_y + paddingGrid],
-              [TopoConfig.grid_x + paddingGrid, 0 - paddingGrid],
-              [0 - paddingGrid, 0 - paddingGrid]
-            ]
+            // [
+            //   [0 - paddingGrid, 0 - paddingGrid],
+            //   [0 - paddingGrid, TopoConfig.grid_y + paddingGrid],
+            //   [TopoConfig.grid_x + paddingGrid, TopoConfig.grid_y + paddingGrid],
+            //   [TopoConfig.grid_x + paddingGrid, 0 - paddingGrid],
+            //   [0 - paddingGrid, 0 - paddingGrid]
+            // ]
           ],
           type: 'Polygon'
         }
@@ -85,7 +80,20 @@ export function useTopology(chartDom: any) {
           show: true,
           color: 'white'
         },
+        shading: 'lambert',
+        groundPlane: {
+          show: true,
+          color: '#2a2a2a'
+        },
         environment: '#1e1e1e',
+        light: {
+          main: {
+            intensity: 1,
+            shadow: true,
+            shadowQuality: 'high',
+            alpha: 30
+          }
+        },
         itemStyle: {
           color: 'royalblue'
         },
@@ -96,17 +104,18 @@ export function useTopology(chartDom: any) {
         boxDepth: 100,
         boxHeight: 1,
         viewControl: {
-          distance: 120,
+          distance: 140,
           maxAlpha: 180,
-          alpha: 60,
-          maxBeta: 720,
-          center: [0, -15, 0],
+          alpha: 45,
+          beta: 0,
+          maxBeta: 360,
+          minBeta: -360,
+          center: [0, -20, 0],
           panMouseButton: 'left',
           rotateMouseButton: 'right'
         },
         zlevel: -10,
-        regionHeight: 3,
-        regions: [{ name: 'base', height: 1, itemStyle: { color: '#111' }, label: { show: false } }]
+        regionHeight: 3
       }
     ],
     series: [
@@ -134,7 +143,7 @@ export function useTopology(chartDom: any) {
           trailLength: 0.12,
           delay: 0,
           // constantSpeed: 1,
-          period: .6
+          period: 0.6
         },
         blendMode: 'lighter',
         lineStyle: {
@@ -156,7 +165,7 @@ export function useTopology(chartDom: any) {
           trailOpacity: 0.8,
           trailLength: 0.12,
           delay: 0,
-          constantSpeed: 1,
+          constantSpeed: 1
           // period: 2
         },
         blendMode: 'lighter',
@@ -229,12 +238,12 @@ export function useTopology(chartDom: any) {
       //   for (const coord of coords) {
       //     data.push([toRaw(Nodes.value[pkt.src].pos), coord])
       //   }
-        
-        // console.log(coords, data)
-        // chart.appendData({
-        //   seriesIndex: 2,
-        //   data: data
-        // })
+
+      // console.log(coords, data)
+      // chart.appendData({
+      //   seriesIndex: 2,
+      //   data: data
+      // })
       // }
     }
   }
@@ -276,7 +285,7 @@ export function useTopology(chartDom: any) {
         // chart.setOption(option)
       } else {
         // clear packets in last slot
-        chart.setOption(option)
+        chart.setOption(option, true)
       }
     },
     { deep: true }

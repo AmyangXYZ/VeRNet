@@ -1,10 +1,5 @@
 import { watch, onMounted } from 'vue'
-import * as echarts from 'echarts/core'
-import { HeatmapChart, LineChart } from 'echarts/charts'
-import { GridComponent, VisualMapComponent } from 'echarts/components'
-import { CanvasRenderer } from 'echarts/renderers'
-
-echarts.use([LineChart, VisualMapComponent, HeatmapChart, GridComponent, CanvasRenderer])
+import * as echarts from 'echarts'
 
 import { CELL_TYPES, type Cell } from './typedefs'
 

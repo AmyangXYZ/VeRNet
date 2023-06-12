@@ -1,10 +1,5 @@
 import { watch, onMounted } from 'vue'
-import * as echarts from 'echarts/core'
-import { LineChart } from 'echarts/charts'
-import { DataZoomComponent, GridComponent, TooltipComponent } from 'echarts/components'
-import { CanvasRenderer } from 'echarts/renderers'
-
-echarts.use([LineChart, TooltipComponent, DataZoomComponent, GridComponent, CanvasRenderer])
+import * as echarts from 'echarts'
 
 import type { ScheduleConfig } from './typedefs'
 

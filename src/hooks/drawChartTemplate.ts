@@ -1,10 +1,5 @@
 import { ref, watch, onMounted } from 'vue'
-import * as echarts from 'echarts/core'
-import { LineChart } from 'echarts/charts'
-import { GridComponent } from 'echarts/components'
-import { CanvasRenderer } from 'echarts/renderers'
-
-echarts.use([LineChart, GridComponent, CanvasRenderer])
+import * as echarts from 'echarts'
 
 import { Packets } from './useStates'
 
