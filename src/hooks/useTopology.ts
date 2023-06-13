@@ -46,50 +46,79 @@ export function useTopology(chartDom: any) {
   // const paddingGrid = 2
   const gridMap: any = {
     type: 'FeatureCollection',
-    features: [
-      {
-        type: 'Feature',
-        properties: {
-          id: 0,
-          name: 'base'
-        },
-        geometry: {
-          coordinates: [
-            // [
-            //   [0 - paddingGrid, 0 - paddingGrid],
-            //   [0 - paddingGrid, TopoConfig.grid_y + paddingGrid],
-            //   [TopoConfig.grid_x + paddingGrid, TopoConfig.grid_y + paddingGrid],
-            //   [TopoConfig.grid_x + paddingGrid, 0 - paddingGrid],
-            //   [0 - paddingGrid, 0 - paddingGrid]
-            // ]
-          ],
-          type: 'Polygon'
-        }
-      }
-    ]
+    features: []
   }
   // let alpha = 40
   const editing = ref(false)
   const option: any = {
     toolbox: {
       feature: {
-        myToo1: {
+        myToolEdit: {
           show: true,
-          icon: 'path://M432.45,595.444c0,2.177-4.661,6.82-11.305,6.82c-6.475,0-11.306-4.567-11.306-6.82s4.852-6.812,11.306-6.812C427.841,588.632,432.452,593.191,432.45,595.444L432.45,595.444z M421.155,589.876c-3.009,0-5.448,2.495-5.448,5.572s2.439,5.572,5.448,5.572c3.01,0,5.449-2.495,5.449-5.572C426.604,592.371,424.165,589.876,421.155,589.876L421.155,589.876z M421.146,591.891c-1.916,0-3.47,1.589-3.47,3.549c0,1.959,1.554,3.548,3.47,3.548s3.469-1.589,3.469-3.548C424.614,593.479,423.062,591.891,421.146,591.891L421.146,591.891zM421.146,591.891',
+          title: 'Edit topology',
+          icon: 'path://M14.06 9.02l.92.92L5.92 19H5v-.92l9.06-9.06M17.66 3c-.25 0-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.2-.2-.45-.29-.71-.29zm-3.6 3.19L3 17.25V21h3.75L17.81 9.94l-3.75-3.75z',
           onclick: () => {
-            console.log(editing.value)
             if (editing.value) {
               chart.off('click')
               editing.value = false
               chart.setOption(
                 {
-                  graphic: [],
+                  // graphic: [],
                   geo3D: { viewControl: { alpha: 40 } }
                 },
+                { replaceMerge: ['xAxis', 'yAxis', 'geo', 'graphic'] }
               )
               return
             }
             editing.value = true
+            chart.setOption({
+              grid: {
+                top: 2,
+                bottom: 2,
+                left: 2,
+                right: 2
+              },
+              xAxis: {
+                axisLine: { show: false },
+                axisTick: { show: false },
+                splitLine: {
+                  show: true,
+                  interval: 0,
+                  lineStyle: { color: 'lightgrey', opacity: 0.1 }
+                },
+                data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                zlevel: -9
+              },
+              yAxis: {
+                axisLine: { show: false },
+                axisTick: { show: false },
+                splitLine: {
+                  show: true,
+                  interval: 0,
+                  lineStyle: { color: 'lightgrey', opacity: 0.1 }
+                },
+                data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                zlevel: -9
+              },
+              geo: {
+                map: 'grid',
+                itemStyle: { opacity: 0 },
+                aspectScale: 1,
+                zlevel: -9,
+                zoom: 1.148,
+                emphasis: {
+                  label: { show: false }
+                }
+              },
+              geo3D: {
+                viewControl: {
+                  distance: 140,
+                  beta: 0,
+                  center: [0, -20, 0],
+                  alpha: 90
+                }
+              }
+            })
             chart.on('click', ({ event }: any) => {
               const pos = [event.offsetX, event.offsetY]
               chart.setOption({
@@ -114,16 +143,6 @@ export function useTopology(chartDom: any) {
                   }
                 ]
               })
-            })
-            chart.setOption({
-              geo: {
-                map: 'grid',
-                itemStyle: { opacity: 0 },
-                aspectScale: 1,
-                zlevel: -9,
-                zoom: 1.148
-              },
-              geo3D: { viewControl: { alpha: 90 } }
             })
           }
         }
@@ -229,12 +248,12 @@ export function useTopology(chartDom: any) {
 
   // to support draggable
   function drawNode(id: number) {
-    const center = Nodes.value[id].pos // San Francisco, for example
+    const center = Nodes.value[id].pos //
     const radius = 7
     const numSegments = 8 // The more segments, the smoother the circle
 
     const coordinates = generateNodeCoordinates(center, radius, numSegments)
-    gridMap.features = gridMap.features.filter((item: any) => item.properties.id !== id)
+    gridMap.features = gridMap.features.filter((item: any) => item.properties.id != id)
     gridMap.features.push({
       type: 'Feature',
       properties: {
