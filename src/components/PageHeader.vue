@@ -1,8 +1,12 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import VeRNETLogo from '@/assets/logo.png'
-// import { Moon } from '@element-plus/icons-vue'
-// import Light from './icons/IconLightMode.vue'
+import { Moon } from '@element-plus/icons-vue'
+import Light from './icons/IconLightMode.vue'
+
+import { useDark } from '@vueuse/core'
+
+const isDark = useDark()
 
 const activeIndex = ref('1')
 const handleSelect = (key: string, keyPath: string[]) => {
@@ -34,7 +38,7 @@ const handleSelect = (key: string, keyPath: string[]) => {
         <el-menu-item index="2-4-3">item three</el-menu-item>
       </el-sub-menu>
     </el-sub-menu>
-    <!-- <el-menu-item style="margin: auto">
+    <el-menu-item style="margin: auto">
       <el-switch
         class="theme-switch"
         v-model="isDark"
@@ -43,7 +47,7 @@ const handleSelect = (key: string, keyPath: string[]) => {
         active-color="dark"
         :inactive-icon="Light"
       />
-    </el-menu-item> -->
+    </el-menu-item>
   </el-menu>
 </template>
 

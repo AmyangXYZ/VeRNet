@@ -170,7 +170,7 @@ export function useTopology(chartDom: any) {
       },
       groundPlane: {
         show: true,
-        color: '#2a2a2a'
+        color: '#1f0025'
       },
       // environment: '#1e1e1e',
       light: {
