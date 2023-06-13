@@ -109,7 +109,7 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
     if (SlotDone.value) {
       for (let c = 1; c <= SchConfig.num_channels; c++) {
         if (PacketsCurrent.value.filter((pkt) => pkt.ch == c).length > 0) {
-          option.series[c - 1].data.push(c * 3 - 1.9, c * 3)
+          option.series[c - 1].data.push(c * 3 - 2, c * 3)
         } else {
           option.series[c - 1].data.push(c * 3, c * 3)
         }

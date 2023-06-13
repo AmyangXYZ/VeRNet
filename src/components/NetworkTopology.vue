@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="tsx">
 import { ref } from 'vue'
 
 import { useTopology } from '@/hooks/useTopology'

@@ -73,7 +73,7 @@ export function useController() {
                         ch: 1,
                         src: new_node,
                         dst: ADDR.BROADCAST
-                      },
+                      }
                       // {
                       //   type: CELL_TYPES.MGMT,
                       //   slot: msg.payload.id + 12,

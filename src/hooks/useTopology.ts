@@ -4,7 +4,7 @@ import { SeededRandom } from './seed'
 import * as echarts from 'echarts'
 import 'echarts-gl'
 
-import { Nodes, TopoConfig, PacketsCurrent, SlotDone } from './useStates'
+import { Nodes, TopoConfig, PacketsCurrent, SlotDone, SelectedNode } from './useStates'
 
 import type { Node } from './typedefs'
 import { ADDR, PKT_TYPES } from './typedefs'
@@ -72,52 +72,63 @@ export function useTopology(chartDom: any) {
     ]
   }
   const option: any = {
-    geo3D: [
-      {
-        map: 'grid',
-        silent: true,
-        label: {
-          show: true,
-          color: 'white'
-        },
-        shading: 'lambert',
-        groundPlane: {
-          show: true,
-          color: '#2a2a2a'
-        },
-        environment: '#1e1e1e',
-        light: {
-          main: {
-            intensity: 1,
-            shadow: true,
-            shadowQuality: 'high',
-            alpha: 30
+    geo3D: {
+      map: 'grid',
+      label: {
+        show: false,
+        color: 'white',
+        // echarts-gl bug, can only use label formatter to detect hover event
+        formatter: (item: any) => {
+          if (item.status == 'emphasis') {
+            SelectedNode.value = parseInt(item.name)
           }
-        },
+          return item.name
+        }
+      },
+      shading: 'lambert',
+      emphasis: {
         itemStyle: {
-          color: 'royalblue'
-        },
-        postEffect: {
-          enable: true
-        },
-        boxWidth: 100,
-        boxDepth: 100,
-        boxHeight: 1,
-        viewControl: {
-          distance: 140,
-          maxAlpha: 180,
-          alpha: 45,
-          beta: 0,
-          maxBeta: 360,
-          minBeta: -360,
-          center: [0, -20, 0],
-          panMouseButton: 'left',
-          rotateMouseButton: 'right'
-        },
-        zlevel: -10,
-        regionHeight: 3
-      }
-    ],
+          color: 'royalblue',
+          opacity: 0.7
+        }
+      },
+      groundPlane: {
+        show: true,
+        color: '#2a2a2a'
+      },
+      environment: '#1e1e1e',
+      light: {
+        main: {
+          intensity: 1,
+          shadow: true,
+          shadowQuality: 'high',
+          alpha: 30
+        }
+      },
+      itemStyle: {
+        color: 'royalblue'
+      },
+      postEffect: {
+        enable: true
+      },
+      boxWidth: 100,
+      boxDepth: 100,
+      boxHeight: 1,
+      viewControl: {
+        distance: 140,
+        maxAlpha: 180,
+        // alpha: 45,
+        // beta: 0,
+        maxBeta: 360,
+        minBeta: -360,
+        center: [0, -20, 0],
+        panMouseButton: 'left',
+        rotateMouseButton: 'right'
+      },
+      zlevel: -10,
+      regionHeight: 3,
+      regions: []
+    },
     series: [
       {
         name: 'links',
@@ -128,7 +139,7 @@ export function useTopology(chartDom: any) {
           opacity: 0.2
         },
         data: [],
-        zlevel: -9,
+        zlevel: -11,
         silent: true
       },
       {
@@ -142,8 +153,8 @@ export function useTopology(chartDom: any) {
           trailOpacity: 0.8,
           trailLength: 0.12,
           delay: 0,
-          // constantSpeed: 1,
-          period: 0.45
+          // constantSpeed: 2
+          period: 0.4
         },
         blendMode: 'lighter',
         lineStyle: {
@@ -152,30 +163,7 @@ export function useTopology(chartDom: any) {
         },
         data: [],
         silent: true,
-        zlevel: -8
-      },
-      {
-        name: 'BroadcastPackets',
-        type: 'lines3D',
-        coordinateSystem: 'geo3D',
-        effect: {
-          show: true,
-          trailColor: 'white',
-          trailWidth: 2,
-          trailOpacity: 0.8,
-          trailLength: 0.12,
-          delay: 0,
-          constantSpeed: 1
-          // period: 2
-        },
-        blendMode: 'lighter',
-        lineStyle: {
-          width: 0.01,
-          opacity: 0.01
-        },
-        data: [],
-        silent: true,
-        zlevel: -7
+        zlevel: -12
       }
     ]
   }
@@ -183,6 +171,9 @@ export function useTopology(chartDom: any) {
   function drawNodes() {
     for (const n of Nodes.value) {
       if (n.id == 0) continue
+
+      // echarts-gl bug, must include each node to regions here to enable label and hover event simultaneously
+      option.geo3D.regions.push({ name: `${n.id}`, label: { show: true } })
       const center = n.pos // San Francisco, for example
       const radius = 7
       const numSegments = 8 // The more segments, the smoother the circle
@@ -200,51 +191,30 @@ export function useTopology(chartDom: any) {
         }
       })
     }
-    echarts.registerMap('grid', gridMap, {})
+    echarts.registerMap('grid', gridMap)
+
     chart.setOption(option)
   }
 
   const drawnLinks: any = {}
   function drawLinks() {
-    // option.series[0].data = []
     for (const n of Nodes.value) {
       for (const nn of n.neighbors) {
         const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
         if (drawnLinks[linkName] == null) {
           drawnLinks[linkName] = true
           option.series[0].data.push([n.pos, Nodes.value[nn].pos])
-          chart.appendData({
-            seriesIndex: 0,
-            data: [[n.pos, Nodes.value[nn].pos]]
-          })
         }
       }
     }
   }
 
   function drawCurrentPackets() {
-    // option.series[1].data = []
+    option.series[1].data = []
     for (const pkt of PacketsCurrent.value) {
       if (pkt.type != PKT_TYPES.ACK && pkt.dst != ADDR.BROADCAST) {
-        // option.series[1].data.push([Nodes.value[pkt.src].pos, Nodes.value[pkt.dst].pos])
-        chart.appendData({
-          seriesIndex: 1,
-          data: [[Nodes.value[pkt.src].pos, Nodes.value[pkt.dst].pos]]
-        })
+        option.series[1].data.push([Nodes.value[pkt.src].pos, Nodes.value[pkt.dst].pos])
       }
-      // if (pkt.dst == ADDR.BROADCAST) {
-      //   const coords = generateNodeCoordinates(Nodes.value[pkt.src].pos, 100, 50)
-      //   const data = []
-      //   for (const coord of coords) {
-      //     data.push([toRaw(Nodes.value[pkt.src].pos), coord])
-      //   }
-
-      // console.log(coords, data)
-      // chart.appendData({
-      //   seriesIndex: 2,
-      //   data: data
-      // })
-      // }
     }
   }
 
@@ -272,7 +242,7 @@ export function useTopology(chartDom: any) {
   }
 
   onMounted(() => {
-    chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
+    chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons', { useDirtyRect: true })
     drawNodes()
   })
 
@@ -282,10 +252,7 @@ export function useTopology(chartDom: any) {
       if (SlotDone.value) {
         drawLinks()
         drawCurrentPackets()
-        // chart.setOption(option)
-      } else {
-        // clear packets in last slot
-        chart.setOption(option, true)
+        chart.setOption(option)
       }
     },
     { deep: true }
@@ -304,5 +271,9 @@ export function useTopology(chartDom: any) {
     chart.dispose()
     chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
     drawNodes()
+  })
+
+  watch(SelectedNode, () => {
+    console.log(SelectedNode.value)
   })
 }
