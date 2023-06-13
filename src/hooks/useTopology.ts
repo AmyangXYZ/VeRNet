@@ -9,9 +9,6 @@ import { Nodes, TopoConfig, PacketsCurrent, SlotDone, SelectedNode } from './use
 import type { Node } from './typedefs'
 import { ADDR, PKT_TYPES } from './typedefs'
 
-import { useDark } from '@vueuse/core'
-const isDark = useDark()
-
 export function useTopology(chartDom: any) {
   createNodes()
 
@@ -96,7 +93,7 @@ export function useTopology(chartDom: any) {
         show: true,
         color: '#2a2a2a'
       },
-      environment: '#1e1e1e',
+      // environment: '#1e1e1e',
       light: {
         main: {
           intensity: 1,
@@ -242,7 +239,7 @@ export function useTopology(chartDom: any) {
   }
 
   onMounted(() => {
-    chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons', { useDirtyRect: true })
+    chart = echarts.init(chartDom.value)
     drawNodes()
   })
 
@@ -266,12 +263,6 @@ export function useTopology(chartDom: any) {
     },
     { deep: true }
   )
-
-  watch(isDark, () => {
-    chart.dispose()
-    chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
-    drawNodes()
-  })
 
   watch(SelectedNode, () => {
     console.log(SelectedNode.value)

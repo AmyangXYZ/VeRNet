@@ -127,21 +127,4 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
     option.dataZoom[0].startValue = option.xAxis.data.length - zoomWindow
     chart.setOption(option)
   })
-
-  // watch(ASN, () => {
-  //   if (ASN.value == 0) {
-  //     chart.dispose()
-  //     chart = echarts.init(chartDom.value, isDark.value ? 'dark' : 'macarons')
-  //     initChart()
-  //     option.dataZoom[0].startValue = option.xAxis.data.length  - zoomWindow
-  //     chart.setOption(option)
-  //   }
-  //   if (ASN.value*3 > option.xAxis.data.length) {
-  //     for (let s = ASN.value*3; s < ASN.value*3 +3; s++) {
-  //       option.xAxis.data.push(s)
-  //     }
-  //     option.dataZoom[0].startValue = option.xAxis.data.length - zoomWindow
-  //     chart.setOption(option)
-  //   }
-  // })
 }
