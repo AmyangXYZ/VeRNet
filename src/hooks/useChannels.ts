@@ -9,9 +9,9 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
   let chart: any
   const zoomWindow: number = 60
   const option: any = {
-    tooltip: {
-      trigger: 'axis'
-    },
+    // tooltip: {
+    //   trigger: 'axis'
+    // },
     grid: {
       top: '34px',
       bottom: '27px',
@@ -88,10 +88,11 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
         symbol: 'none',
         lineStyle: {
           width: 1.5
-          // color:"purple"
+          // color:"darkblue"
         },
         // animationDurationUpdate: 10000
-        animation: false
+        animation: false,
+        silent:true,
       })
     }
     for (let t = 1; t <= zoomWindow; t++) {

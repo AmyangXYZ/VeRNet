@@ -3,10 +3,10 @@ import { ref, watch } from 'vue'
 import { Nodes, ASN, SlotDone, Packets } from '@/hooks/useStates'
 import { useController } from '@/hooks/useController'
 import IconPlay from './icons/IconPlay.vue'
-import IconStep from './icons/IconStep.vue'
+// import IconStep from './icons/IconStep.vue'
 import IconPause from './icons/IconPause.vue'
 import IconReset from './icons/IconReset.vue'
-
+import IconPlusOne from './icons/IconPlusOne.vue'
 const running = ref(false)
 
 const { start, reset } = useController()
@@ -98,7 +98,7 @@ watch(
           </el-button>
           <el-button class="btn" :disabled="running" size="small" type="info" @click="incASN">
             <el-icon size="20">
-              <IconStep />
+              <IconPlusOne />
             </el-icon>
           </el-button>
           <el-button
@@ -124,7 +124,17 @@ watch(
     <el-row justify="center">
       <el-col :span="20">
         <el-steps class="steps" direction="vertical" :active="stage" finish-status="success">
-          <el-step title="Topology formation">
+          <!-- <el-step title="Create topology">
+            <template v-if="stage >= 0" #description>
+              <el-progress
+                class="progress"
+                :text-inside="true"
+                :stroke-width="18"
+                :percentage="topoProgress"
+              />
+            </template>
+          </el-step> -->
+          <el-step title="Bootstrapping">
             <template v-if="stage >= 0" #description>
               <el-progress
                 class="progress"
