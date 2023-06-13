@@ -6,6 +6,8 @@ import 'echarts-gl'
 
 import { Nodes, TopoConfig, PacketsCurrent, SlotDone, SelectedNode } from './useStates'
 
+import texture from '../assets/texture.jpg'
+
 import type { Node } from './typedefs'
 import { ADDR, PKT_TYPES } from './typedefs'
 
@@ -43,8 +45,7 @@ export function useTopology(chartDom: any) {
 
   let chart: any
 
-  // const paddingGrid = 2
-  const gridMap: any = {
+  const mapBase: any = {
     type: 'FeatureCollection',
     features: []
   }
@@ -64,7 +65,7 @@ export function useTopology(chartDom: any) {
               chart.setOption(
                 {
                   // graphic: [],
-                  geo3D: { viewControl: { alpha: 40 } }
+                  geo3D: [{ viewControl: { alpha: 40 } }, { viewControl: { alpha: 40 } }]
                 },
                 { replaceMerge: ['xAxis', 'yAxis', 'geo', 'graphic'] }
               )
@@ -72,52 +73,36 @@ export function useTopology(chartDom: any) {
             }
             editing.value = true
             chart.setOption({
-              grid: {
-                top: 2,
-                bottom: 2,
-                left: 2,
-                right: 2
-              },
-              xAxis: {
-                axisLine: { show: false },
-                axisTick: { show: false },
-                splitLine: {
-                  show: true,
-                  interval: 0,
-                  lineStyle: { color: 'lightgrey', opacity: 0.1 }
-                },
-                data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                zlevel: -9
-              },
-              yAxis: {
-                axisLine: { show: false },
-                axisTick: { show: false },
-                splitLine: {
-                  show: true,
-                  interval: 0,
-                  lineStyle: { color: 'lightgrey', opacity: 0.1 }
-                },
-                data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                zlevel: -9
-              },
-              geo: {
-                map: 'grid',
-                itemStyle: { opacity: 0 },
-                aspectScale: 1,
-                zlevel: -9,
-                zoom: 1.148,
-                emphasis: {
-                  label: { show: false }
+              geo: [
+                {
+                  map: 'nodes',
+                  itemStyle: { opacity: 0 },
+                  aspectScale: 1,
+                  zlevel: -9,
+                  zoom: 1.148,
+                  emphasis: {
+                    label: { show: false }
+                  }
                 }
-              },
-              geo3D: {
-                viewControl: {
-                  distance: 140,
-                  beta: 0,
-                  center: [0, -20, 0],
-                  alpha: 90
+              ],
+              geo3D: [
+                {
+                  viewControl: {
+                    distance: 140,
+                    beta: 0,
+                    center: [0, -20, 0],
+                    alpha: 90
+                  }
+                },
+                {
+                  viewControl: {
+                    distance: 140,
+                    beta: 0,
+                    center: [0, -20, 0],
+                    alpha: 90
+                  }
                 }
-              }
+              ]
             })
             chart.on('click', ({ event }: any) => {
               const pos = [event.offsetX, event.offsetY]
@@ -132,7 +117,7 @@ export function useTopology(chartDom: any) {
                     },
                     draggable: true,
                     z: 100,
-                    zlevel: 1,
+                    zlevel: -1,
                     ondrag: (item: any) => {
                       Nodes.value[SelectedNode.value].pos = chart.convertFromPixel('geo', [
                         item.offsetX,
@@ -148,72 +133,99 @@ export function useTopology(chartDom: any) {
         }
       }
     },
-    geo3D: {
-      map: 'grid',
-      label: {
-        show: false,
-        color: 'white',
-        // echarts-gl bug, can only use label formatter to detect hover event
-        formatter: (item: any) => {
-          if (item.status == 'emphasis') {
-            SelectedNode.value = parseInt(item.name)
+    geo3D: [
+      {
+        map: 'plane',
+        shading: 'realistic',
+        realisticMaterial: {
+          roughness: 0,
+          textureTiling: 1,
+          detailTexture: texture
+        },
+        groundPlane: {
+          show: true,
+          color: '#111'
+        },
+        light: {
+          main: {
+            intensity: 20,
+            shadow: true,
+            shadowQuality: 'high',
+            alpha: 30
           }
-          return item.name
-        }
+        },
+        postEffect: {
+          enable: true
+        },
+        environment: 'auto',
+        boxWidth: 100,
+        boxDepth: 100,
+        boxHeight: 1,
+        viewControl: {
+          distance: 140,
+          maxAlpha: 180,
+          // alpha: 45,
+          // beta: 0,
+          maxBeta: 360,
+          minBeta: -360,
+          center: [0, -20, 0],
+          panMouseButton: 'left',
+          rotateMouseButton: 'right'
+        },
+        zlevel: -20
       },
-      shading: 'lambert',
-      emphasis: {
+      {
+        map: 'nodes',
+        label: {
+          show: false,
+          color: 'white',
+          // echarts-gl bug, can only use label formatter to detect hover event
+          formatter: (item: any) => {
+            if (item.status == 'emphasis') {
+              SelectedNode.value = parseInt(item.name)
+            }
+            return item.name
+          }
+        },
+        emphasis: {
+          itemStyle: {
+            color: 'royalblue'
+            // opacity: 0.5
+          }
+        },
         itemStyle: {
-          color: 'royalblue',
-          opacity: 0.7
-        }
-      },
-      groundPlane: {
-        show: true,
-        color: '#1f0025'
-      },
-      // environment: '#1e1e1e',
-      light: {
-        main: {
-          intensity: 1,
-          shadow: true,
-          shadowQuality: 'high',
-          alpha: 30
-        }
-      },
-      itemStyle: {
-        color: 'royalblue'
-      },
-      postEffect: {
-        enable: true
-      },
-      boxWidth: 100,
-      boxDepth: 100,
-      boxHeight: 1,
-      viewControl: {
-        distance: 140,
-        maxAlpha: 180,
-        // alpha: 45,
-        // beta: 0,
-        maxBeta: 360,
-        minBeta: -360,
-        center: [0, -20, 0],
-        panMouseButton: 'left',
-        rotateMouseButton: 'right'
-      },
-      zlevel: -10,
-      regionHeight: 3,
-      regions: []
-    },
+          color: 'royalblue'
+        },
+        postEffect: { enable: true },
+        boxWidth: 100,
+        boxDepth: 100,
+        boxHeight: 1,
+        viewControl: {
+          distance: 140,
+          maxAlpha: 180,
+          // alpha: 45,
+          // beta: 0,
+          maxBeta: 360,
+          minBeta: -360,
+          center: [0, -20, 0],
+          panMouseButton: 'left',
+          rotateMouseButton: 'right'
+        },
+        // higher zlevel canvas than the plane
+        zlevel: -10,
+        regionHeight: 3,
+        regions: []
+      }
+    ],
     series: [
       {
         name: 'links',
         type: 'lines3D',
         coordinateSystem: 'geo3D',
-        geo3DIndex: 0,
+        geo3DIndex: 1,
         lineStyle: {
-          width: 1.5,
-          opacity: 0.2
+          width: 1,
+          opacity: 0.1
         },
         data: [],
         zlevel: -11,
@@ -223,12 +235,12 @@ export function useTopology(chartDom: any) {
         name: 'Packets',
         type: 'lines3D',
         coordinateSystem: 'geo3D',
-        geo3DIndex: 0,
+        geo3DIndex: 1,
         effect: {
           show: true,
           trailColor: 'white',
-          trailWidth: 2,
-          trailOpacity: 0.8,
+          trailWidth: 1.5,
+          trailOpacity: 0.6,
           trailLength: 0.12,
           delay: 0,
           // constantSpeed: 2
@@ -253,8 +265,8 @@ export function useTopology(chartDom: any) {
     const numSegments = 8 // The more segments, the smoother the circle
 
     const coordinates = generateNodeCoordinates(center, radius, numSegments)
-    gridMap.features = gridMap.features.filter((item: any) => item.properties.id != id)
-    gridMap.features.push({
+    mapBase.features = mapBase.features.filter((item: any) => item.properties.id != id)
+    mapBase.features.push({
       type: 'Feature',
       properties: {
         id: id,
@@ -265,9 +277,9 @@ export function useTopology(chartDom: any) {
         type: 'Polygon'
       }
     })
-    // console.log(Nodes.value[id].pos,gridMap.features[id - 1].coordinates[0])
-    // gridMap = JSON.parse(JSON.stringify(gridMap))
-    echarts.registerMap('grid', gridMap)
+    // console.log(Nodes.value[id].pos,mapBase.features[id - 1].coordinates[0])
+    // mapBase = JSON.parse(JSON.stringify(mapBase))
+    echarts.registerMap('nodes', mapBase)
     chart.setOption(option)
   }
 
@@ -276,13 +288,13 @@ export function useTopology(chartDom: any) {
       if (n.id == 0) continue
 
       // echarts-gl bug, must include each node to regions here to enable label and hover event simultaneously
-      option.geo3D.regions.push({ name: `${n.id}`, label: { show: true } })
+      option.geo3D[1].regions.push({ name: `${n.id}`, label: { show: true } })
       const center = n.pos // San Francisco, for example
       const radius = 7
       const numSegments = 8 // The more segments, the smoother the circle
 
       const coordinates = generateNodeCoordinates(center, radius, numSegments)
-      gridMap.features.push({
+      mapBase.features.push({
         type: 'Feature',
         properties: {
           id: n.id,
@@ -294,7 +306,8 @@ export function useTopology(chartDom: any) {
         }
       })
     }
-    echarts.registerMap('grid', gridMap)
+    echarts.registerMap('nodes', mapBase)
+
     chart.setOption(option)
   }
 
@@ -345,6 +358,32 @@ export function useTopology(chartDom: any) {
 
   onMounted(() => {
     chart = echarts.init(chartDom.value)
+    chart.showLoading({
+      text: 'Rendering...',
+      textColor: 'lightgrey',
+      fontSize: 15,
+      maskColor: '#0e1116'
+    })
+    // only ground plane, no ndoes
+    echarts.registerMap('plane', {
+      type: 'FeatureCollection',
+      features: []
+    })
+    const imageUrl = ref(texture)
+    const isLoaded = ref(false)
+
+    const preloadImage = new Image()
+    preloadImage.onload = () => {
+      isLoaded.value = true
+    }
+    preloadImage.src = imageUrl.value
+
+    setTimeout(() => {
+      chart.hideLoading()
+    }, 500)
+    // chart.on("rendered", ()=>{
+    //   chart.hideLoading()
+    // })
     drawNodes()
   })
 
