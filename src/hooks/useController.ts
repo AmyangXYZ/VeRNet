@@ -166,6 +166,7 @@ export function useController() {
     initTopology()
     initSchedule()
     initController()
+    status.value.initiated = true
   }
 
   const status = ref({
@@ -178,7 +179,6 @@ export function useController() {
   const run = function () {
     if (!status.value.initiated) {
       initNetwork()
-      status.value.initiated = true
     }
     status.value.running = true
     status.value.timer = setInterval(() => {
@@ -190,7 +190,6 @@ export function useController() {
   const step = function () {
     if (!status.value.initiated) {
       initNetwork()
-      status.value.initiated = true
     }
     ASN.value++
     SlotDone.value = false

@@ -134,6 +134,7 @@ export function useTopology(): any {
                             item.offsetX,
                             item.offsetY
                           ])
+
                           drawNode(SelectedNode.value)
                         }
                       }
@@ -368,8 +369,6 @@ export function useTopology(): any {
 
       return coordinates
     }
-
-    watch(Nodes, () => {}, { deep: true })
 
     watch(
       SlotDone,
