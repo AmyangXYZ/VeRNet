@@ -380,7 +380,7 @@ export function useTopology(chartDom: any) {
 
     setTimeout(() => {
       chart.hideLoading()
-    }, 500)
+    }, 800)
     // chart.on("rendered", ()=>{
     //   chart.hideLoading()
     // })
