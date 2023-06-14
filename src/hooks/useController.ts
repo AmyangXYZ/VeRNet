@@ -172,7 +172,7 @@ export function useController() {
     status.value.timer = setInterval(() => {
       SlotDone.value = false
       ASN.value++
-    }, 200)
+    }, 500)
   }
   // ASN++
   const step = function () {

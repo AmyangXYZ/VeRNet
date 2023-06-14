@@ -149,32 +149,40 @@ export function useSchedule(): any {
   }
 
   const findIdleCell = function (type: number, src: number, dst: number): Cell | undefined {
-    for (
-      let slot = 2 + SchConfig.num_shared_slots;
-      2 + SchConfig.num_shared_slots + slot <= SchConfig.num_slots;
-      slot++
-    ) {
+    for (let slot = 2 + SchConfig.num_shared_slots; slot <= SchConfig.num_slots; slot++) {
       // check conflict
       if (
         Schedule.value[slot].filter(
-          (x) =>
-            x.src == src || x.src == dst || x.dst == src || x.dst == dst || x.dst == ADDR.BROADCAST
+          (x) => x.src == src || x.src == dst || x.dst == src || x.dst == dst
         ).length > 0
       ) {
         continue
       }
-
-      for (let ch = 1; ch <= SchConfig.num_channels; ch++) {
-        if (Schedule.value[slot][ch] == undefined) {
+      if (dst == ADDR.BROADCAST) {
+        if (Schedule.value[slot][SchConfig.beacon_channel] == undefined) {
           const cell = <Cell>{
             type: type,
             slot: slot,
-            ch: ch,
+            ch: SchConfig.beacon_channel,
             src: src,
             dst: dst
           }
-          Schedule.value[slot][ch] = cell
+          Schedule.value[slot][SchConfig.beacon_channel] = cell
           return cell
+        }
+      } else {
+        for (let ch = 2; ch <= SchConfig.num_channels; ch++) {
+          if (Schedule.value[slot][ch] == undefined) {
+            const cell = <Cell>{
+              type: type,
+              slot: slot,
+              ch: ch,
+              src: src,
+              dst: dst
+            }
+            Schedule.value[slot][ch] = cell
+            return cell
+          }
         }
       }
     }
