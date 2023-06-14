@@ -1,5 +1,5 @@
 import { ref, watch, toRaw } from 'vue'
-import { ASN, Nodes, Packets, TopoConfig, SchConfig, PacketsCurrent, SlotDone } from './useStates'
+import { ASN, Nodes, Packets, TopoConfig, SchConfig, PacketsCurrent, SlotDone, SignalReset } from './useStates'
 import { useSchedule } from './useSchedule'
 import { useTopology } from './useTopology'
 import type {
@@ -199,9 +199,11 @@ export function useController() {
     clearInterval(status.value.timer)
   }
   const reset = function () {
+    SignalReset.value++
     status.value.running = false
     clearInterval(status.value.timer)
     ASN.value = 0
+    Packets.value = []
     initNetwork()
   }
 

@@ -67,7 +67,6 @@ onmessage = (e: any) => {
         if (self.id == ADDR.ROOT) {
           self.joined = true
         }
-        // console.log(`I am node ${self.id}`)
         break
       case MSG_TYPES.SEND:
         self.queue.push(<Packet>{

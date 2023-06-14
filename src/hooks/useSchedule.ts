@@ -1,8 +1,9 @@
+import { watch } from 'vue'
 import * as echarts from 'echarts'
 
 import { CELL_TYPES, type Cell } from './typedefs'
 
-import { SchConfig, Schedule } from './useStates'
+import { SchConfig, Schedule, SignalReset } from './useStates'
 
 export function useSchedule(): any {
   const initSchedule = function () {
@@ -13,6 +14,8 @@ export function useSchedule(): any {
   }
 
   const drawSchedule = function (chartDom: any) {
+    echarts.dispose(chartDom.value)
+    const chart = echarts.init(chartDom.value)
     const option: any = {
       grid: {
         top: '42px',
@@ -66,7 +69,6 @@ export function useSchedule(): any {
         }
       ]
     }
-    const chart = echarts.init(chartDom.value)
 
     for (let s = 1; s <= SchConfig.num_slots; s++) {
       option.xAxis.data.push(s)
@@ -83,6 +85,11 @@ export function useSchedule(): any {
       }
     }
     chart.setOption(option)
+
+    watch(SignalReset, () => {
+      option.series[0].data = []
+      chart.setOption(option)
+    })
   }
 
   const findCell = function () {}

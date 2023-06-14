@@ -4,7 +4,7 @@ import { SeededRandom } from './seed'
 import * as echarts from 'echarts'
 import 'echarts-gl'
 
-import { Nodes, TopoConfig, PacketsCurrent, SlotDone, SelectedNode } from './useStates'
+import { Nodes, TopoConfig, PacketsCurrent, SlotDone, SelectedNode, SignalReset } from './useStates'
 
 import texture from '@/assets/texture.jpg'
 
@@ -325,8 +325,10 @@ export function useTopology(): any {
       chart.setOption(option)
     }
 
-    const drawnLinks: any = {}
+    
     function drawLinks() {
+      option.series[0].data = []
+      const drawnLinks: any = {}
       for (const n of Nodes.value) {
         for (const nn of n.neighbors) {
           const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
@@ -381,6 +383,12 @@ export function useTopology(): any {
       },
       { deep: true }
     )
+
+    watch(SignalReset, ()=>{
+      option.series[0].data = []
+      option.series[1].data = []
+      chart.setOption(option)
+    })
   }
   return { initTopology, drawTopology }
 }

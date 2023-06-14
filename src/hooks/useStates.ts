@@ -13,6 +13,8 @@ export const Packets = ref<Packet[]>([])
 // packets in the current slot, for animation
 export const PacketsCurrent = ref<Packet[]>([])
 
+export const SignalReset = ref(0)
+
 export const TopoConfig = reactive<TopologyConfig>({
   seed: 124,
   num_nodes: 20,

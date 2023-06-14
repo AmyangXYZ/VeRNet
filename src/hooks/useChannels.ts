@@ -1,12 +1,14 @@
 import { watch } from 'vue'
 import * as echarts from 'echarts'
 
-import { ASN, PacketsCurrent, SchConfig, SlotDone } from './useStates'
+import { ASN, PacketsCurrent, SchConfig, SignalReset, SlotDone } from './useStates'
 
 export function useChannels(): any {
   const drawChannels = function (chartDom: any) {
+    echarts.dispose(chartDom.value)
     const chart = echarts.init(chartDom.value)
     const zoomWindow: number = 60
+
     const option: any = {
       // tooltip: {
       //   trigger: 'axis'
@@ -101,20 +103,28 @@ export function useChannels(): any {
           } else {
             option.series[c - 1].data.push(c * 3, c * 3)
           }
+          if (ASN.value * 3 > option.xAxis.data.length) {
+            for (let s = ASN.value * 3; s < ASN.value * 3 + zoomWindow / 2 - 3; s++) {
+              option.xAxis.data.push(s)
+            }
+          }
+          option.dataZoom[0].startValue = option.xAxis.data.length - zoomWindow
+          chart.setOption(option)
         }
       } else {
         for (let c = 1; c <= SchConfig.num_channels; c++) {
           option.series[c - 1].data.push(c * 3)
         }
       }
-      if (ASN.value * 3 > option.xAxis.data.length) {
-        for (let s = ASN.value * 3; s < ASN.value * 3 + zoomWindow / 2 - 3; s++) {
-          option.xAxis.data.push(s)
-        }
+    })
+
+    watch(SignalReset, () => {
+      for (let c = 1; c <= SchConfig.num_channels; c++) {
+        option.series[c - 1].data = []
       }
-      option.dataZoom[0].startValue = option.xAxis.data.length - zoomWindow
       chart.setOption(option)
     })
   }
+
   return { drawChannels }
 }
