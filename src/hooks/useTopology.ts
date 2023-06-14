@@ -75,7 +75,7 @@ export function useTopology(chartDom: any) {
             chart.setOption({
               geo: [
                 {
-                  map: 'nodes',
+                  map: '6tisch',
                   itemStyle: { opacity: 0 },
                   aspectScale: 1,
                   zlevel: -9,
@@ -135,7 +135,8 @@ export function useTopology(chartDom: any) {
     },
     geo3D: [
       {
-        map: 'plane',
+        // ground plane only
+        map: '6tisch',
         shading: 'realistic',
         realisticMaterial: {
           roughness: 0,
@@ -144,7 +145,7 @@ export function useTopology(chartDom: any) {
         },
         groundPlane: {
           show: true,
-          color: '#111'
+          color: '#1c1c1c'
         },
         light: {
           main: {
@@ -175,7 +176,8 @@ export function useTopology(chartDom: any) {
         zlevel: -20
       },
       {
-        map: 'nodes',
+        // nodes only
+        map: '6tisch',
         label: {
           show: false,
           color: 'white',
@@ -306,7 +308,7 @@ export function useTopology(chartDom: any) {
         }
       })
     }
-    echarts.registerMap('nodes', mapBase)
+    echarts.registerMap('6tisch', mapBase)
 
     chart.setOption(option)
   }
@@ -365,10 +367,10 @@ export function useTopology(chartDom: any) {
       maskColor: '#0e1116'
     })
     // only ground plane, no ndoes
-    echarts.registerMap('plane', {
-      type: 'FeatureCollection',
-      features: []
-    })
+    // echarts.registerMap('plane', {
+    //   type: 'FeatureCollection',
+    //   features: []
+    // })
     const imageUrl = ref(texture)
     const isLoaded = ref(false)
 
