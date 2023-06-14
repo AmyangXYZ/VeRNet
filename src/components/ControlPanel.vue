@@ -1,61 +1,19 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Nodes, ASN, SlotDone, Packets } from '@/hooks/useStates'
+import { Nodes, ASN, Packets } from '@/hooks/useStates'
 import { useController } from '@/hooks/useController'
 import IconPlay from './icons/IconPlay.vue'
 // import IconStep from './icons/IconStep.vue'
 import IconPause from './icons/IconPause.vue'
 import IconReset from './icons/IconReset.vue'
 import IconPlusOne from './icons/IconPlusOne.vue'
-const running = ref(false)
 
-const { start, reset } = useController()
+const { initNetwork, status, run, step, pause, reset } = useController()
 
-let initiated = false
+initNetwork()
 
 const stage = ref(0)
-
-let asnTimer: any
-
-function startASNTimer() {
-  if (!initiated) {
-    start()
-    initiated = true
-  }
-  running.value = true
-  asnTimer = setInterval(() => {
-    incASN()
-  }, 500)
-}
-
-function incASN() {
-  if (!initiated) {
-    start()
-    initiated = true
-  }
-  SlotDone.value = false
-  ASN.value++
-}
-
-function pauseASNTimer() {
-  running.value = false
-  clearInterval(asnTimer)
-}
-function resetASNTimer() {
-  reset()
-  running.value = false
-  clearInterval(asnTimer)
-  ASN.value = 0
-}
-
 const topoProgress = ref(0)
-
-// watch(SlotDone, () => {
-//   console.log(ASN.value,SlotDone.value)
-//   if (SlotDone.value) {
-//     incASN()
-//   }
-// })
 
 watch(
   Nodes,
@@ -87,32 +45,32 @@ watch(
         <el-button-group class="btns">
           <el-button
             class="btn"
-            :disabled="running"
+            :disabled="status.running"
             size="small"
             type="primary"
-            @click="startASNTimer"
+            @click="run"
           >
             <el-icon size="20">
               <IconPlay />
             </el-icon>
           </el-button>
-          <el-button class="btn" :disabled="running" size="small" type="info" @click="incASN">
+          <el-button class="btn" :disabled="status.running" size="small" type="info" @click="step">
             <el-icon size="20">
               <IconPlusOne />
             </el-icon>
           </el-button>
           <el-button
             class="btn"
-            :disabled="!running"
+            :disabled="!status.running"
             size="small"
             type="warning"
-            @click="pauseASNTimer"
+            @click="pause"
           >
             <el-icon size="20">
               <IconPause />
             </el-icon>
           </el-button>
-          <el-button class="btn" size="small" type="danger" @click="resetASNTimer">
+          <el-button class="btn" size="small" type="danger" @click="reset">
             <el-icon size="18">
               <IconReset />
             </el-icon>

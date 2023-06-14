@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useChannels } from '@/hooks/useChannels'
-import { SchConfig } from '@/hooks/useStates'
 
 const chartDom = ref(null)
-useChannels(SchConfig, chartDom)
+const { drawChannels } = useChannels()
+onMounted(() => {
+  drawChannels(chartDom)
+})
 </script>
 
 <template>

@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { SchConfig } from '@/hooks/useStates'
 import { useSchedule } from '@/hooks/useSchedule'
 
 import { Operation } from '@element-plus/icons-vue'
 
 const chartDom = ref()
-useSchedule(chartDom)
+const { drawSchedule } = useSchedule()
+
+onMounted(() => {
+  drawSchedule(chartDom)
+})
 </script>
 
 <template>

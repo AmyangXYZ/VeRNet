@@ -1,6 +1,7 @@
-import { watch, toRaw } from 'vue'
+import { ref, watch, toRaw } from 'vue'
 import { ASN, Nodes, Packets, TopoConfig, SchConfig, PacketsCurrent, SlotDone } from './useStates'
-
+import { useSchedule } from './useSchedule'
+import { useTopology } from './useTopology'
 import type {
   Message,
   Packet,
@@ -12,7 +13,7 @@ import type {
 import { CELL_TYPES, MSG_TYPES, PKT_TYPES, ADDR } from './typedefs'
 
 export function useController() {
-  const start = function () {
+  const initController = function () {
     let doneCnt = 0
     // set up msg/pkt handler
     for (const n of Nodes.value) {
@@ -158,7 +159,52 @@ export function useController() {
       }
     })
   }
-  const reset = function () {}
 
-  return { start, reset }
+  const initNetwork = function () {
+    const { initTopology } = useTopology()
+    const { initSchedule } = useSchedule()
+    initTopology()
+    initSchedule()
+    initController()
+  }
+
+  const status = ref({
+    initiated: false,
+    running: false,
+    timer: 0
+  })
+
+  // auto inc ASN
+  const run = function () {
+    if (!status.value.initiated) {
+      initNetwork()
+      status.value.initiated = true
+    }
+    status.value.running = true
+    status.value.timer = setInterval(() => {
+      SlotDone.value = false
+      ASN.value++
+    }, 500)
+  }
+  // ASN++
+  const step = function () {
+    if (!status.value.initiated) {
+      initNetwork()
+      status.value.initiated = true
+    }
+    ASN.value++
+    SlotDone.value = false
+  }
+  const pause = function () {
+    status.value.running = false
+    clearInterval(status.value.timer)
+  }
+  const reset = function () {
+    status.value.running = false
+    clearInterval(status.value.timer)
+    ASN.value = 0
+    initNetwork()
+  }
+
+  return { initNetwork, status, run, step, pause, reset }
 }

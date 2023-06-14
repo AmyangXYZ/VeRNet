@@ -1,5 +1,5 @@
 <script setup lang="tsx">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 import { useTopology } from '@/hooks/useTopology'
 import { TopoConfig } from '@/hooks/useStates'
@@ -7,7 +7,10 @@ import { TopoConfig } from '@/hooks/useStates'
 import { Operation } from '@element-plus/icons-vue'
 
 const chartDom = ref(null)
-useTopology(chartDom)
+const { drawTopology } = useTopology()
+onMounted(() => {
+  drawTopology(chartDom)
+})
 </script>
 
 <template>
