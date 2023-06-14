@@ -87,8 +87,8 @@ export function useChannels(config: ScheduleConfig, chartDom: any) {
         data: [c * 3],
         symbol: 'none',
         lineStyle: {
-          width: 1.5
-          // color:"darkblue"
+          width: 1,
+          color:"deepgreen"
         },
         // animationDurationUpdate: 10000
         animation: false,
