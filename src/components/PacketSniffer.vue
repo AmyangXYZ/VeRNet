@@ -9,7 +9,7 @@ import { Filter } from '@element-plus/icons-vue'
 const filterRules = ref()
 
 function filterFunc(pkt: Packet) {
-  if (filterRules.value == null) return true
+  if (filterRules.value == undefined) return true
   return eval(filterRules.value)
 }
 

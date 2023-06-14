@@ -325,14 +325,13 @@ export function useTopology(): any {
       chart.setOption(option)
     }
 
-    
     function drawLinks() {
       option.series[0].data = []
       const drawnLinks: any = {}
       for (const n of Nodes.value) {
         for (const nn of n.neighbors) {
           const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
-          if (drawnLinks[linkName] == null) {
+          if (drawnLinks[linkName] == undefined) {
             drawnLinks[linkName] = true
             option.series[0].data.push([n.pos, Nodes.value[nn].pos])
           }
@@ -384,7 +383,7 @@ export function useTopology(): any {
       { deep: true }
     )
 
-    watch(SignalReset, ()=>{
+    watch(SignalReset, () => {
       option.series[0].data = []
       option.series[1].data = []
       chart.setOption(option)

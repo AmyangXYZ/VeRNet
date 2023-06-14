@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useChannels } from '@/hooks/useChannels'
 
-const chartDom = ref(null)
+const chartDom = ref(undefined)
 const { drawChannels } = useChannels()
 onMounted(() => {
   drawChannels(chartDom)

@@ -9,10 +9,6 @@ import type {
 } from './typedefs'
 import { MSG_TYPES, ADDR, PKT_TYPES, CELL_TYPES } from './typedefs'
 
-const BEACON_CHANNEL = 1
-const BEACON_PERIOD = 1 // # of slotframe
-const SHARED_CHANNEL = 2
-
 const self: any = {
   id: 0,
   joined: false,
@@ -20,6 +16,7 @@ const self: any = {
   parent: 0,
   rank: 0,
   children: <number[]>[],
+  sch_config: <ScheduleConfig>{},
   schedule: <Cell[][]>[],
   queue: <Packet[]>[],
   routingTable: {}, // dst: next-hop
@@ -27,6 +24,9 @@ const self: any = {
   rx_cnt: 0,
   tx_cnt: 0
 }
+
+const neighbors: any = {} // record if neighbor has joined
+neighbors[ADDR.BROADCAST] = true
 
 let ASN = 0
 
@@ -41,7 +41,10 @@ onmessage = (e: any) => {
         ASN = msg.payload.asn
         // console.log(`[${self.id}] cur_asn: ${ASN}`)
         // send beacon
-        if (self.joined && ASN % (BEACON_PERIOD * (self.schedule.length - 1)) == 1) {
+        if (
+          self.joined &&
+          ASN % (self.sch_config.beacon_period * (self.schedule.length - 1)) == 1
+        ) {
           self.queue.push(<Packet>{
             uid: Math.floor(Math.random() * 0xffff),
             type: PKT_TYPES.BEACON,
@@ -52,7 +55,6 @@ onmessage = (e: any) => {
             payload: <PKT_BEACON_PAYLOAD>{ dodag_id: 1, rank: self.rank }
           })
         }
-
         checkScheduleTx()
 
         // done
@@ -63,7 +65,8 @@ onmessage = (e: any) => {
       case MSG_TYPES.INIT:
         self.id = msg.payload.id
         self.pos = msg.payload.pos
-        initSchedule(msg.payload.sch_config)
+        self.sch_config = msg.payload.sch_config
+        initSchedule()
         if (self.id == ADDR.ROOT) {
           self.joined = true
         }
@@ -102,8 +105,14 @@ onmessage = (e: any) => {
 
       switch (pkt.type) {
         case PKT_TYPES.ACK:
-          if (self.queue[0] != null && self.queue[0].uid == pkt.uid) {
+          if (self.queue[0] != undefined && self.queue[0].uid == pkt.uid) {
             // console.log('recieved ack', pkt.uid)
+            if (
+              self.queue[0].type == PKT_TYPES.ASSOC_RSP &&
+              self.queue[0].payload.parent == self.id
+            ) {
+              neighbors[self.queue[0].payload.id] = true
+            }
             self.queue.shift()
           }
           break
@@ -128,7 +137,7 @@ onmessage = (e: any) => {
         case PKT_TYPES.ASSOC_REQ:
           // console.log(`[${self.id}] DAO from [${pkt.src}]`)
 
-          if (self.routingTable[pkt.payload.id] == null) {
+          if (self.routingTable[pkt.payload.id] == undefined) {
             self.routingTable[pkt.payload.id] = pkt.src
           }
 
@@ -151,6 +160,7 @@ onmessage = (e: any) => {
             self.joined = true
             self.joining = false
             self.parent = pkt.payload.parent
+            neighbors[self.parent] = true
             self.routingTable[ADDR.CONTROLLER] = self.parent
 
             for (const cell of pkt.payload.schedule) {
@@ -170,7 +180,6 @@ onmessage = (e: any) => {
               len: 1,
               payload: <PKT_BEACON_PAYLOAD>{ dodag_id: 1, rank: self.rank }
             })
-            // console.log()
           }
           if (pkt.payload.parent == self.id && pkt.payload.permit) {
             self.children.push(pkt.payload.id)
@@ -187,7 +196,7 @@ onmessage = (e: any) => {
               self.queue.push(pkt)
             } else {
               // not related to self
-              if (self.routingTable[pkt.payload.id] != null) {
+              if (self.routingTable[pkt.payload.id] != undefined) {
                 pkt.dst = self.routingTable[pkt.payload.id]
                 pkt.seq = ++self.pkt_seq
                 self.queue.push(pkt)
@@ -202,27 +211,27 @@ onmessage = (e: any) => {
   }
 }
 
-function initSchedule(config: ScheduleConfig) {
-  self.schedule = new Array<Cell[]>(config.num_slots + 1)
-  for (let s = 1; s <= config.num_slots; s++) {
-    self.schedule[s] = new Array<Cell>(config.num_channels + 1)
+function initSchedule() {
+  self.schedule = new Array<Cell[]>(self.sch_config.num_slots + 1)
+  for (let s = 1; s <= self.sch_config.num_slots; s++) {
+    self.schedule[s] = new Array<Cell>(self.sch_config.num_channels + 1)
   }
 
   // root's beacon
   if (self.id == ADDR.ROOT) {
-    self.schedule[1][BEACON_CHANNEL] = <Cell>{
+    self.schedule[1][self.sch_config.beacon_channel] = <Cell>{
       slot: 1,
-      ch: BEACON_CHANNEL,
+      ch: self.sch_config.beacon_channel,
       src: self.id,
       dst: ADDR.BROADCAST
     }
   }
   // shared slots
-  for (let s = 0; s < config.num_shared_slots; s++) {
-    self.schedule[s + 1][SHARED_CHANNEL] = <Cell>{
+  for (let s = 2; s < 2 + self.sch_config.num_shared_slots; s++) {
+    self.schedule[s][self.sch_config.shared_channel] = <Cell>{
       type: CELL_TYPES.SHARED,
       slot: s,
-      ch: SHARED_CHANNEL,
+      ch: self.sch_config.shared_channel,
       src: self.id,
       dst: ADDR.ANY
     }
@@ -236,24 +245,33 @@ function checkScheduleTx() {
 
   if (self.queue.length > 0) {
     const pkt = self.queue[0]
-    if (pkt != null) {
-      for (let ch = 1; ch <= self.schedule[slot].length; ch++) {
-        const cell = self.schedule[slot][ch]
-        if (
-          cell != null &&
-          ((cell.type == CELL_TYPES.SHARED && pkt.dst != ADDR.BROADCAST) || cell.dst == pkt.dst)
-        ) {
-          pkt.ch = ch
+    if (pkt != undefined) {
+      // self or dst not hasn't joined, use shared slot
+      if (!self.joined || neighbors[pkt.dst] == undefined) {
+        const cell = self.schedule[slot][self.sch_config.shared_channel]
+        if (cell != undefined) {
+          pkt.ch = self.sch_config.shared_channel
           pkt.asn = ASN
           pkt.time = +Date.now()
           postMessage(pkt)
           self.tx_cnt++
+        }
+      } else {
+        for (let ch = 1; ch <= self.schedule[slot].length; ch++) {
+          const cell = self.schedule[slot][ch]
+          if (cell != undefined && cell.dst == pkt.dst) {
+            pkt.ch = ch
+            pkt.asn = ASN
+            pkt.time = +Date.now()
+            postMessage(pkt)
+            self.tx_cnt++
 
-          // no need of ack, transmission finished
-          if (pkt.dst == ADDR.BROADCAST || pkt.type == PKT_TYPES.ACK) {
-            self.queue.shift()
+            // no need of ack, transmission has finished
+            if (pkt.dst == ADDR.BROADCAST || pkt.type == PKT_TYPES.ACK) {
+              self.queue.shift()
+            }
+            break
           }
-          break
         }
       }
     }
@@ -263,7 +281,7 @@ function checkScheduleTx() {
 // check if is ready for rx
 function checkScheduleRx(pkt: Packet): boolean {
   // nodes haven't joined are always active
-  if (!self.joined) return true
+  if (!self.joined || pkt.type == PKT_TYPES.ACK || pkt.src == ADDR.CONTROLLER) return true
 
   let slot = ASN % (self.schedule.length - 1)
   if (slot == 0) slot = self.schedule.length - 1
@@ -271,8 +289,8 @@ function checkScheduleRx(pkt: Packet): boolean {
   for (let ch = 1; ch <= self.schedule[slot].length; ch++) {
     const cell = self.schedule[slot][ch]
     if (
-      cell != null &&
-      (cell.dst == pkt.src || pkt.dst == ADDR.BROADCAST || cell.type == CELL_TYPES.SHARED)
+      cell != undefined &&
+      (cell.src == pkt.src || pkt.dst == ADDR.BROADCAST || cell.type == CELL_TYPES.SHARED)
     ) {
       self.rx_cnt++
       return true

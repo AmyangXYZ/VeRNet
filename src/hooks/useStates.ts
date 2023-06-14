@@ -26,7 +26,10 @@ export const TopoConfig = reactive<TopologyConfig>({
 export const SchConfig = reactive<ScheduleConfig>({
   num_slots: 32,
   num_channels: 8,
-  num_shared_slots: 20
+  beacon_channel: 1,
+  beacon_period: 1,
+  shared_channel: 2,
+  num_shared_slots: 8
 })
 
 export const Schedule = ref<Cell[][]>([[]])

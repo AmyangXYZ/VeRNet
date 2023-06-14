@@ -19,7 +19,10 @@ export interface Node {
 export interface ScheduleConfig {
   num_slots: number
   num_channels: number
+  beacon_period: number
+  beacon_channel: number // every {} slotframes
   num_shared_slots: number
+  shared_channel: number
 }
 
 export interface Cell {

@@ -1,16 +1,27 @@
 import { ref, watch, toRaw } from 'vue'
-import { ASN, Nodes, Packets, TopoConfig, SchConfig, PacketsCurrent, SlotDone, SignalReset } from './useStates'
+import {
+  ASN,
+  Nodes,
+  Packets,
+  TopoConfig,
+  SchConfig,
+  PacketsCurrent,
+  SlotDone,
+  SignalReset
+} from './useStates'
 import { useSchedule } from './useSchedule'
 import { useTopology } from './useTopology'
 import type {
   Message,
   Packet,
-  Cell,
   MSG_INIT_PAYLOAD,
   MSG_ASN_PAYLOAD,
   ASSOC_RSP_PAYLOAD
 } from './typedefs'
-import { CELL_TYPES, MSG_TYPES, PKT_TYPES, ADDR } from './typedefs'
+import { MSG_TYPES, PKT_TYPES, ADDR } from './typedefs'
+
+const { initTopology } = useTopology()
+const { initSchedule, assignMgmtCells } = useSchedule()
 
 export function useController() {
   const initController = function () {
@@ -54,7 +65,7 @@ export function useController() {
               const topo_check = !Nodes.value[new_node].joined
 
               if (topo_check) {
-                Nodes.value[ADDR.ROOT].w.postMessage(<Packet>{
+                const p = <Packet>{
                   type: PKT_TYPES.ASSOC_RSP,
                   uid: Math.floor(Math.random() * 0xffff),
                   ch: 2,
@@ -67,31 +78,10 @@ export function useController() {
                     permit: true,
                     id: new_node,
                     parent: parent,
-                    schedule: <Cell[]>[
-                      {
-                        type: CELL_TYPES.MGMT,
-                        slot: new_node + 6,
-                        ch: 1,
-                        src: new_node,
-                        dst: ADDR.BROADCAST
-                      }
-                      // {
-                      //   type: CELL_TYPES.MGMT,
-                      //   slot: msg.payload.id + 12,
-                      //   ch: Math.floor(Math.random() * 4) + 2,
-                      //   src: new_node,
-                      //   dst: parent
-                      // },
-                      // {
-                      //   type: CELL_TYPES.MGMT,
-                      //   slot:new_node + 12,
-                      //   ch: Math.floor(Math.random() * 4) + 2,
-                      //   src: parent,
-                      //   dst: new_node
-                      // }
-                    ]
+                    schedule: assignMgmtCells(new_node, parent)
                   }
-                })
+                }
+                Nodes.value[ADDR.ROOT].w.postMessage(p)
               }
               break
             }
@@ -128,7 +118,7 @@ export function useController() {
               }
             } else {
               const nn = Nodes.value[pkt.dst]
-              if (nn != null) {
+              if (nn != undefined) {
                 // check if in tx_range
                 const distance = Math.sqrt(
                   Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
@@ -161,8 +151,6 @@ export function useController() {
   }
 
   const initNetwork = function () {
-    const { initTopology } = useTopology()
-    const { initSchedule } = useSchedule()
     initTopology()
     initSchedule()
     initController()
@@ -184,7 +172,7 @@ export function useController() {
     status.value.timer = setInterval(() => {
       SlotDone.value = false
       ASN.value++
-    }, 500)
+    }, 200)
   }
   // ASN++
   const step = function () {
