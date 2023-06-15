@@ -12,6 +12,7 @@ export interface Node {
   id: number
   pos: number[]
   joined: boolean
+  parent: number
   neighbors: number[]
   w: any // a webworker
 }

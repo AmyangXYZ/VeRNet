@@ -46,6 +46,7 @@ export function useController() {
           switch (msg.type) {
             case MSG_TYPES.STAT:
               n.joined = true
+              n.parent = msg.payload.parent
               n.neighbors.push(msg.payload.parent)
               Nodes.value[msg.payload.parent].neighbors.push(n.id)
               break

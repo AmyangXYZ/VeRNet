@@ -32,7 +32,6 @@ export function useSchedule(): any {
   }
 
   const drawSchedule = function (chartDom: any) {
-    echarts.dispose(chartDom.value)
     const chart = echarts.init(chartDom.value)
     const option: any = {
       grid: {
@@ -105,6 +104,7 @@ export function useSchedule(): any {
     }
 
     function drawCells() {
+      option.series[0].data = []
       for (let slot = 1; slot <= SchConfig.num_slots; slot++) {
         for (let ch = 1; ch <= SchConfig.num_channels; ch++) {
           const cell = Schedule.value[slot][ch]
@@ -131,6 +131,7 @@ export function useSchedule(): any {
     )
 
     watch(SignalReset, () => {
+      drawCells()
       chart.setOption(option)
     })
   }

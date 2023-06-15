@@ -18,8 +18,8 @@ export const SignalReset = ref(0)
 export const TopoConfig = reactive<TopologyConfig>({
   seed: 124,
   num_nodes: 20,
-  grid_x: 32,
-  grid_y: 32,
+  grid_x: 40,
+  grid_y: 40,
   tx_range: 10
 })
 
