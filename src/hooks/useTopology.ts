@@ -69,7 +69,6 @@ export function useTopology(): any {
             onclick: () => {
               chart.setOption({
                 geo3D: [
-                  { viewControl: { distance: 140, alpha: 40, beta: 0, center: [0, -20, 0] } },
                   { viewControl: { distance: 140, alpha: 40, beta: 0, center: [0, -20, 0] } }
                 ]
               })
@@ -87,7 +86,6 @@ export function useTopology(): any {
                 chart.setOption(
                   {
                     geo3D: [
-                      { viewControl: { distance: 140, alpha: 40, beta: 0, center: [0, -20, 0] } },
                       { viewControl: { distance: 140, alpha: 40, beta: 0, center: [0, -20, 0] } }
                     ]
                   },
@@ -110,7 +108,6 @@ export function useTopology(): any {
                   }
                 ],
                 geo3D: [
-                  { viewControl: { distance: 140, alpha: 90, beta: 0, center: [0, -20, 0] } },
                   { viewControl: { distance: 140, alpha: 90, beta: 0, center: [0, -20, 0] } }
                 ]
               })
@@ -154,19 +151,39 @@ export function useTopology(): any {
           realisticMaterial: {
             roughness: 0,
             textureTiling: 1,
-            detailTexture: texture
+            detailTexture: texture,
           },
           groundPlane: {
             show: true,
-            color: '#1c1c1c'
+            color: '#0a0a0a'
           },
           light: {
             main: {
-              intensity: 20,
+              intensity: 60,
               shadow: true,
               shadowQuality: 'high',
               alpha: 30
             }
+          },
+          label: {
+            show: false,
+            color: 'white',
+            // echarts-gl bug, can only use label formatter to detect hover event
+            formatter: (item: any) => {
+              if (item.status == 'emphasis') {
+                SelectedNode.value = parseInt(item.name)
+              }
+              return item.name
+            }
+          },
+          emphasis: {
+            itemStyle: {
+              color: '#007fff',
+              opacity: 0.8
+            }
+          },
+          itemStyle: {
+            color: '#007fff'
           },
           postEffect: {
             enable: true
@@ -186,50 +203,8 @@ export function useTopology(): any {
             panMouseButton: 'left',
             rotateMouseButton: 'right'
           },
+          regions:[],
           zlevel: -20
-        },
-        {
-          // nodes only
-          map: '6tisch',
-          label: {
-            show: false,
-            color: 'white',
-            // echarts-gl bug, can only use label formatter to detect hover event
-            formatter: (item: any) => {
-              if (item.status == 'emphasis') {
-                SelectedNode.value = parseInt(item.name)
-              }
-              return item.name
-            }
-          },
-          emphasis: {
-            itemStyle: {
-              color: 'royalblue',
-              opacity: 0.8
-            }
-          },
-          itemStyle: {
-            color: 'royalblue'
-          },
-          postEffect: { enable: true },
-          boxWidth: 100,
-          boxDepth: 100,
-          boxHeight: 1,
-          viewControl: {
-            distance: 140,
-            maxAlpha: 180,
-            // alpha: 45,
-            // beta: 0,
-            maxBeta: 360,
-            minBeta: -360,
-            center: [0, -20, 0],
-            panMouseButton: 'left',
-            rotateMouseButton: 'right'
-          },
-          // higher zlevel canvas than the plane
-          zlevel: -10,
-          regionHeight: 3,
-          regions: []
         }
       ],
       series: [
@@ -237,10 +212,10 @@ export function useTopology(): any {
           name: 'links',
           type: 'lines3D',
           coordinateSystem: 'geo3D',
-          geo3DIndex: 1,
+          geo3DIndex: 0,
           lineStyle: {
             width: 1,
-            opacity: 0.1
+            opacity: 0.4
           },
           data: [],
           zlevel: -11,
@@ -250,7 +225,7 @@ export function useTopology(): any {
           name: 'Packets',
           type: 'lines3D',
           coordinateSystem: 'geo3D',
-          geo3DIndex: 1,
+          geo3DIndex: 0,
           effect: {
             show: true,
             trailColor: 'white',
@@ -303,7 +278,7 @@ export function useTopology(): any {
         if (n.id == 0) continue
 
         // echarts-gl bug, must include each node to regions here to enable label and hover event simultaneously
-        option.geo3D[1].regions.push({ name: `${n.id}`, label: { show: true } })
+        option.geo3D[0].regions.push({ name: `${n.id}`, label: { show: true } })
         const center = n.pos // San Francisco, for example
         const radius = 7
         const numSegments = 8 // The more segments, the smoother the circle

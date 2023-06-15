@@ -114,6 +114,9 @@ export function useController() {
                 )
                 if (nn.id > 0 && nn.id != n.id && distance <= TopoConfig.tx_range) {
                   nn.w.postMessage(pkt)
+                  // const dup = JSON.parse(JSON.stringify(pkt))
+                  // dup.dst = nn.id
+                  // PacketsCurrent.value.push(dup)
                 }
               }
             } else {
@@ -125,6 +128,7 @@ export function useController() {
                 )
                 if (distance <= TopoConfig.tx_range) {
                   nn.w.postMessage(pkt)
+                  // PacketsCurrent.value.push(pkt)
                 }
               }
             }
