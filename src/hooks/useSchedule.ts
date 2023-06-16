@@ -75,6 +75,9 @@ export function useSchedule(): any {
           { value: CELL_TYPES.MGMT, label: 'Mgmt', color: 'red' },
           { value: CELL_TYPES.DATA, label: 'Data', color: 'royalblue' }
         ],
+        textStyle:{
+          color:"grey"
+        },
         itemHeight: 12,
         itemWidth: 18,
         top: 0,

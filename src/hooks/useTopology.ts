@@ -59,9 +59,11 @@ export function useTopology(): any {
       features: []
     }
     const editing = ref(false)
-    const treeNodes:any = {1: { name: 1, children: [] } }
+    const minimapMode = ref('scatter') // scatter or tree
+    const treeNodes: any = { 1: { name: 1, children: [] } }
     const option: any = {
       toolbox: {
+        itemSize: 16,
         feature: {
           myToolResetCamera: {
             show: true,
@@ -74,17 +76,25 @@ export function useTopology(): any {
               return
             }
           },
-          // myToolSwitchMinimap: {
-          //   show: true,
-          //   title: 'Switch minimap',
-          //   icon: 'M17 16l-4-4V8.82C14.16 8.4 15 7.3 15 6c0-1.66-1.34-3-3-3S9 4.34 9 6c0 1.3.84 2.4 2 2.82V12l-4 4H3v5h5v-3.05l4-4.2 4 4.2V21h5v-5h-4z',
-          //   onclick: () => {
-          //     chart.setOption({
-          //       geo3D: [{ viewControl: { distance: 130, alpha: 40, beta: 0, center: [0, -10, 0] } }]
-          //     })
-          //     return
-          //   }
-          // },
+          myToolSwitchMinimap: {
+            show: true,
+            title: 'Switch minimap',
+            icon: 'M17 16l-4-4V8.82C14.16 8.4 15 7.3 15 6c0-1.66-1.34-3-3-3S9 4.34 9 6c0 1.3.84 2.4 2 2.82V12l-4 4H3v5h5v-3.05l4-4.2 4 4.2V21h5v-5h-4z',
+            onclick: () => {
+              if (minimapMode.value == 'scatter') {
+                minimapMode.value = 'tree'
+                option.series[2].data = []
+                option.series[2].markLine.data = []
+                drawMinimapTree()
+                chart.setOption(option)
+              } else {
+                minimapMode.value = 'scatter'
+                option.series[3].data = []
+                drawMinimapScatter()
+                chart.setOption(option, { replaceMerge: 'series' })
+              }
+            }
+          },
           myToolEdit: {
             show: true,
             title: 'Edit topology',
@@ -279,7 +289,7 @@ export function useTopology(): any {
           zlevel: -12
         },
         {
-          name: 'minimap',
+          name: 'minimap-scatter',
           type: 'scatter',
           symbolSize: 5,
           data: [],
@@ -302,16 +312,33 @@ export function useTopology(): any {
           animation: false,
           silent: true
         },
-        // {
-        //   name: 'minigraph',
-        //   type: 'tree',
-        //   data: [treeNodes[1]],
-        //   zlevel: 2
-        // }
+        {
+          name: 'minimap-tree',
+          type: 'tree',
+          orient: 'TB',
+          data: [],
+          left: '7px',
+          top: '7px',
+          width: '120px',
+          height: '120px',
+          symbol: 'circle',
+          symbolSize: 5,
+          initialTreeDepth: -1,
+          edgeShape: 'polyline',
+          label: { show: false },
+          itemStyle: {
+            color: 'royalblue'
+          },
+          lineStyle: {
+            width: 0.8,
+            color: 'royalblue'
+          },
+          zlevel: -5,
+          animation: false,
+          silent: true
+        }
       ]
     }
-
-    drawNodes()
 
     // to support draggable
     function drawNode(id: number) {
@@ -335,11 +362,11 @@ export function useTopology(): any {
       echarts.registerMap('6tisch', mapBase)
 
       // 2D
-      option.series[2].data = option.series[2].data.filter((item: any) => item.name != id)
-      option.series[2].data.push({
-        name: id,
-        value: center
-      })
+      if (minimapMode.value == 'scatter') {
+        option.series[2].data = option.series[2].data.filter((item: any) => item.name != id)
+        drawMinimapScatter()
+      }
+
       drawLinks()
       drawCurrentPackets()
       chart.setOption(option)
@@ -379,28 +406,13 @@ export function useTopology(): any {
 
     function drawLinks() {
       option.series[0].data = []
-      option.series[2].markLine.data = []
       const drawnLinks: any = {}
       for (const n of Nodes.value) {
         for (const nn of n.neighbors) {
           const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
           if (drawnLinks[linkName] == undefined) {
             drawnLinks[linkName] = true
-            // 3D
             option.series[0].data.push([n.pos, Nodes.value[nn].pos])
-            // 2D
-            option.series[2].markLine.data.push([
-              {
-                name: linkName,
-                label: {
-                  show: false
-                },
-                coord: n.pos
-              },
-              {
-                coord: Nodes.value[nn].pos
-              }
-            ])
           }
         }
       }
@@ -438,16 +450,50 @@ export function useTopology(): any {
       return coordinates
     }
 
-    // function drawTree() {
-    //   for (const n of Nodes.value) {
-    //     if (n.joined && n.parent != 0) {
-    //       if (treeNodes[n.id]==undefined) {
-    //       treeNodes[n.id] = { name: n.id, children: [] }
-    //       treeNodes[n.parent].children.push(treeNodes[n.id])
-    //       }
-    //     }
-    //   }
-    // }
+    function drawMinimapScatter() {
+      option.series[2].data = []
+      option.series[2].markLine.data = []
+      const drawnLinks: any = {}
+      for (const n of Nodes.value) {
+        if (n.id == 0) continue
+        option.series[2].data.push({
+          name: n.id,
+          value: n.pos
+        })
+        for (const nn of n.neighbors) {
+          const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
+          if (drawnLinks[linkName] == undefined) {
+            drawnLinks[linkName] = true
+            option.series[2].markLine.data.push([
+              {
+                name: linkName,
+                label: {
+                  show: false
+                },
+                coord: n.pos
+              },
+              {
+                coord: Nodes.value[nn].pos
+              }
+            ])
+          }
+        }
+      }
+    }
+
+    function drawMinimapTree() {
+      for (const n of Nodes.value) {
+        if (n.joined && n.parent != 0) {
+          if (treeNodes[n.id] == undefined) {
+            treeNodes[n.id] = { name: n.id, children: [] }
+            treeNodes[n.parent].children.push(treeNodes[n.id])
+          }
+        }
+      }
+      option.series[3].data = [treeNodes[1]]
+    }
+
+    drawNodes()
 
     watch(
       SlotDone,
@@ -455,7 +501,11 @@ export function useTopology(): any {
         if (SlotDone.value) {
           drawLinks()
           drawCurrentPackets()
-          // drawTree()
+          if (minimapMode.value == 'scatter') {
+            drawMinimapScatter()
+          } else {
+            drawMinimapTree()
+          }
           chart.setOption(option)
         }
       },
@@ -465,6 +515,7 @@ export function useTopology(): any {
     watch(SignalReset, () => {
       option.series[0].data = []
       option.series[1].data = []
+      option.series[2].data = []
       option.series[2].markLine.data = []
       chart.setOption(option)
     })

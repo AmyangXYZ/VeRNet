@@ -25,7 +25,7 @@ watch(
       stage.value++
     }
   },
-  { deep: true }
+  { immediate: true, deep: true }
 )
 </script>
 
