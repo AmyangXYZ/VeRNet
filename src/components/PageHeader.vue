@@ -7,6 +7,8 @@ import { useDark } from '@vueuse/core'
 
 const isDark = useDark()
 
+isDark.value = true
+
 const activeIndex = ref('1')
 const handleSelect = (key: string, keyPath: string[]) => {
   console.log(key, keyPath)
