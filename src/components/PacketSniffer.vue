@@ -78,13 +78,13 @@ const columns: any = [
     align: 'center',
     cellRenderer: ({ cellData: type }: any) => PKT_TYPES[type]
   },
-  {
-    key: 'seq',
-    title: 'SEQ',
-    dataKey: 'seq',
-    width: 40,
-    align: 'center'
-  },
+  // {
+  //   key: 'seq',
+  //   title: 'SEQ',
+  //   dataKey: 'seq',
+  //   width: 40,
+  //   align: 'center'
+  // },
   {
     key: 'len',
     title: 'LEN',
@@ -143,8 +143,8 @@ Row.inheritAttrs = false
           :columns="columns"
           :data="Packets.filter(filterFunc)"
           :width="width"
-          :height="280"
-          :expand-column-key="columns[9].key"
+          :height="318"
+          :expand-column-key="columns[8].key"
           :estimated-row-height="18"
           :header-height="24"
         >

@@ -68,7 +68,7 @@ export function useTopology(): any {
     }
     const editing = ref(false)
     const minimapMode = ref('scatter') // scatter or tree
-    const treeNodes: any = { 1: { name: 1, children: [] } }
+    let treeNodes: any = { 1: { name: 1, children: [] } }
     const option: any = {
       toolbox: {
         itemSize: 16,
@@ -169,31 +169,37 @@ export function useTopology(): any {
           }
         }
       },
-      grid: { top: '0px', height: '140px', width: '140px', left: '0px' },
-      xAxis: {
-        // name: 'minimap-x',
-        type: 'value',
-        splitLine: { show: true, lineStyle: { width: 0.3, color: 'lightgrey' } },
-        splitNumber: 1,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: { show: false },
-        min: 0,
-        max: TopoConfig.grid_x,
-        zlevel: -4
-      },
-      yAxis: {
-        // name: 'minimap-y',
-        type: 'value',
-        splitNumber: 1,
-        splitLine: { show: true, lineStyle: { width: 0.3, color: 'lightgrey' } },
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: { show: false },
-        min: 0,
-        max: TopoConfig.grid_y,
-        zlevel: -4
-      },
+      grid: [
+        { top: '2px', height: '140px', width: '140px', left: '2px' },
+      ],
+      xAxis: [
+        {
+          // name: 'minimap-x',
+          type: 'value',
+          splitLine: { show: true, lineStyle: { width: 0.3, color: 'lightgrey' } },
+          splitNumber: 1,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { show: false },
+          min: 0,
+          max: TopoConfig.grid_x,
+          zlevel: -4
+        },
+      ],
+      yAxis: [
+        {
+          // name: 'minimap-y',
+          type: 'value',
+          splitNumber: 1,
+          splitLine: { show: true, lineStyle: { width: 0.3, color: 'lightgrey' } },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { show: false },
+          min: 0,
+          max: TopoConfig.grid_y,
+          zlevel: -4
+        },
+      ],
       geo3D: [
         {
           // ground plane only
@@ -255,6 +261,7 @@ export function useTopology(): any {
             rotateMouseButton: 'right'
           },
           regions: [],
+          regionHeight: 3,
           zlevel: -10
         }
       ],
@@ -293,7 +300,7 @@ export function useTopology(): any {
             opacity: 0.01
           },
           data: [],
-          silent: true,
+          // silent: true,
           zlevel: -12
         },
         {
@@ -325,10 +332,10 @@ export function useTopology(): any {
           type: 'tree',
           orient: 'TB',
           data: [],
-          left: '7px',
+          left: '2px',
           top: '7px',
-          width: '120px',
-          height: '120px',
+          width: '140px',
+          height: '127px',
           symbol: 'circle',
           symbolSize: 5,
           initialTreeDepth: -1,
@@ -525,6 +532,7 @@ export function useTopology(): any {
     )
 
     watch(SignalReset, () => {
+      treeNodes = { 1: { name: 1, children: [] } }
       option.series[0].data = []
       option.series[1].data = []
       option.series[2].data = []
