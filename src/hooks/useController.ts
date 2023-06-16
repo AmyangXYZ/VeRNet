@@ -7,7 +7,8 @@ import {
   SchConfig,
   PacketsCurrent,
   SlotDone,
-  SignalReset
+  SignalReset,
+  SlotDuration
 } from './useStates'
 import { useSchedule } from './useSchedule'
 import { useTopology } from './useTopology'
@@ -177,7 +178,7 @@ export function useController() {
     status.value.timer = setInterval(() => {
       SlotDone.value = false
       ASN.value++
-    }, 500)
+    }, SlotDuration.value)
   }
   // ASN++
   const step = function () {

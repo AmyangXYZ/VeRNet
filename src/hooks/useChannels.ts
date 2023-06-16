@@ -5,8 +5,7 @@ import { ASN, PacketsCurrent, SchConfig, SignalReset, SlotDone } from './useStat
 
 export function useChannels(): any {
   const drawChannels = function (chartDom: any) {
-    echarts.dispose(chartDom.value)
-    const chart = echarts.init(chartDom.value)
+    const chart = echarts.init(chartDom.value, { useDirtyRect: true })
     const zoomWindow: number = 60
 
     const option: any = {

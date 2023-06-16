@@ -4,7 +4,7 @@ import { SeededRandom } from './seed'
 import * as echarts from 'echarts'
 import 'echarts-gl'
 
-import { Nodes, TopoConfig, PacketsCurrent, SlotDone, SelectedNode, SignalReset } from './useStates'
+import { Nodes, TopoConfig, PacketsCurrent, SlotDone, SelectedNode, SignalReset, SlotDuration } from './useStates'
 
 import texture from '@/assets/texture.jpg'
 
@@ -44,7 +44,7 @@ export function useTopology(): any {
 
   // called after mounted
   const drawTopology = function (chartDom: any) {
-    const chart = echarts.init(chartDom.value,{useDirtyRect:true})
+    const chart = echarts.init(chartDom.value, { useDirtyRect: true })
     chart.showLoading({
       text: 'Rendering...',
       textColor: 'lightgrey',
@@ -277,7 +277,7 @@ export function useTopology(): any {
             trailLength: 0.12,
             delay: 0,
             // constantSpeed: 2
-            period: 0.4
+            period: SlotDuration.value/1000*0.8
           },
           blendMode: 'lighter',
           lineStyle: {

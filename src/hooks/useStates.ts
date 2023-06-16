@@ -15,12 +15,15 @@ export const PacketsCurrent = ref<Packet[]>([])
 
 export const SignalReset = ref(0)
 
+// when auto inc ASN
+export const SlotDuration = ref(250) // in ms
+
 export const TopoConfig = reactive<TopologyConfig>({
-  seed: 124,
+  seed: 5,
   num_nodes: 20,
   grid_x: 40,
   grid_y: 40,
-  tx_range: 10
+  tx_range: 16
 })
 
 export const SchConfig = reactive<ScheduleConfig>({
@@ -29,7 +32,7 @@ export const SchConfig = reactive<ScheduleConfig>({
   beacon_channel: 1,
   beacon_period: 1,
   shared_channel: 2,
-  num_shared_slots: 8
+  num_shared_slots: 11
 })
 
 export const Schedule = ref<Cell[][]>([[]])
