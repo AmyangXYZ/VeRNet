@@ -1,6 +1,11 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
+import { Moon } from '@element-plus/icons-vue'
+import Light from './icons/IconLightMode.vue'
 import IconGithub from './icons/IconGithub.vue'
+import { useDark } from '@vueuse/core'
+
+const isDark = useDark()
 
 const activeIndex = ref('1')
 const handleSelect = (key: string, keyPath: string[]) => {
@@ -32,8 +37,22 @@ const handleSelect = (key: string, keyPath: string[]) => {
         <el-menu-item index="2-4-3">item three</el-menu-item>
       </el-sub-menu>
     </el-sub-menu>
-    <el-menu-item style="margin: auto; width: 10px">
-      <el-link href="https://github.com/AmyangXYZ/VeRNet" :underline="false" :size="24"><IconGithub/></el-link>
+    <el-menu-item style="margin: auto">
+      <el-switch
+        class="theme-switch"
+        v-model="isDark"
+        inline-prompt
+        :active-icon="Moon"
+        active-color="dark"
+        :inactive-icon="Light"
+      />
+    </el-menu-item>
+    <el-menu-item style="margin: auto; width: 24px;">
+      <el-link :underline="false" href="https://github.com/AmyangXYZ/VeRNet" st>
+        <el-icon :color="isDark ? 'white' : 'black'" :size="24">
+          <IconGithub />
+        </el-icon>
+      </el-link>
     </el-menu-item>
   </el-menu>
 </template>
