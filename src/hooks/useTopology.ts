@@ -4,7 +4,15 @@ import { SeededRandom } from './seed'
 import * as echarts from 'echarts'
 import 'echarts-gl'
 
-import { Nodes, TopoConfig, PacketsCurrent, SlotDone, SelectedNode, SignalReset, SlotDuration } from './useStates'
+import {
+  Nodes,
+  TopoConfig,
+  PacketsCurrent,
+  SlotDone,
+  SelectedNode,
+  SignalReset,
+  SlotDuration
+} from './useStates'
 
 import texture from '@/assets/texture.jpg'
 
@@ -277,7 +285,7 @@ export function useTopology(): any {
             trailLength: 0.12,
             delay: 0,
             // constantSpeed: 2
-            period: SlotDuration.value/1000*0.8
+            period: (SlotDuration.value / 1000) * 0.8
           },
           blendMode: 'lighter',
           lineStyle: {
@@ -486,7 +494,11 @@ export function useTopology(): any {
         if (n.joined && n.parent != 0) {
           if (treeNodes[n.id] == undefined) {
             treeNodes[n.id] = { name: n.id, children: [] }
-            treeNodes[n.parent].children.push(treeNodes[n.id])
+            if (treeNodes[n.parent] != undefined) {
+              treeNodes[n.parent].children.push(treeNodes[n.id])
+            } else {
+              treeNodes[n.parent] = { name: n.id, children: [treeNodes[n.id]] }
+            }
           }
         }
       }
