@@ -15,12 +15,11 @@ const handleSelect = (key: string, keyPath: string[]) => {
 <template>
   <el-menu
     :default-active="activeIndex"
-    class="header"
     mode="horizontal"
     :ellipsis="false"
     @select="handleSelect"
   >
-    <el-menu-item index="0">
+    <el-menu-item index="0" style="margin: auto;" >
       <img height="48" src="@/assets/vernet-logo.png" />
     </el-menu-item>
     <div class="flex-grow" />
@@ -37,7 +36,7 @@ const handleSelect = (key: string, keyPath: string[]) => {
         <el-menu-item index="2-4-3">item three</el-menu-item>
       </el-sub-menu>
     </el-sub-menu>
-    <el-menu-item style="margin: auto">
+    <el-menu-item style="margin: auto; width:80px">
       <el-switch
         class="theme-switch"
         v-model="isDark"

@@ -44,7 +44,7 @@ export function useTopology(): any {
 
   // called after mounted
   const drawTopology = function (chartDom: any) {
-    const chart = echarts.init(chartDom.value)
+    const chart = echarts.init(chartDom.value,{useDirtyRect:true})
     chart.showLoading({
       text: 'Rendering...',
       textColor: 'lightgrey',
