@@ -1,12 +1,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import VeRNETLogo from '@/assets/logo.png'
-import { Moon } from '@element-plus/icons-vue'
-import Light from './icons/IconLightMode.vue'
-
-import { useDark } from '@vueuse/core'
-
-const isDark = useDark()
+import IconGithub from './icons/IconGithub.vue'
 
 const activeIndex = ref('1')
 const handleSelect = (key: string, keyPath: string[]) => {
@@ -22,7 +16,7 @@ const handleSelect = (key: string, keyPath: string[]) => {
     @select="handleSelect"
   >
     <el-menu-item index="0">
-      <img height="48" :src="VeRNETLogo" />
+      <img height="48" src="@/assets/vernet-logo.png" />
     </el-menu-item>
     <div class="flex-grow" />
     <el-menu-item index="1">Processing Center</el-menu-item>
@@ -38,15 +32,8 @@ const handleSelect = (key: string, keyPath: string[]) => {
         <el-menu-item index="2-4-3">item three</el-menu-item>
       </el-sub-menu>
     </el-sub-menu>
-    <el-menu-item style="margin: auto">
-      <el-switch
-        class="theme-switch"
-        v-model="isDark"
-        inline-prompt
-        :active-icon="Moon"
-        active-color="dark"
-        :inactive-icon="Light"
-      />
+    <el-menu-item style="margin: auto; width: 10px">
+      <el-link href="https://github.com/AmyangXYZ/VeRNet" :underline="false" :size="24"><IconGithub/></el-link>
     </el-menu-item>
   </el-menu>
 </template>
