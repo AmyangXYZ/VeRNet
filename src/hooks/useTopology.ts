@@ -569,10 +569,10 @@ export function useTopology(): any {
 
     watch(SignalReset, () => {
       treeNodes = { 1: { name: 1, children: [] } }
-      option.series[0].data = []
       option.series[1].data = []
       option.series[2].data = []
-      option.series[2].markLine.data = []
+      option.series[3].data = []
+      option.series[3].markLine.data = []
       drawNodes()
       chart.setOption(option)
     })
