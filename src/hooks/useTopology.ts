@@ -142,13 +142,13 @@ export function useTopology(): any {
             onclick: () => {
               if (minimapMode.value == 'scatter') {
                 minimapMode.value = 'tree'
-                option.series[2].data = []
-                option.series[2].markLine.data = []
+                option.series[3].data = []
+                option.series[3].markLine.data = []
                 drawMinimapTree()
                 chart.setOption(option)
               } else {
                 minimapMode.value = 'scatter'
-                option.series[3].data = []
+                option.series[4].data = []
                 drawMinimapScatter()
                 chart.setOption(option, { replaceMerge: 'series' })
               }
