@@ -116,6 +116,8 @@ export function useTopology(): any {
     const minimapMode = ref('scatter') // scatter or tree
     let treeNodes: any = { 1: { name: 1, children: [] } }
     const option: any = {
+      tooltip: { trigger: 'item' },
+      legend: { show: false },
       toolbox: {
         itemSize: 16,
         feature: {
@@ -124,13 +126,14 @@ export function useTopology(): any {
             title: 'Reset camera',
             icon: 'M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zM12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z',
             onclick: () => {
-              option.geo3D[0].viewControl = { distance: 140, alpha: 40, beta: 0, center: [0, -10, 0] }
-              option.series[0].viewControl = {
-                distance: 140,
-                alpha: 40,
-                beta: 0,
-                center: [0, -10, 0]
-              }
+              option.geo3D[0].viewControl.distance = 140
+              option.geo3D[0].viewControl.alpha = 40
+              option.geo3D[0].viewControl.beta = 0
+              option.geo3D[0].viewControl.center = [0, -10, 0]
+              option.series[0].viewControl.distance = 140
+              option.series[0].viewControl.alpha = 40
+              option.series[0].viewControl.beta = 0
+              option.series[0].viewControl.center = [0, -10, 0]
               chart.setOption(option)
               return
             }
@@ -142,15 +145,12 @@ export function useTopology(): any {
             onclick: () => {
               if (minimapMode.value == 'scatter') {
                 minimapMode.value = 'tree'
-                option.series[3].data = []
-                option.series[3].markLine.data = []
-                drawMinimapTree()
-                chart.setOption(option)
+                chart.dispatchAction({ type: 'legendToggleSelect', name: 'minimap-scatter' })
+                chart.dispatchAction({ type: 'legendToggleSelect', name: 'minimap-tree' })
               } else {
                 minimapMode.value = 'scatter'
-                option.series[4].data = []
-                drawMinimapScatter()
-                chart.setOption(option, { replaceMerge: 'series' })
+                chart.dispatchAction({ type: 'legendToggleSelect', name: 'minimap-scatter' })
+                chart.dispatchAction({ type: 'legendToggleSelect', name: 'minimap-tree' })
               }
             }
           },
@@ -161,30 +161,27 @@ export function useTopology(): any {
             onclick: () => {
               if (editing.value) {
                 editing.value = false
-                option.geo3D[0].viewControl = {
-                  distance: 140,
-                  alpha: 40,
-                  beta: 0,
-                  center: [0, -10, 0]
-                }
-                option.series[0].viewControl = {
-                  distance: 140,
-                  alpha: 40,
-                  beta: 0,
-                  center: [0, -10, 0]
-                }
+                option.geo3D[0].viewControl.distance = 140
+                option.geo3D[0].viewControl.alpha = 40
+                option.geo3D[0].viewControl.beta = 0
+                option.geo3D[0].viewControl.center = [0, -10, 0]
+                option.series[0].viewControl.distance = 140
+                option.series[0].viewControl.alpha = 40
+                option.series[0].viewControl.beta = 0
+                option.series[0].viewControl.center = [0, -10, 0]
                 chart.setOption(option, { replaceMerge: ['geo', 'graphic'] })
                 return
               }
 
               editing.value = true
-              option.geo3D[0].viewControl = { distance: 140, alpha: 90, beta: 0, center: [0, -10, 0] }
-              option.series[0].viewControl = {
-                distance: 140,
-                alpha: 90,
-                beta: 0,
-                center: [0, -10, 0]
-              }
+              option.geo3D[0].viewControl.distance = 140
+              option.geo3D[0].viewControl.alpha = 90
+              option.geo3D[0].viewControl.beta = 0
+              option.geo3D[0].viewControl.center = [0, -10, 0]
+              option.series[0].viewControl.distance = 140
+              option.series[0].viewControl.alpha = 90
+              option.series[0].viewControl.beta = 0
+              option.series[0].viewControl.center = [0, -10, 0]
               chart.setOption(option)
             }
           }
@@ -368,7 +365,7 @@ export function useTopology(): any {
           name: 'minimap-tree',
           type: 'tree',
           orient: 'TB',
-          data: [],
+          data: [treeNodes[1]],
           left: '2px',
           top: '7px',
           width: '140px',
@@ -385,6 +382,7 @@ export function useTopology(): any {
             width: 0.8,
             color: 'royalblue'
           },
+          selectedMode: 'single',
           zlevel: -5,
           animation: false,
           silent: true
@@ -414,10 +412,8 @@ export function useTopology(): any {
       echarts.registerMap('6tisch', mapBase)
 
       // 2D
-      if (minimapMode.value == 'scatter') {
-        option.series[2].data = option.series[2].data.filter((item: any) => item.name != id)
-        drawMinimapScatter()
-      }
+      option.series[2].data = option.series[2].data.filter((item: any) => item.name != id)
+      drawMinimapScatter()
 
       drawLinks()
       drawCurrentPackets()
@@ -549,18 +545,15 @@ export function useTopology(): any {
     }
 
     drawNodes()
-
+    chart.dispatchAction({ type: 'legendUnSelect', name: 'minimap-tree' })
     watch(
       SlotDone,
       () => {
         if (SlotDone.value) {
           drawLinks()
           drawCurrentPackets()
-          if (minimapMode.value == 'scatter') {
-            drawMinimapScatter()
-          } else {
-            drawMinimapTree()
-          }
+          drawMinimapScatter()
+          drawMinimapTree()
           chart.setOption(option)
         }
       },
@@ -568,11 +561,12 @@ export function useTopology(): any {
     )
 
     watch(SignalReset, () => {
-      treeNodes = { 1: { name: 1, children: [] } }
       option.series[1].data = []
       option.series[2].data = []
       option.series[3].data = []
       option.series[3].markLine.data = []
+      treeNodes = { 1: { name: 1, children: [] } }
+      option.series[4].data = [treeNodes[1]]
       drawNodes()
       chart.setOption(option)
     })
