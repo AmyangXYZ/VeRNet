@@ -62,11 +62,57 @@ export function useTopology(): any {
     setTimeout(() => {
       chart.hideLoading()
     }, 800)
+
     const mapBase: any = {
       type: 'FeatureCollection',
       features: []
     }
+    echarts.registerMap('base', {
+      type: 'FeatureCollection',
+      features: []
+    })
     const editing = ref(false)
+
+    chart.on('click', (item) => {
+      // console.log(item,editing.value)
+      SelectedNode.value = parseInt(item.name)
+      if (editing.value) {
+        const pos = [item.event?.offsetX, item.event?.offsetY]
+        chart.setOption({
+          geo: {
+            map: '6tisch',
+            aspectScale: 1,
+            silent: true,
+            itemStyle: { opacity: 0 },
+            zlevel: 10,
+            zoom: 1.055
+          },
+          graphic: [
+            {
+              type: 'circle',
+              position: pos,
+              shape: { r: 8, cx: 0, cy: 0 },
+              style: {
+                fill: 'red'
+              },
+              draggable: true,
+              z: 100,
+              zlevel: 1,
+              ondrag: (item: any) => {
+                if (SelectedNode.value > 0) {
+                  Nodes.value[SelectedNode.value].pos = chart.convertFromPixel('geo', [
+                    item.offsetX,
+                    item.offsetY
+                  ])
+                  drawNode(SelectedNode.value)
+                }
+              }
+            }
+          ]
+        })
+      }
+    })
+
     const minimapMode = ref('scatter') // scatter or tree
     let treeNodes: any = { 1: { name: 1, children: [] } }
     const option: any = {
@@ -78,9 +124,14 @@ export function useTopology(): any {
             title: 'Reset camera',
             icon: 'M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zM12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z',
             onclick: () => {
-              chart.setOption({
-                geo3D: [{ viewControl: { distance: 140, alpha: 40, beta: 0, center: [0, -10, 0] } }]
-              })
+              option.geo3D[0].viewControl = { distance: 140, alpha: 40, beta: 0, center: [0, -10, 0] }
+              option.series[0].viewControl = {
+                distance: 140,
+                alpha: 40,
+                beta: 0,
+                center: [0, -10, 0]
+              }
+              chart.setOption(option)
               return
             }
           },
@@ -109,62 +160,32 @@ export function useTopology(): any {
             icon: 'path://M14.06 9.02l.92.92L5.92 19H5v-.92l9.06-9.06M17.66 3c-.25 0-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.2-.2-.45-.29-.71-.29zm-3.6 3.19L3 17.25V21h3.75L17.81 9.94l-3.75-3.75z',
             onclick: () => {
               if (editing.value) {
-                chart.off('click')
                 editing.value = false
-                chart.setOption(
-                  {
-                    geo3D: [
-                      { viewControl: { distance: 140, alpha: 40, beta: 0, center: [0, -10, 0] } }
-                    ]
-                  },
-                  { replaceMerge: ['geo', 'graphic'] }
-                )
+                option.geo3D[0].viewControl = {
+                  distance: 140,
+                  alpha: 40,
+                  beta: 0,
+                  center: [0, -10, 0]
+                }
+                option.series[0].viewControl = {
+                  distance: 140,
+                  alpha: 40,
+                  beta: 0,
+                  center: [0, -10, 0]
+                }
+                chart.setOption(option, { replaceMerge: ['geo', 'graphic'] })
                 return
               }
-              editing.value = true
-              chart.setOption({
-                geo: [
-                  {
-                    map: '6tisch',
-                    itemStyle: { opacity: 0 },
-                    aspectScale: 1,
-                    zlevel: 1,
-                    zoom: 1.05,
-                    emphasis: {
-                      label: { show: false }
-                    }
-                  }
-                ],
-                geo3D: [{ viewControl: { distance: 140, alpha: 90, beta: 0, center: [0, -10, 0] } }]
-              })
-              chart.on('click', ({ event }: any) => {
-                const pos = [event.offsetX, event.offsetY]
-                chart.setOption({
-                  graphic: [
-                    {
-                      type: 'circle',
-                      position: pos,
-                      shape: { r: 8, cx: 0, cy: 0 },
-                      style: {
-                        fill: 'red'
-                      },
-                      draggable: true,
-                      z: 100,
-                      zlevel: 1,
-                      ondrag: (item: any) => {
-                        if (SelectedNode.value > 0) {
-                          Nodes.value[SelectedNode.value].pos = chart.convertFromPixel('geo', [
-                            item.offsetX,
-                            item.offsetY
-                          ])
 
-                          drawNode(SelectedNode.value)
-                        }
-                      }
-                    }
-                  ]
-                })
-              })
+              editing.value = true
+              option.geo3D[0].viewControl = { distance: 140, alpha: 90, beta: 0, center: [0, -10, 0] }
+              option.series[0].viewControl = {
+                distance: 140,
+                alpha: 90,
+                beta: 0,
+                center: [0, -10, 0]
+              }
+              chart.setOption(option)
             }
           }
         }
@@ -200,7 +221,34 @@ export function useTopology(): any {
       ],
       geo3D: [
         {
-          // ground plane only
+          map: '6tisch',
+          groundPlane: {
+            show: false
+          },
+          itemStyle: { opacity: 0 },
+          label: { show: false, color: 'white' },
+          silent: true,
+          boxWidth: 100,
+          boxDepth: 100,
+          boxHeight: 1,
+          viewControl: {
+            distance: 140,
+            maxAlpha: 180,
+            // alpha: 45,
+            // beta: 0,
+            maxBeta: 360,
+            minBeta: -360,
+            center: [0, -10, 0],
+            panMouseButton: 'left',
+            rotateMouseButton: 'right'
+          },
+          regions: [],
+          zlevel: -10
+        }
+      ],
+      series: [
+        {
+          type: 'map3D',
           map: '6tisch',
           shading: 'realistic',
           realisticMaterial: {
@@ -221,20 +269,13 @@ export function useTopology(): any {
             }
           },
           label: {
-            show: false,
-            color: 'white',
-            // echarts-gl bug, can only use label formatter to detect hover event
-            formatter: (item: any) => {
-              if (item.status == 'emphasis') {
-                SelectedNode.value = parseInt(item.name)
-              }
-              return item.name
-            }
+            show: true,
+            color: 'white'
           },
           emphasis: {
             itemStyle: {
               color: '#007fff',
-              opacity: 0.8
+              opacity: 0.1
             }
           },
           itemStyle: {
@@ -260,10 +301,8 @@ export function useTopology(): any {
           },
           regions: [],
           regionHeight: 3,
-          zlevel: -10
-        }
-      ],
-      series: [
+          zlevel: -50
+        },
         {
           name: 'links',
           type: 'lines3D',
@@ -390,8 +429,6 @@ export function useTopology(): any {
       for (const n of Nodes.value) {
         if (n.id == 0) continue
 
-        // echarts-gl bug, must include each node to regions here to enable label and hover event simultaneously
-        option.geo3D[0].regions.push({ name: `${n.id}`, label: { show: true } })
         const center = n.pos // San Francisco, for example
         const radius = 7
         const numSegments = 8 // The more segments, the smoother the circle
@@ -409,7 +446,7 @@ export function useTopology(): any {
           }
         })
         // minimap
-        option.series[2].data.push({
+        option.series[3].data.push({
           name: n.id,
           value: n.pos
         })
@@ -419,24 +456,24 @@ export function useTopology(): any {
     }
 
     function drawLinks() {
-      option.series[0].data = []
+      option.series[1].data = []
       const drawnLinks: any = {}
       for (const n of Nodes.value) {
         for (const nn of n.neighbors) {
           const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
           if (drawnLinks[linkName] == undefined) {
             drawnLinks[linkName] = true
-            option.series[0].data.push([n.pos, Nodes.value[nn].pos])
+            option.series[1].data.push([n.pos, Nodes.value[nn].pos])
           }
         }
       }
     }
 
     function drawCurrentPackets() {
-      option.series[1].data = []
+      option.series[2].data = []
       for (const pkt of PacketsCurrent.value) {
         if (pkt.type != PKT_TYPES.ACK && pkt.dst != ADDR.BROADCAST) {
-          option.series[1].data.push([Nodes.value[pkt.src].pos, Nodes.value[pkt.dst].pos])
+          option.series[2].data.push([Nodes.value[pkt.src].pos, Nodes.value[pkt.dst].pos])
         }
       }
     }
@@ -465,12 +502,12 @@ export function useTopology(): any {
     }
 
     function drawMinimapScatter() {
-      option.series[2].data = []
-      option.series[2].markLine.data = []
+      option.series[3].data = []
+      option.series[3].markLine.data = []
       const drawnLinks: any = {}
       for (const n of Nodes.value) {
         if (n.id == 0) continue
-        option.series[2].data.push({
+        option.series[3].data.push({
           name: n.id,
           value: n.pos
         })
@@ -478,7 +515,7 @@ export function useTopology(): any {
           const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
           if (drawnLinks[linkName] == undefined) {
             drawnLinks[linkName] = true
-            option.series[2].markLine.data.push([
+            option.series[3].markLine.data.push([
               {
                 name: linkName,
                 label: {
@@ -508,7 +545,7 @@ export function useTopology(): any {
           }
         }
       }
-      option.series[3].data = [treeNodes[1]]
+      option.series[4].data = [treeNodes[1]]
     }
 
     drawNodes()

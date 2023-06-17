@@ -23,7 +23,7 @@ watch(
       (Nodes.value.filter((n) => n.joined).length / (Nodes.value.length - 1)) * 100
     )
     if (topoProgress.value == 100) {
-      stage.value++
+      stage.value = 1
     }
   },
   { immediate: true, deep: true }
