@@ -1,7 +1,5 @@
 <template>
-  <svg
-  viewBox="0 0 24 24" width="24" height="24"
-  >
+  <svg viewBox="0 0 24 24" width="24" height="24">
     <g stroke="none" stroke-width="1" fill-rule="evenodd">
       <g transform="translate(-262.000000, -2480.000000)">
         <g transform="translate(252.000000, 2470.000000)">

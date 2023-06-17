@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Nodes, ASN, Packets } from '@/hooks/useStates'
+import { Nodes, ASN, Packets, SlotDuration, TopoConfig, SchConfig } from '@/hooks/useStates'
 import { useController } from '@/hooks/useController'
 import IconPlay from './icons/IconPlay.vue'
 // import IconStep from './icons/IconStep.vue'
+import IconPlusOne from './icons/IconPlusOne.vue'
 import IconPause from './icons/IconPause.vue'
 import IconReset from './icons/IconReset.vue'
-import IconPlusOne from './icons/IconPlusOne.vue'
+import IconSettings from './icons/IconSettings.vue'
 
 const { initNetwork, status, run, step, pause, reset } = useController()
 
@@ -26,6 +27,16 @@ watch(
     }
   },
   { immediate: true, deep: true }
+)
+
+const settingsBtn = ref()
+
+watch(
+  [TopoConfig, SchConfig],
+  () => {
+    reset()
+  },
+  { deep: true }
 )
 </script>
 
@@ -54,7 +65,13 @@ watch(
               <IconPlay />
             </el-icon>
           </el-button>
-          <el-button class="btn" :disabled="status.running" size="small" type="info" @click="step">
+          <el-button
+            class="btn"
+            :disabled="status.running"
+            size="small"
+            type="success"
+            @click="step"
+          >
             <el-icon size="20">
               <IconPlusOne />
             </el-icon>
@@ -75,10 +92,52 @@ watch(
               <IconReset />
             </el-icon>
           </el-button>
+          <el-button class="btn" size="small" type="info" ref="settingsBtn">
+            <el-icon size="18">
+              <IconSettings />
+            </el-icon>
+          </el-button>
         </el-button-group>
       </el-col>
     </el-row>
-
+    <el-popover
+      :virtual-ref="settingsBtn"
+      trigger="click"
+      title="Settings"
+      virtual-triggering
+      width="240px"
+    >
+      <el-row class="settings-item">
+        <el-col :span="11">slot_duration</el-col>
+        <el-col :span="12">
+          <el-input-number class="in" v-model="SlotDuration" size="small" />
+        </el-col>
+      </el-row>
+      <el-row class="settings-item">
+        <el-col :span="11">topo_seed</el-col>
+        <el-col :span="12">
+          <el-input-number class="in" v-model="TopoConfig.seed" size="small" />
+        </el-col>
+      </el-row>
+      <el-row class="settings-item">
+        <el-col :span="11">num_nodes</el-col>
+        <el-col :span="12">
+          <el-input-number class="in" v-model="TopoConfig.num_nodes" size="small" />
+        </el-col>
+      </el-row>
+      <el-row class="settings-item">
+        <el-col :span="11">num_slots</el-col>
+        <el-col :span="12">
+          <el-input-number class="in" v-model="SchConfig.num_slots" size="small" />
+        </el-col>
+      </el-row>
+      <el-row class="settings-item">
+        <el-col :span="11">num_channels</el-col>
+        <el-col :span="12">
+          <el-input-number class="in" v-model="SchConfig.num_channels" size="small" />
+        </el-col>
+      </el-row>
+    </el-popover>
     <el-row justify="center">
       <el-col :span="20">
         <el-steps class="steps" direction="vertical" :active="stage" finish-status="success">
@@ -148,5 +207,11 @@ watch(
 }
 .progress {
   width: 90%;
+}
+.settings-item {
+  margin-top: 5px;
+}
+.in {
+  width: 100px;
 }
 </style>

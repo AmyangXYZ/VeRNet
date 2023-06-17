@@ -79,7 +79,7 @@ export function useTopology(): any {
             icon: 'M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zM12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z',
             onclick: () => {
               chart.setOption({
-                geo3D: [{ viewControl: { distance: 130, alpha: 40, beta: 0, center: [0, -10, 0] } }]
+                geo3D: [{ viewControl: { distance: 140, alpha: 40, beta: 0, center: [0, -10, 0] } }]
               })
               return
             }
@@ -114,7 +114,7 @@ export function useTopology(): any {
                 chart.setOption(
                   {
                     geo3D: [
-                      { viewControl: { distance: 130, alpha: 40, beta: 0, center: [0, -10, 0] } }
+                      { viewControl: { distance: 140, alpha: 40, beta: 0, center: [0, -10, 0] } }
                     ]
                   },
                   { replaceMerge: ['geo', 'graphic'] }
@@ -129,13 +129,13 @@ export function useTopology(): any {
                     itemStyle: { opacity: 0 },
                     aspectScale: 1,
                     zlevel: 1,
-                    zoom: 1.148,
+                    zoom: 1.05,
                     emphasis: {
                       label: { show: false }
                     }
                   }
                 ],
-                geo3D: [{ viewControl: { distance: 130, alpha: 90, beta: 0, center: [0, -10, 0] } }]
+                geo3D: [{ viewControl: { distance: 140, alpha: 90, beta: 0, center: [0, -10, 0] } }]
               })
               chart.on('click', ({ event }: any) => {
                 const pos = [event.offsetX, event.offsetY]
@@ -169,9 +169,7 @@ export function useTopology(): any {
           }
         }
       },
-      grid: [
-        { top: '2px', height: '140px', width: '140px', left: '2px' },
-      ],
+      grid: [{ top: '2px', height: '140px', width: '140px', left: '2px' }],
       xAxis: [
         {
           // name: 'minimap-x',
@@ -184,7 +182,7 @@ export function useTopology(): any {
           min: 0,
           max: TopoConfig.grid_x,
           zlevel: -4
-        },
+        }
       ],
       yAxis: [
         {
@@ -198,7 +196,7 @@ export function useTopology(): any {
           min: 0,
           max: TopoConfig.grid_y,
           zlevel: -4
-        },
+        }
       ],
       geo3D: [
         {
@@ -250,7 +248,7 @@ export function useTopology(): any {
           boxDepth: 100,
           boxHeight: 1,
           viewControl: {
-            distance: 130,
+            distance: 140,
             maxAlpha: 180,
             // alpha: 45,
             // beta: 0,
@@ -388,6 +386,7 @@ export function useTopology(): any {
     }
 
     function drawNodes() {
+      mapBase.features = []
       for (const n of Nodes.value) {
         if (n.id == 0) continue
 
@@ -537,6 +536,7 @@ export function useTopology(): any {
       option.series[1].data = []
       option.series[2].data = []
       option.series[2].markLine.data = []
+      drawNodes()
       chart.setOption(option)
     })
   }

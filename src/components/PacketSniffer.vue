@@ -2,7 +2,7 @@
 import ChannelChart from '@/components/ChannelChart.vue'
 
 import { ref, watch, nextTick } from 'vue'
-import { Packets, SchConfig } from '@/hooks/useStates'
+import { Packets } from '@/hooks/useStates'
 import { type Packet, PKT_TYPES } from '@/hooks/typedefs'
 
 import { Filter } from '@element-plus/icons-vue'

@@ -75,8 +75,8 @@ export function useSchedule(): any {
           { value: CELL_TYPES.MGMT, label: 'Mgmt', color: 'red' },
           { value: CELL_TYPES.DATA, label: 'Data', color: 'royalblue' }
         ],
-        textStyle:{
-          color:"grey"
+        textStyle: {
+          color: 'grey'
         },
         itemHeight: 12,
         itemWidth: 18,
@@ -99,22 +99,28 @@ export function useSchedule(): any {
       ]
     }
 
-    for (let s = 1; s <= SchConfig.num_slots; s++) {
-      option.xAxis.data.push(`${s}`)
-    }
-    for (let c = 1; c <= SchConfig.num_channels; c++) {
-      option.yAxis.data.push(`${c}`)
-    }
-
     function drawCells() {
+      option.xAxis.data = []
+      option.yAxis.data = []
       option.series[0].data = []
+      for (let s = 1; s <= SchConfig.num_slots; s++) {
+        option.xAxis.data.push(`${s}`)
+      }
+      for (let c = 1; c <= SchConfig.num_channels; c++) {
+        option.yAxis.data.push(`${c}`)
+      }
+
       for (let slot = 1; slot <= SchConfig.num_slots; slot++) {
         for (let ch = 1; ch <= SchConfig.num_channels; ch++) {
           const cell = Schedule.value[slot][ch]
           if (cell != undefined) {
+            let label = `${cell.src}->${cell.dst == -1 ? '*' : cell.dst}`
+            if (cell.type == CELL_TYPES.SHARED) {
+              label = ''
+            }
             option.series[0].data.push({
               value: [`${slot}`, `${ch}`, cell.type],
-              name: `${cell.src}->${cell.dst}`,
+              name: label,
               label: {
                 formatter: ({ name }: any) => name
               }

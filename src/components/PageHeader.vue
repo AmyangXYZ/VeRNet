@@ -15,13 +15,8 @@ const handleSelect = (key: string, keyPath: string[]) => {
 }
 </script>
 <template>
-  <el-menu
-    :default-active="activeIndex"
-    mode="horizontal"
-    :ellipsis="false"
-    @select="handleSelect"
-  >
-    <el-menu-item index="0" style="margin: auto;" >
+  <el-menu :default-active="activeIndex" mode="horizontal" :ellipsis="false" @select="handleSelect">
+    <el-menu-item index="0" style="margin: auto">
       <img height="48" src="@/assets/vernet-logo.png" />
     </el-menu-item>
     <div class="flex-grow" />
@@ -38,7 +33,7 @@ const handleSelect = (key: string, keyPath: string[]) => {
         <el-menu-item index="2-4-3">item three</el-menu-item>
       </el-sub-menu>
     </el-sub-menu>
-    <el-menu-item style="margin: auto; width:80px">
+    <el-menu-item style="margin: auto; width: 80px">
       <el-switch
         class="theme-switch"
         v-model="isDark"
@@ -48,7 +43,7 @@ const handleSelect = (key: string, keyPath: string[]) => {
         :inactive-icon="Light"
       />
     </el-menu-item>
-    <el-menu-item style="margin: auto; width: 24px;">
+    <el-menu-item style="margin: auto; width: 24px">
       <el-link :underline="false" href="https://github.com/AmyangXYZ/VeRNet" st>
         <el-icon :color="isDark ? 'white' : 'black'" :size="24">
           <IconGithub />
