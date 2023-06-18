@@ -150,10 +150,12 @@ export function useSchedule(): any {
     // beacon
     const beacon_cell = findIdleCell(CELL_TYPES.MGMT, node, ADDR.BROADCAST)
     const tx_cell = findIdleCell(CELL_TYPES.MGMT, node, parent)
+    const tx_cell2 = findIdleCell(CELL_TYPES.MGMT, node, parent)
     const rx_cell = findIdleCell(CELL_TYPES.MGMT, parent, node)
+    const rx_cell2 = findIdleCell(CELL_TYPES.MGMT, parent, node)
 
     if (beacon_cell != undefined && tx_cell != undefined && rx_cell != undefined) {
-      cells.push(beacon_cell, tx_cell, rx_cell)
+      cells.push(beacon_cell, tx_cell, tx_cell2, rx_cell,rx_cell2)
     }
     return cells
   }

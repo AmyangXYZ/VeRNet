@@ -257,6 +257,7 @@ function checkScheduleTx() {
           pkt.ch = self.sch_config.shared_channel
           pkt.asn = ASN
           pkt.time = +Date.now()
+          pkt.len = JSON.stringify(pkt.payload).length
           postMessage(pkt)
           self.tx_cnt++
         }
@@ -267,6 +268,7 @@ function checkScheduleTx() {
             pkt.ch = ch
             pkt.asn = ASN
             pkt.time = +Date.now()
+            pkt.len = JSON.stringify(pkt.payload).length
             postMessage(pkt)
             self.tx_cnt++
 
