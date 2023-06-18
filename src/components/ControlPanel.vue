@@ -24,6 +24,7 @@ watch(
     )
     if (topoProgress.value == 100) {
       stage.value = 1
+      pause()
     }
   },
   { immediate: true, deep: true }

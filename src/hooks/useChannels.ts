@@ -115,6 +115,11 @@ export function useChannels(): any {
     })
 
     watch(SignalReset, () => {
+      option.dataZoom[0].startValue = 0
+      option.xAxis.data = []
+      for (let t = 1; t <= zoomWindow; t++) {
+        option.xAxis.data.push(`${t}`)
+      }
       for (let c = 1; c <= SchConfig.num_channels; c++) {
         option.series[c - 1].data = []
       }
