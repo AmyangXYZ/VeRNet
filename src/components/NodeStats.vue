@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import rpi4 from '@/assets/rpi4.png'
 import sensortag from '@/assets/sensortag.png'
-import { Nodes,SelectedNode } from '@/hooks/useStates'
+import { Nodes, SelectedNode } from '@/hooks/useStates'
 </script>
 
 <template>

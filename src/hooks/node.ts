@@ -253,7 +253,7 @@ function checkScheduleTx() {
       // self or dst not hasn't joined, use shared slot
       if (!self.joined || neighbors[pkt.dst] == undefined) {
         const cell = self.schedule[slot][self.sch_config.shared_channel]
-        if (cell != undefined) {
+        if (cell != undefined && cell.type == CELL_TYPES.SHARED) {
           pkt.ch = self.sch_config.shared_channel
           pkt.asn = ASN
           pkt.time = +Date.now()

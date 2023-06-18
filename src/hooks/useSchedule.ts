@@ -3,7 +3,7 @@ import * as echarts from 'echarts'
 
 import { ADDR, CELL_TYPES, type Cell } from './typedefs'
 
-import { SchConfig, Schedule, SignalReset } from './useStates'
+import { SchConfig, Schedule, ASN, SignalReset } from './useStates'
 
 export function useSchedule(): any {
   const initSchedule = function () {
@@ -94,7 +94,12 @@ export function useSchedule(): any {
           },
           label: { show: true, fontSize: 12 },
           animation: false,
-          data: []
+          data: [],
+          markLine: {
+            lineStyle: { color: 'red' },
+            symbolSize: 5,
+            data: []
+          }
         }
       ]
     }
@@ -130,6 +135,18 @@ export function useSchedule(): any {
       }
     }
 
+    function drawSlotOffset() {
+      let slot = ASN.value % SchConfig.num_slots
+      if (slot == 0) slot = SchConfig.num_slots
+      option.series[0].markLine.data = [
+        {
+          name: 'Slot offset',
+          xAxis: slot - 1
+        }
+      ]
+      chart.setOption(option)
+    }
+
     watch(
       Schedule,
       () => {
@@ -138,6 +155,10 @@ export function useSchedule(): any {
       },
       { immediate: true, deep: true }
     )
+
+    watch(ASN, () => {
+      drawSlotOffset()
+    })
 
     watch(SignalReset, () => {
       drawCells()
@@ -159,11 +180,16 @@ export function useSchedule(): any {
   }
 
   const findIdleCell = function (type: number, src: number, dst: number): Cell | undefined {
-    for (let slot = 2 + SchConfig.num_shared_slots; slot <= SchConfig.num_slots; slot++) {
+    for (let slot = 2; slot <= SchConfig.num_slots; slot++) {
       // check conflict
       if (
         Schedule.value[slot].filter(
-          (x) => x.src == src || x.src == dst || x.dst == src || x.dst == dst
+          (x) =>
+            x.src == src ||
+            x.src == dst ||
+            x.dst == src ||
+            x.dst == dst ||
+            x.type == CELL_TYPES.SHARED
         ).length > 0
       ) {
         continue

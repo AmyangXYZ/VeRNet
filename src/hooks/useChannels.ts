@@ -37,6 +37,7 @@ export function useChannels(): any {
         },
         axisTick: { interval: 2 },
         axisLabel: {
+          rotate: 40,
           interval: 0,
           formatter: (i: any) => {
             if (i % 3 == 2) {
@@ -77,7 +78,7 @@ export function useChannels(): any {
         name: `Packet`,
         step: 'middle',
         type: 'line',
-        data: [c * 3],
+        data: [],
         symbol: 'none',
         lineStyle: {
           width: 1,
@@ -98,21 +99,17 @@ export function useChannels(): any {
       if (SlotDone.value) {
         for (let c = 1; c <= SchConfig.num_channels; c++) {
           if (PacketsCurrent.value.filter((pkt) => pkt.ch == c).length > 0) {
-            option.series[c - 1].data.push(c * 3 - 2, c * 3)
+            option.series[c - 1].data.push(c * 3, c * 3 - 2, c * 3)
           } else {
-            option.series[c - 1].data.push(c * 3, c * 3)
+            option.series[c - 1].data.push(c * 3, c * 3, c * 3)
           }
           if (ASN.value * 3 > option.xAxis.data.length) {
-            for (let s = ASN.value * 3; s < ASN.value * 3 + zoomWindow / 2 - 3; s++) {
+            for (let s = (ASN.value - 1) * 3 + 1; s < ASN.value * 3 + 1; s++) {
               option.xAxis.data.push(s)
             }
           }
           option.dataZoom[0].startValue = option.xAxis.data.length - zoomWindow
           chart.setOption(option)
-        }
-      } else {
-        for (let c = 1; c <= SchConfig.num_channels; c++) {
-          option.series[c - 1].data.push(c * 3)
         }
       }
     })

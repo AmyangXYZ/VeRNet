@@ -32,7 +32,7 @@ export const SchConfig = reactive<ScheduleConfig>({
   beacon_channel: 1,
   beacon_period: 1,
   shared_channel: 2,
-  num_shared_slots: 11
+  num_shared_slots: 8
 })
 
 export const Schedule = ref<Cell[][]>([[]])

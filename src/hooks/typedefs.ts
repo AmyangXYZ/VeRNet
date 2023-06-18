@@ -13,11 +13,11 @@ export interface Node {
   pos: number[]
   joined: boolean
   parent: number
-  neighbors: number[],
-  queueLen: number,
-  tx_cnt:number,
-  rx_cnt:number,
-  rank:number,
+  neighbors: number[]
+  queueLen: number
+  tx_cnt: number
+  rx_cnt: number
+  rank: number
   w: any // a webworker
 }
 
