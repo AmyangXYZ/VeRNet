@@ -9,8 +9,8 @@
 
 ## Features 
 
-- Real distributed network: each network node is a isolated Web worker
-- 3D topology and support online editting (draggable nodes)
+- Real distributed network: each network node is an isolated Web worker
+- 3D topology with packet animations and support online editting (draggable nodes)
 - Packet sniffer and filtering
 - Communication schedule construction and execution
 
