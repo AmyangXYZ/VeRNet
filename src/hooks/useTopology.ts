@@ -31,7 +31,20 @@ export function useTopology(): any {
         }
       }
     }
-    Nodes.value = [<Node>{ id: 0, pos: [0, 0], joined: false, w: {}, parent: 0, neighbors: [] }] // placeholder
+    Nodes.value = [
+      <Node>{
+        id: 0,
+        pos: [0, 0],
+        joined: false,
+        parent: 0,
+        neighbors: [],
+        queueLen: 0,
+        tx_cnt: 0,
+        rx_cnt: 0,
+        rank: 0,
+        w: {}
+      }
+    ] // placeholder
 
     for (let i = 1; i <= TopoConfig.num_nodes; i++) {
       const n = <Node>{
@@ -43,6 +56,10 @@ export function useTopology(): any {
         joined: i == ADDR.ROOT,
         parent: 0,
         neighbors: [],
+        queueLen: 0,
+        tx_cnt: 0,
+        rx_cnt: 0,
+        rank: 0,
         w: new Worker(new URL('./node.ts', import.meta.url), { type: 'module' })
       }
 
@@ -116,7 +133,6 @@ export function useTopology(): any {
     const minimapMode = ref('scatter') // scatter or tree
     let treeNodes: any = { 1: { name: 1, children: [] } }
     const option: any = {
-      tooltip: { trigger: 'item' },
       legend: { show: false },
       toolbox: {
         itemSize: 16,
@@ -129,11 +145,11 @@ export function useTopology(): any {
               option.geo3D[0].viewControl.distance = 140
               option.geo3D[0].viewControl.alpha = 40
               option.geo3D[0].viewControl.beta = 0
-              option.geo3D[0].viewControl.center = [0, -10, 0]
+              option.geo3D[0].viewControl.center = [0, 0, 0]
               option.series[0].viewControl.distance = 140
               option.series[0].viewControl.alpha = 40
               option.series[0].viewControl.beta = 0
-              option.series[0].viewControl.center = [0, -10, 0]
+              option.series[0].viewControl.center = [0, 0, 0]
               chart.setOption(option)
               return
             }
@@ -164,11 +180,11 @@ export function useTopology(): any {
                 option.geo3D[0].viewControl.distance = 140
                 option.geo3D[0].viewControl.alpha = 40
                 option.geo3D[0].viewControl.beta = 0
-                option.geo3D[0].viewControl.center = [0, -10, 0]
+                option.geo3D[0].viewControl.center = [0, 0, 0]
                 option.series[0].viewControl.distance = 140
                 option.series[0].viewControl.alpha = 40
                 option.series[0].viewControl.beta = 0
-                option.series[0].viewControl.center = [0, -10, 0]
+                option.series[0].viewControl.center = [0, 0, 0]
                 chart.setOption(option, { replaceMerge: ['geo', 'graphic'] })
                 return
               }
@@ -177,11 +193,11 @@ export function useTopology(): any {
               option.geo3D[0].viewControl.distance = 140
               option.geo3D[0].viewControl.alpha = 90
               option.geo3D[0].viewControl.beta = 0
-              option.geo3D[0].viewControl.center = [0, -10, 0]
+              option.geo3D[0].viewControl.center = [0, 0, 0]
               option.series[0].viewControl.distance = 140
               option.series[0].viewControl.alpha = 90
               option.series[0].viewControl.beta = 0
-              option.series[0].viewControl.center = [0, -10, 0]
+              option.series[0].viewControl.center = [0, 0, 0]
               chart.setOption(option)
             }
           }
@@ -235,7 +251,7 @@ export function useTopology(): any {
             // beta: 0,
             maxBeta: 360,
             minBeta: -360,
-            center: [0, -10, 0],
+            center: [0, 0, 0],
             panMouseButton: 'left',
             rotateMouseButton: 'right'
           },
@@ -292,7 +308,7 @@ export function useTopology(): any {
             // beta: 0,
             maxBeta: 360,
             minBeta: -360,
-            center: [0, -10, 0],
+            center: [0, 0, 0],
             panMouseButton: 'left',
             rotateMouseButton: 'right'
           },
@@ -426,7 +442,7 @@ export function useTopology(): any {
         if (n.id == 0) continue
 
         const center = n.pos // San Francisco, for example
-        const radius = 7
+        const radius = 8
         const numSegments = 8 // The more segments, the smoother the circle
 
         const coordinates = generateNodeCoordinates(center, radius, numSegments)

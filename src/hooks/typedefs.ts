@@ -13,7 +13,11 @@ export interface Node {
   pos: number[]
   joined: boolean
   parent: number
-  neighbors: number[]
+  neighbors: number[],
+  queueLen: number,
+  tx_cnt:number,
+  rx_cnt:number,
+  rank:number,
   w: any // a webworker
 }
 
@@ -114,10 +118,4 @@ export interface ASSOC_RSP_PAYLOAD {
   id: number
   parent: number
   schedule: Cell[]
-}
-
-export interface Statistics {
-  pkt_seq: number
-  rx_cnt: number
-  tx_cnt: number
 }

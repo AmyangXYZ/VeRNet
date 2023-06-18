@@ -1,9 +1,7 @@
 <script setup lang="tsx">
 import { onMounted, ref } from 'vue'
-
 import { useTopology } from '@/hooks/useTopology'
 import { TopoConfig } from '@/hooks/useStates'
-
 import { Operation } from '@element-plus/icons-vue'
 
 const chartDom = ref(undefined)
@@ -91,6 +89,6 @@ onMounted(() => {
 }
 .chart {
   width: 100%;
-  height: 640px;
+  height: 700px;
 }
 </style>

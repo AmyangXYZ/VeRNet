@@ -46,10 +46,16 @@ export function useController() {
           const msg: Message = e.data
           switch (msg.type) {
             case MSG_TYPES.STAT:
-              n.joined = true
+              n.joined = msg.payload.joined
               n.parent = msg.payload.parent
-              n.neighbors.push(msg.payload.parent)
-              Nodes.value[msg.payload.parent].neighbors.push(n.id)
+              n.queueLen = msg.payload.queue.length
+              n.tx_cnt = msg.payload.tx_cnt
+              n.rx_cnt = msg.payload.rx_cnt
+              n.rank = msg.payload.rank
+              if (n.joined && n.parent != 0) {
+                n.neighbors.push(msg.payload.parent)
+                Nodes.value[msg.payload.parent].neighbors.push(n.id)
+              }
               break
             case MSG_TYPES.DONE:
               doneCnt++

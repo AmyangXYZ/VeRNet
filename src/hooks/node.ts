@@ -21,8 +21,8 @@ const self: any = {
   queue: <Packet[]>[],
   routingTable: {}, // dst: next-hop
   pkt_seq: -1,
-  rx_cnt: 0,
-  tx_cnt: 0
+  tx_cnt: 0,
+  rx_cnt: 0
 }
 
 const neighbors: any = {} // record if neighbor has joined
@@ -60,6 +60,10 @@ onmessage = (e: any) => {
         // done
         postMessage(<Message>{
           type: MSG_TYPES.DONE
+        })
+        postMessage(<Message>{
+          type: MSG_TYPES.STAT,
+          payload: self
         })
         break
       case MSG_TYPES.INIT:
@@ -121,7 +125,7 @@ onmessage = (e: any) => {
           // console.log(`[${self.id}] received beacon (DIO) from node ${pkt.src}`)
           if (self.id != ADDR.ROOT && !self.joined && !self.joining) {
             self.joining = true
-            // self.rank = pkt.payload.rank + 1
+            self.rank = pkt.payload.rank + 1
             self.queue.push(<Packet>{
               uid: Math.floor(Math.random() * 0xffff),
               type: PKT_TYPES.ASSOC_REQ,

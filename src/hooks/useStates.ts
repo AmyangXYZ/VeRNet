@@ -37,4 +37,4 @@ export const SchConfig = reactive<ScheduleConfig>({
 
 export const Schedule = ref<Cell[][]>([[]])
 
-export const SelectedNode = ref(0)
+export const SelectedNode = ref(1)
