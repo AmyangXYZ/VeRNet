@@ -18,8 +18,8 @@ import type {
   MSG_INIT_PAYLOAD,
   MSG_ASN_PAYLOAD,
   ASSOC_RSP_PAYLOAD
-} from './typedefs'
-import { MSG_TYPES, PKT_TYPES, ADDR } from './typedefs'
+} from './useDefs'
+import { MSG_TYPES, PKT_TYPES, ADDR } from './useDefs'
 
 const { initTopology } = useTopology()
 const { initSchedule, assignMgmtCells } = useSchedule()

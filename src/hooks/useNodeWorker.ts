@@ -6,8 +6,8 @@ import type {
   PKT_BEACON_PAYLOAD,
   ASSOC_REQ_PAYLOAD,
   ScheduleConfig
-} from './typedefs'
-import { MSG_TYPES, ADDR, PKT_TYPES, CELL_TYPES } from './typedefs'
+} from './useDefs'
+import { MSG_TYPES, ADDR, PKT_TYPES, CELL_TYPES } from './useDefs'
 
 const self: any = {
   id: 0,

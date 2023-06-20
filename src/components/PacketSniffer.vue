@@ -3,7 +3,7 @@ import ChannelChart from '@/components/ChannelChart.vue'
 
 import { ref, watch, nextTick } from 'vue'
 import { Packets } from '@/hooks/useStates'
-import { type Packet, PKT_TYPES } from '@/hooks/typedefs'
+import { type Packet, PKT_TYPES } from '@/hooks/useDefs'
 
 import { Filter } from '@element-plus/icons-vue'
 const filterRules = ref()
@@ -179,3 +179,4 @@ Row.inheritAttrs = false
   text-align: center;
 }
 </style>
+@/hooks/useTypes@/hooks/useDefs

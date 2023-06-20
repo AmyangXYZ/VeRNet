@@ -1,7 +1,7 @@
 import { watch } from 'vue'
 import * as echarts from 'echarts'
 
-import { ADDR, CELL_TYPES, type Cell } from './typedefs'
+import { ADDR, CELL_TYPES, type Cell } from './useDefs'
 
 import { SchConfig, Schedule, ASN, SignalReset } from './useStates'
 

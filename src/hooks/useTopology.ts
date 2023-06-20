@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue'
-import { SeededRandom } from './seed'
+import { SeededRandom } from './useSeed'
 
 import * as echarts from 'echarts'
 import 'echarts-gl'
@@ -16,8 +16,8 @@ import {
 
 import texture from '@/assets/texture.jpg'
 
-import type { Node } from './typedefs'
-import { ADDR, PKT_TYPES } from './typedefs'
+import type { Node } from './useDefs'
+import { ADDR, PKT_TYPES } from './useDefs'
 
 export function useTopology(): any {
   const initTopology = function () {
@@ -84,10 +84,6 @@ export function useTopology(): any {
       type: 'FeatureCollection',
       features: []
     }
-    echarts.registerMap('base', {
-      type: 'FeatureCollection',
-      features: []
-    })
     const editing = ref(false)
 
     chart.on('click', (item) => {

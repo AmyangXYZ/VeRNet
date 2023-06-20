@@ -1,9 +1,9 @@
 // global states, variables and configs
 
 import { ref, reactive } from 'vue'
-import type { Cell, Node, Packet } from './typedefs'
+import type { Cell, Node, Packet } from './useDefs'
 
-import type { TopologyConfig, ScheduleConfig } from './typedefs'
+import type { TopologyConfig, ScheduleConfig } from './useDefs'
 
 export const Nodes = ref<Node[]>([])
 export const ASN = ref<number>(0)

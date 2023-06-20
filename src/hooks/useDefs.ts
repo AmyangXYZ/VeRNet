@@ -24,8 +24,8 @@ export interface Node {
 export interface ScheduleConfig {
   num_slots: number
   num_channels: number
-  beacon_period: number
-  beacon_channel: number // every {} slotframes
+  beacon_period: number // every {} slotframes
+  beacon_channel: number
   num_shared_slots: number
   shared_channel: number
 }
