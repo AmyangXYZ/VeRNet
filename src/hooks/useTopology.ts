@@ -60,7 +60,7 @@ export function useTopology(): any {
         tx_cnt: 0,
         rx_cnt: 0,
         rank: 0,
-        w: new Worker(new URL('./node.ts', import.meta.url), { type: 'module' })
+        w: new Worker(new URL('./useNodeWorker.ts', import.meta.url), { type: 'module' })
       }
 
       Nodes.value.push(n)
