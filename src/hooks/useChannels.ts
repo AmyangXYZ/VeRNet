@@ -4,8 +4,8 @@ import * as echarts from 'echarts'
 import { ASN, PacketsCurrent, SchConfig, SignalReset, SlotDone } from './useStates'
 
 export function useChannels(): any {
-  const drawChannels = function (chartDom: any) {
-    const chart = echarts.init(chartDom.value, { useDirtyRect: true })
+  const drawChannels = function (chartDom: HTMLElement) {
+    const chart = echarts.init(chartDom, { useDirtyRect: true })
     const zoomWindow: number = 60
 
     const option: any = {
@@ -72,7 +72,7 @@ export function useChannels(): any {
       series: []
     }
 
-    for (let c = 1; c <= SchConfig.num_channels; c++) {
+    for (let c = 1; c <= SchConfig.value.num_channels; c++) {
       option.yAxis.data.push(c * 3, c * 3 + 1, c * 3 + 2)
       option.series.push({
         name: `Packet`,
@@ -97,7 +97,7 @@ export function useChannels(): any {
 
     watch(SlotDone, () => {
       if (SlotDone.value) {
-        for (let c = 1; c <= SchConfig.num_channels; c++) {
+        for (let c = 1; c <= SchConfig.value.num_channels; c++) {
           if (PacketsCurrent.value.filter((pkt) => pkt.ch == c).length > 0) {
             option.series[c - 1].data.push(c * 3, c * 3 - 2, c * 3)
           } else {
@@ -120,7 +120,7 @@ export function useChannels(): any {
       for (let t = 1; t <= zoomWindow; t++) {
         option.xAxis.data.push(`${t}`)
       }
-      for (let c = 1; c <= SchConfig.num_channels; c++) {
+      for (let c = 1; c <= SchConfig.value.num_channels; c++) {
         option.series[c - 1].data = []
       }
       chart.setOption(option)

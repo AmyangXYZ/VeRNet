@@ -7,7 +7,7 @@ import { Operation } from '@element-plus/icons-vue'
 const chartDom = ref(undefined)
 const { drawTopology } = useTopology()
 onMounted(() => {
-  drawTopology(chartDom)
+  drawTopology(chartDom.value)
 })
 </script>
 

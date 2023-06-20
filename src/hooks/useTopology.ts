@@ -21,7 +21,7 @@ import { ADDR, PKT_TYPES } from './useDefs'
 
 export function useTopology(): any {
   const initTopology = function () {
-    const rand = new SeededRandom(TopoConfig.seed)
+    const rand = new SeededRandom(TopoConfig.value.seed)
 
     // clear old nodes
     if (Nodes.value.length > 1) {
@@ -46,12 +46,12 @@ export function useTopology(): any {
       }
     ] // placeholder
 
-    for (let i = 1; i <= TopoConfig.num_nodes; i++) {
+    for (let i = 1; i <= TopoConfig.value.num_nodes; i++) {
       const n = <Node>{
         id: i,
         pos: [
-          Math.floor(rand.next() * (TopoConfig.grid_x - 1)) + 1,
-          Math.floor(rand.next() * (TopoConfig.grid_y - 1)) + 1
+          Math.floor(rand.next() * (TopoConfig.value.grid_x - 1)) + 1,
+          Math.floor(rand.next() * (TopoConfig.value.grid_y - 1)) + 1
         ],
         joined: i == ADDR.ROOT,
         parent: 0,
@@ -68,8 +68,8 @@ export function useTopology(): any {
   }
 
   // called after mounted
-  const drawTopology = function (chartDom: any) {
-    const chart = echarts.init(chartDom.value, { useDirtyRect: true })
+  const drawTopology = function (chartDom: HTMLElement) {
+    const chart = echarts.init(chartDom, { useDirtyRect: true })
     chart.showLoading({
       text: 'Rendering...',
       textColor: 'lightgrey',
@@ -210,7 +210,7 @@ export function useTopology(): any {
           axisTick: { show: false },
           axisLabel: { show: false },
           min: 0,
-          max: TopoConfig.grid_x,
+          max: TopoConfig.value.grid_x,
           zlevel: -4
         }
       ],
@@ -224,7 +224,7 @@ export function useTopology(): any {
           axisTick: { show: false },
           axisLabel: { show: false },
           min: 0,
-          max: TopoConfig.grid_y,
+          max: TopoConfig.value.grid_y,
           zlevel: -4
         }
       ],

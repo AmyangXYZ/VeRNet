@@ -5,7 +5,7 @@ import { useChannels } from '@/hooks/useChannels'
 const chartDom = ref(undefined)
 const { drawChannels } = useChannels()
 onMounted(() => {
-  drawChannels(chartDom)
+  drawChannels(chartDom.value)
 })
 </script>
 

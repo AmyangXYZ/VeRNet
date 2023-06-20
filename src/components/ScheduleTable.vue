@@ -6,7 +6,7 @@ const chartDom = ref()
 const { drawSchedule } = useSchedule()
 
 onMounted(() => {
-  drawSchedule(chartDom)
+  drawSchedule(chartDom.value)
 })
 </script>
 

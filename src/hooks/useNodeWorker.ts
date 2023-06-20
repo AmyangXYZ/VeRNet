@@ -52,7 +52,7 @@ onmessage = (e: any) => {
             dst: -1,
             seq: ++self.pkt_seq,
             len: 1,
-            payload: <PKT_BEACON_PAYLOAD>{ dodag_id: 1, rank: self.rank }
+            payload: <PKT_BEACON_PAYLOAD>{ pan_id: 1, rank: self.rank }
           })
         }
         checkScheduleTx()
@@ -182,7 +182,7 @@ onmessage = (e: any) => {
               dst: -1,
               seq: ++self.pkt_seq,
               len: 1,
-              payload: <PKT_BEACON_PAYLOAD>{ dodag_id: 1, rank: self.rank }
+              payload: <PKT_BEACON_PAYLOAD>{ pan_id: 1, rank: self.rank }
             })
           }
           if (pkt.payload.parent == self.id && pkt.payload.permit) {

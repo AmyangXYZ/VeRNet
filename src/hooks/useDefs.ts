@@ -30,6 +30,7 @@ export interface ScheduleConfig {
   shared_channel: number
 }
 
+// basic unit of the communication schedule
 export interface Cell {
   type: number
   slot: number
@@ -104,7 +105,7 @@ export enum PKT_TYPES {
 }
 
 export interface PKT_BEACON_PAYLOAD {
-  dodag_id: number
+  pan_id: number
   rank: number
 }
 

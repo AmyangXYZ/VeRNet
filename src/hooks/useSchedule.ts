@@ -7,32 +7,32 @@ import { SchConfig, Schedule, ASN, SignalReset } from './useStates'
 
 export function useSchedule(): any {
   const initSchedule = function () {
-    Schedule.value = new Array<Cell[]>(SchConfig.num_slots + 1)
-    for (let s = 1; s <= SchConfig.num_slots; s++) {
-      Schedule.value[s] = new Array<Cell>(SchConfig.num_channels + 1)
+    Schedule.value = new Array<Cell[]>(SchConfig.value.num_slots + 1)
+    for (let s = 1; s <= SchConfig.value.num_slots; s++) {
+      Schedule.value[s] = new Array<Cell>(SchConfig.value.num_channels + 1)
     }
 
     // initial cells
-    Schedule.value[1][SchConfig.beacon_channel] = <Cell>{
+    Schedule.value[1][SchConfig.value.beacon_channel] = <Cell>{
       type: CELL_TYPES.MGMT,
       slot: 1,
-      ch: SchConfig.beacon_channel,
+      ch: SchConfig.value.beacon_channel,
       src: ADDR.ROOT,
       dst: ADDR.BROADCAST
     }
-    for (let slot = 2; slot < 2 + SchConfig.num_shared_slots; slot++) {
-      Schedule.value[slot][SchConfig.shared_channel] = <Cell>{
+    for (let slot = 2; slot < 2 + SchConfig.value.num_shared_slots; slot++) {
+      Schedule.value[slot][SchConfig.value.shared_channel] = <Cell>{
         type: CELL_TYPES.SHARED,
         slot: slot,
-        ch: SchConfig.shared_channel,
+        ch: SchConfig.value.shared_channel,
         src: ADDR.ANY,
         dst: ADDR.ANY
       }
     }
   }
 
-  const drawSchedule = function (chartDom: any) {
-    const chart = echarts.init(chartDom.value)
+  const drawSchedule = function (chartDom: HTMLElement) {
+    const chart = echarts.init(chartDom)
     const option: any = {
       grid: {
         top: '42px',
@@ -108,15 +108,15 @@ export function useSchedule(): any {
       option.xAxis.data = []
       option.yAxis.data = []
       option.series[0].data = []
-      for (let s = 1; s <= SchConfig.num_slots; s++) {
+      for (let s = 1; s <= SchConfig.value.num_slots; s++) {
         option.xAxis.data.push(`${s}`)
       }
-      for (let c = 1; c <= SchConfig.num_channels; c++) {
+      for (let c = 1; c <= SchConfig.value.num_channels; c++) {
         option.yAxis.data.push(`${c}`)
       }
 
-      for (let slot = 1; slot <= SchConfig.num_slots; slot++) {
-        for (let ch = 1; ch <= SchConfig.num_channels; ch++) {
+      for (let slot = 1; slot <= SchConfig.value.num_slots; slot++) {
+        for (let ch = 1; ch <= SchConfig.value.num_channels; ch++) {
           const cell = Schedule.value[slot][ch]
           if (cell != undefined) {
             let label = `${cell.src}->${cell.dst == -1 ? '*' : cell.dst}`
@@ -136,8 +136,8 @@ export function useSchedule(): any {
     }
 
     function drawSlotOffset() {
-      let slot = ASN.value % SchConfig.num_slots
-      if (slot == 0) slot = SchConfig.num_slots
+      let slot = ASN.value % SchConfig.value.num_slots
+      if (slot == 0) slot = SchConfig.value.num_slots
       option.series[0].markLine.data = [
         {
           name: 'Slot offset',
@@ -188,7 +188,7 @@ export function useSchedule(): any {
   }
 
   const findIdleCell = function (type: number, src: number, dst: number): Cell | undefined {
-    for (let slot = 2; slot <= SchConfig.num_slots; slot++) {
+    for (let slot = 2; slot <= SchConfig.value.num_slots; slot++) {
       // check conflict
       if (
         Schedule.value[slot].filter(
@@ -203,19 +203,19 @@ export function useSchedule(): any {
         continue
       }
       if (dst == ADDR.BROADCAST) {
-        if (Schedule.value[slot][SchConfig.beacon_channel] == undefined) {
+        if (Schedule.value[slot][SchConfig.value.beacon_channel] == undefined) {
           const cell = <Cell>{
             type: type,
             slot: slot,
-            ch: SchConfig.beacon_channel,
+            ch: SchConfig.value.beacon_channel,
             src: src,
             dst: dst
           }
-          Schedule.value[slot][SchConfig.beacon_channel] = cell
+          Schedule.value[slot][SchConfig.value.beacon_channel] = cell
           return cell
         }
       } else {
-        for (let ch = 2; ch <= SchConfig.num_channels; ch++) {
+        for (let ch = 2; ch <= SchConfig.value.num_channels; ch++) {
           if (Schedule.value[slot][ch] == undefined) {
             const cell = <Cell>{
               type: type,

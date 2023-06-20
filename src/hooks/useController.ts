@@ -35,7 +35,7 @@ export function useController() {
         payload: <MSG_INIT_PAYLOAD>{
           id: n.id,
           pos: toRaw(n.pos),
-          sch_config: toRaw(SchConfig)
+          sch_config: toRaw(SchConfig.value)
         }
       })
 
@@ -59,7 +59,7 @@ export function useController() {
               break
             case MSG_TYPES.DONE:
               doneCnt++
-              if (doneCnt == TopoConfig.num_nodes) {
+              if (doneCnt == TopoConfig.value.num_nodes) {
                 SlotDone.value = true
               }
               break
@@ -120,7 +120,7 @@ export function useController() {
                 const distance = Math.sqrt(
                   Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
                 )
-                if (nn.id > 0 && nn.id != n.id && distance <= TopoConfig.tx_range) {
+                if (nn.id > 0 && nn.id != n.id && distance <= TopoConfig.value.tx_range) {
                   nn.w.postMessage(pkt)
                   // const dup = JSON.parse(JSON.stringify(pkt))
                   // dup.dst = nn.id
@@ -134,7 +134,7 @@ export function useController() {
                 const distance = Math.sqrt(
                   Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
                 )
-                if (distance <= TopoConfig.tx_range) {
+                if (distance <= TopoConfig.value.tx_range) {
                   nn.w.postMessage(pkt)
                   // PacketsCurrent.value.push(pkt)
                 }
