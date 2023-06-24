@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Nodes, ASN, Packets, SlotDuration, TopoConfig, SchConfig } from '@/hooks/useStates'
-import { useController } from '@/hooks/useController'
+import { Network } from '@/hooks/useStates'
+
 import IconPlay from './icons/IconPlay.vue'
 // import IconStep from './icons/IconStep.vue'
 import IconPlusOne from './icons/IconPlusOne.vue'
@@ -9,22 +9,18 @@ import IconPause from './icons/IconPause.vue'
 import IconReset from './icons/IconReset.vue'
 import IconSettings from './icons/IconSettings.vue'
 
-const { initNetwork, status, run, step, pause, reset } = useController()
-
-initNetwork()
-
 const stage = ref(0)
 const topoProgress = ref(0)
 
 watch(
-  Nodes,
+  Network.Nodes,
   () => {
     topoProgress.value = Math.floor(
-      (Nodes.value.filter((n) => n.joined).length / (Nodes.value.length - 1)) * 100
+      (Network.Nodes.value.filter((n) => n.joined).length / (Network.Nodes.value.length - 1)) * 100
     )
     if (topoProgress.value == 100) {
       stage.value = 1
-      pause()
+      // pause()
     }
   },
   { immediate: true, deep: true }
@@ -33,9 +29,9 @@ watch(
 const settingsBtn = ref()
 
 watch(
-  [TopoConfig, SchConfig],
+  [Network.TopoConfig, Network.SchConfig],
   () => {
-    reset()
+    Network.Reset()
   },
   { deep: true }
 )
@@ -45,10 +41,10 @@ watch(
   <el-menu class="panel">
     <el-row justify="center">
       <el-col :span="9">
-        <el-statistic title="ASN" :value="ASN"> </el-statistic>
+        <el-statistic title="ASN" :value="Network.ASN"> </el-statistic>
       </el-col>
       <el-col :span="9">
-        <el-statistic title="Packets" :value="Packets.length"> </el-statistic>
+        <el-statistic title="Packets" :value="Network.Packets.value.length"> </el-statistic>
       </el-col>
     </el-row>
 
@@ -57,10 +53,10 @@ watch(
         <el-button-group class="btns">
           <el-button
             class="btn"
-            :disabled="status.running"
+            :disabled="Network.Running.value"
             size="small"
             type="primary"
-            @click="run"
+            @click="Network.Run"
           >
             <el-icon size="20">
               <IconPlay />
@@ -68,10 +64,10 @@ watch(
           </el-button>
           <el-button
             class="btn"
-            :disabled="status.running"
+            :disabled="Network.Running.value"
             size="small"
             type="success"
-            @click="step"
+            @click="Network.Step"
           >
             <el-icon size="20">
               <IconPlusOne />
@@ -79,16 +75,16 @@ watch(
           </el-button>
           <el-button
             class="btn"
-            :disabled="!status.running"
+            :disabled="!Network.Running.value"
             size="small"
             type="warning"
-            @click="pause"
+            @click="Network.Pause"
           >
             <el-icon size="20">
               <IconPause />
             </el-icon>
           </el-button>
-          <el-button class="btn" size="small" type="danger" @click="reset">
+          <el-button class="btn" size="small" type="danger" @click="Network.Reset">
             <el-icon size="18">
               <IconReset />
             </el-icon>
@@ -111,31 +107,31 @@ watch(
       <el-row class="settings-item">
         <el-col :span="11">slot_duration</el-col>
         <el-col :span="12">
-          <el-input-number class="in" v-model="SlotDuration" size="small" />
+          <el-input-number class="in" v-model="Network.SlotDuration.value" size="small" />
         </el-col>
       </el-row>
       <el-row class="settings-item">
         <el-col :span="11">topo_seed</el-col>
         <el-col :span="12">
-          <el-input-number class="in" v-model="TopoConfig.seed" size="small" />
+          <el-input-number class="in" v-model="Network.TopoConfig.value.seed" size="small" />
         </el-col>
       </el-row>
       <el-row class="settings-item">
         <el-col :span="11">num_nodes</el-col>
         <el-col :span="12">
-          <el-input-number class="in" v-model="TopoConfig.num_nodes" size="small" />
+          <el-input-number class="in" v-model="Network.TopoConfig.value.num_nodes" size="small" />
         </el-col>
       </el-row>
       <el-row class="settings-item">
         <el-col :span="11">num_slots</el-col>
         <el-col :span="12">
-          <el-input-number class="in" v-model="SchConfig.num_slots" size="small" />
+          <el-input-number class="in" v-model="Network.SchConfig.value.num_slots" size="small" />
         </el-col>
       </el-row>
       <el-row class="settings-item">
         <el-col :span="11">num_channels</el-col>
         <el-col :span="12">
-          <el-input-number class="in" v-model="SchConfig.num_channels" size="small" />
+          <el-input-number class="in" v-model="Network.SchConfig.value.num_channels" size="small" />
         </el-col>
       </el-row>
     </el-popover>

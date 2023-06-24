@@ -8,7 +8,10 @@ export interface TopologyConfig {
   tx_range: number
 }
 
-export interface Node {
+export type MsgHandler = (msg: Message) => void
+export type PktHandler = (pkt: Packet) => void
+
+export interface TSCHNodeMeta {
   id: number
   pos: number[]
   joined: boolean
@@ -18,7 +21,7 @@ export interface Node {
   tx_cnt: number
   rx_cnt: number
   rank: number
-  w: any // a webworker
+  w: Worker | undefined
 }
 
 export interface ScheduleConfig {
@@ -48,6 +51,8 @@ export enum CELL_TYPES {
 // Message is used for direct communication (debug, cmd, stats) between nodes and controller
 export interface Message {
   type: number
+  src: number
+  dst: number
   payload: any
 }
 
@@ -60,11 +65,11 @@ export enum MSG_TYPES {
   ASSOC_REQ
 }
 
-export interface MSG_ASN_PAYLOAD {
+export interface ASN_MSG_PAYLOAD {
   asn: number
 }
 
-export interface MSG_INIT_PAYLOAD {
+export interface INIT_MSG_PAYLOAD {
   id: number
   pos: number[]
   sch_config: ScheduleConfig
@@ -78,10 +83,13 @@ export interface Packet {
   src: number
   dst: number
   seq: number
-  time: number
   asn: number
   len: number
   payload: any
+
+  // callback function when the packet is successfully tranmistted
+  // (received ack)
+  callback: () => void | undefined
 
   // for display on packet sniffer
   id: number
@@ -104,19 +112,19 @@ export enum PKT_TYPES {
   DATA
 }
 
-export interface PKT_BEACON_PAYLOAD {
+export interface BEACON_PKT_PAYLOAD {
   pan_id: number
   rank: number
 }
 
-export interface ASSOC_REQ_PAYLOAD {
+export interface ASSOC_REQ_PKT_PAYLOAD {
   id: number
   parent: number
 }
 
-export interface ASSOC_RSP_PAYLOAD {
+export interface ASSOC_RSP_PKT_PAYLOAD {
   permit: boolean
   id: number
   parent: number
-  schedule: Cell[]
+  cell_list: Cell[]
 }

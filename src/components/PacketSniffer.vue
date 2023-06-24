@@ -2,8 +2,8 @@
 import ChannelChart from '@/components/ChannelChart.vue'
 
 import { ref, watch, nextTick } from 'vue'
-import { Packets } from '@/hooks/useStates'
-import { type Packet, PKT_TYPES } from '@/hooks/useDefs'
+import { Network } from '@/hooks/useStates'
+import { type Packet, PKT_TYPES } from '@/core/TSCH/typedefs'
 
 import { Filter } from '@element-plus/icons-vue'
 const filterRules = ref()
@@ -22,18 +22,6 @@ const columns: any = [
     align: 'center',
     cellRenderer: ({ rowIndex }: any) => rowIndex + 1
   },
-  // {
-  //   key: 'time',
-  //   title: 'TIME',
-  //   dataKey: 'time',
-  //   width: 100,
-  //   align: 'center',
-  //   cellRenderer: ({ cellData: time }: any) =>
-  //     new Date(time - new Date(time).getTimezoneOffset() * 60 * 1000)
-  //       .toISOString()
-  //       .substring(11, 23)
-  //       .replace('T', ' ')
-  // },
   {
     key: 'asn',
     title: 'ASN',
@@ -104,11 +92,11 @@ const columns: any = [
 
 const tableRef = ref()
 watch(
-  Packets,
+  Network.Packets,
   () => {
-    if (Packets.value.length > 0) {
+    if (Network.Packets.value.length > 0) {
       nextTick(() => {
-        tableRef.value?.scrollToRow(Packets.value.length)
+        tableRef.value?.scrollToRow(Network.Packets.value.length)
       })
     }
   },
@@ -141,7 +129,7 @@ Row.inheritAttrs = false
           ref="tableRef"
           class="table"
           :columns="columns"
-          :data="Packets.filter(filterFunc)"
+          :data="Network.Packets.value.filter(filterFunc)"
           :width="width"
           :height="378"
           :expand-column-key="columns[8].key"

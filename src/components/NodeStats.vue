@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import rpi4 from '@/assets/rpi4.png'
 import sensortag from '@/assets/sensortag.png'
-import { Nodes, SelectedNode } from '@/hooks/useStates'
+import { Network, SelectedNode } from '@/hooks/useStates'
 </script>
 
 <template>
@@ -14,9 +14,10 @@ import { Nodes, SelectedNode } from '@/hooks/useStates'
         <span style="font-weight: 600; font-size: 0.9rem">[V-{{ SelectedNode }}]</span>
         6TiSCH {{ SelectedNode == 1 ? 'gateway' : 'end device' }}<br />
         - {{ SelectedNode == 1 ? 'Raspberry Pi 4B' : 'CC2650 SensorTag' }} <br />
-        - TX: {{ Nodes[SelectedNode].tx_cnt }} , RX: {{ Nodes[SelectedNode].rx_cnt }}<br />
-        - Queue length: {{ Nodes[SelectedNode].queueLen }}<br />
-        - Rank in topology: {{ Nodes[SelectedNode].rank }}
+        - TX: {{ Network.Nodes.value[SelectedNode].tx_cnt }} , RX:
+        {{ Network.Nodes.value[SelectedNode].rx_cnt }}<br />
+        - Queue length: {{ Network.Nodes.value[SelectedNode].queueLen }}<br />
+        - Rank in topology: {{ Network.Nodes.value[SelectedNode].rank }}
       </el-col>
     </el-row>
   </el-card>
