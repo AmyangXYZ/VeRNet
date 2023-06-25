@@ -1,5 +1,7 @@
 // all types and enums here
 
+import type { NodeMeta } from '../typedef'
+
 export interface TopologyConfig {
   seed: number
   num_nodes: number
@@ -11,17 +13,10 @@ export interface TopologyConfig {
 export type MsgHandler = (msg: Message) => void
 export type PktHandler = (pkt: Packet) => void
 
-export interface TSCHNodeMeta {
-  id: number
-  pos: number[]
+export interface TSCHNodeMeta extends NodeMeta {
   joined: boolean
   parent: number
-  neighbors: number[]
-  queueLen: number
-  tx_cnt: number
-  rx_cnt: number
   rank: number
-  w: Worker | undefined
 }
 
 export interface ScheduleConfig {

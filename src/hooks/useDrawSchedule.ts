@@ -1,7 +1,7 @@
 import { watch } from 'vue'
 import * as echarts from 'echarts'
 
-import { CELL_TYPES } from '@/core/TSCH/typedefs'
+import { CELL_TYPES } from '@/networks/TSCH/typedefs'
 
 import { Network } from './useStates'
 

@@ -9,7 +9,7 @@ import texture from '@/assets/texture.jpg'
 
 import { Network } from './useStates'
 
-import { ADDR, PKT_TYPES } from '@/core/TSCH/typedefs'
+import { ADDR, PKT_TYPES } from '@/networks/TSCH/typedefs'
 
 export function useDrawTopology(chartDom: HTMLElement) {
   const chart = echarts.init(chartDom, { useDirtyRect: true })

@@ -16,7 +16,7 @@ import { ADDR, MSG_TYPES, PKT_TYPES, CELL_TYPES } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
 
 export class TSCHNetwork {
-  ID = 0x2023
+  ID = 11
   Nodes = ref<TSCHNodeMeta[]>([])
   Packets = ref<Packet[]>([])
   ASN = ref(0)
@@ -118,7 +118,7 @@ export class TSCHNetwork {
 
     if (!this.Nodes.value[node].joined && payload.joined) {
       // join succeed
-      console.log(node, 'joined')
+      // console.log(node, 'joined')
       this.Nodes.value[node].joined = payload.joined
       this.Nodes.value[node].parent = payload.parent
       this.Nodes.value[node].neighbors.push(payload.parent)
@@ -197,7 +197,7 @@ export class TSCHNetwork {
         tx_cnt: 0,
         rx_cnt: 0,
         rank: 0,
-        w: new Worker(new URL('@/core/TSCH/node.ts', import.meta.url), { type: 'module' })
+        w: new Worker(new URL('@/networks/TSCH/node.ts', import.meta.url), { type: 'module' })
       }
       // send init msg
       n.w!.postMessage(<Message>{
