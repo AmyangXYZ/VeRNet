@@ -10,4 +10,3 @@ class FiveGUE {
 
 new FiveGUE().Run()
 
-console.log(new ArrayBuffer(32))

@@ -14,6 +14,7 @@ import type {
 } from './typedefs'
 import { ADDR, MSG_TYPES, PKT_TYPES, CELL_TYPES } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
+import { NODE_TYPE } from '../typedef'
 
 export class TSCHNetwork {
   ID = 11
@@ -171,6 +172,7 @@ export class TSCHNetwork {
     this.Nodes.value = [
       <TSCHNodeMeta>{
         id: 0,
+        type: NODE_TYPE.TSCH,
         pos: [0, 0],
         joined: false,
         parent: 0,
@@ -186,6 +188,7 @@ export class TSCHNetwork {
     for (let i = 1; i <= this.TopoConfig.value.num_nodes; i++) {
       const n = <TSCHNodeMeta>{
         id: i,
+        type: NODE_TYPE.TSCH,
         pos: [
           Math.floor(rand.next() * (this.TopoConfig.value.grid_x - 1)) + 1,
           Math.floor(rand.next() * (this.TopoConfig.value.grid_y - 1)) + 1

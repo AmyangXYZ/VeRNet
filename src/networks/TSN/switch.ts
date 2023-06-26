@@ -1,6 +1,6 @@
 class TSNSwitch {
   id: number = 0
-
+  ports: { [p: number]: number } = {}
   constructor() {}
 
   Run() {
@@ -9,5 +9,3 @@ class TSNSwitch {
 }
 
 new TSNSwitch().Run()
-
-console.log(new ArrayBuffer(32))
