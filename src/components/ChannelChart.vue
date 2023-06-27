@@ -16,7 +16,7 @@ onMounted(() => {
 .chart {
   width: 100%;
   height: 200px;
-  margin-top: 20px;
+  margin-top: 5px;
 }
 </style>
 @/hooks/useDrawChannels

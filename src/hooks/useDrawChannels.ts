@@ -35,6 +35,7 @@ export function useDrawChannels(chartDom: HTMLElement) {
       axisLabel: {
         rotate: 40,
         interval: 0,
+        fontSize: 10,
         formatter: (i: any) => {
           if (i % 3 == 2) {
             return (parseInt(i) + 1) / 3
@@ -54,6 +55,7 @@ export function useDrawChannels(chartDom: HTMLElement) {
       axisLabel: {
         interval: 3,
         show: true,
+        fontSize: 11,
         formatter: (i: any) => {
           if (i % 3 == 2) {
             return (parseInt(i) + 1) / 3
@@ -63,7 +65,8 @@ export function useDrawChannels(chartDom: HTMLElement) {
       },
       splitLine: { show: false },
       data: [],
-      inverse: true
+      inverse: true,
+      animation: false
     },
     series: []
   }

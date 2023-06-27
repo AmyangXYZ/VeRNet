@@ -9,3 +9,5 @@ import { TSCHNetwork } from '@/networks/TSCH/network'
 export const Network = new TSCHNetwork()
 // export const Networks = new CompositeNetworks()
 export const SelectedNode = ref(1)
+export const MiniMapMode = ref('scatter')
+export const SignalResetCamera = ref(1)

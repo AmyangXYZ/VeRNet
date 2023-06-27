@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import 'echarts-gl'
 
-import { SelectedNode } from './useStates'
+import { SelectedNode, SignalResetCamera } from './useStates'
 
 import texture from '@/assets/texture.jpg'
 
@@ -69,44 +69,18 @@ export function useDrawTopology(chartDom: HTMLElement) {
     }
   })
 
-  const minimapMode = ref('scatter') // scatter or tree
-  let treeNodes: any = { 1: { name: 1, children: [] } }
   const option: any = {
-    legend: { show: false },
     toolbox: {
+      top: '16px',
+      left: '16px',
       itemSize: 16,
       feature: {
-        myToolResetCamera: {
+        mySettings: {
           show: true,
-          title: 'Reset camera',
-          icon: 'M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zM12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z',
+          title: 'Settings',
+          icon: 'path://M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z',
           onclick: () => {
-            option.geo3D[0].viewControl.distance = 140
-            option.geo3D[0].viewControl.alpha = 40
-            option.geo3D[0].viewControl.beta = 0
-            option.geo3D[0].viewControl.center = [0, 0, 0]
-            option.series[0].viewControl.distance = 140
-            option.series[0].viewControl.alpha = 40
-            option.series[0].viewControl.beta = 0
-            option.series[0].viewControl.center = [0, 0, 0]
-            chart.setOption(option)
-            return
-          }
-        },
-        myToolSwitchMinimap: {
-          show: true,
-          title: 'Switch minimap',
-          icon: 'M17 16l-4-4V8.82C14.16 8.4 15 7.3 15 6c0-1.66-1.34-3-3-3S9 4.34 9 6c0 1.3.84 2.4 2 2.82V12l-4 4H3v5h5v-3.05l4-4.2 4 4.2V21h5v-5h-4z',
-          onclick: () => {
-            if (minimapMode.value == 'scatter') {
-              minimapMode.value = 'tree'
-              chart.dispatchAction({ type: 'legendToggleSelect', name: 'minimap-scatter' })
-              chart.dispatchAction({ type: 'legendToggleSelect', name: 'minimap-tree' })
-            } else {
-              minimapMode.value = 'scatter'
-              chart.dispatchAction({ type: 'legendToggleSelect', name: 'minimap-scatter' })
-              chart.dispatchAction({ type: 'legendToggleSelect', name: 'minimap-tree' })
-            }
+            console.log('open settings panel')
           }
         },
         myToolEdit: {
@@ -116,61 +90,32 @@ export function useDrawTopology(chartDom: HTMLElement) {
           onclick: () => {
             if (editing.value) {
               editing.value = false
-              option.geo3D[0].viewControl.distance = 140
-              option.geo3D[0].viewControl.alpha = 40
+              option.geo3D[0].viewControl.distance = 180
+              option.geo3D[0].viewControl.alpha = 50
               option.geo3D[0].viewControl.beta = 0
-              option.geo3D[0].viewControl.center = [0, 0, 0]
-              option.series[0].viewControl.distance = 140
-              option.series[0].viewControl.alpha = 40
+              option.geo3D[0].viewControl.center = [0, -20, 0]
+              option.series[0].viewControl.distance = 180
+              option.series[0].viewControl.alpha = 50
               option.series[0].viewControl.beta = 0
-              option.series[0].viewControl.center = [0, 0, 0]
+              option.series[0].viewControl.center = [0, -20, 0]
               chart.setOption(option, { replaceMerge: ['geo', 'graphic'] })
               return
             }
 
             editing.value = true
-            option.geo3D[0].viewControl.distance = 140
+            option.geo3D[0].viewControl.distance = 180
             option.geo3D[0].viewControl.alpha = 90
             option.geo3D[0].viewControl.beta = 0
-            option.geo3D[0].viewControl.center = [0, 0, 0]
-            option.series[0].viewControl.distance = 140
+            option.geo3D[0].viewControl.center = [0, -20, 0]
+            option.series[0].viewControl.distance = 180
             option.series[0].viewControl.alpha = 90
             option.series[0].viewControl.beta = 0
-            option.series[0].viewControl.center = [0, 0, 0]
+            option.series[0].viewControl.center = [0, -20, 0]
             chart.setOption(option)
           }
         }
       }
     },
-    grid: [{ top: '2px', height: '140px', width: '140px', left: '2px' }],
-    xAxis: [
-      {
-        // name: 'minimap-x',
-        type: 'value',
-        splitLine: { show: true, lineStyle: { width: 0.3, color: 'lightgrey' } },
-        splitNumber: 1,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: { show: false },
-        min: 0,
-        max: Network.TopoConfig.value.grid_x,
-        zlevel: -4
-      }
-    ],
-    yAxis: [
-      {
-        // name: 'minimap-y',
-        type: 'value',
-        splitNumber: 1,
-        splitLine: { show: true, lineStyle: { width: 0.3, color: 'lightgrey' } },
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: { show: false },
-        min: 0,
-        max: Network.TopoConfig.value.grid_y,
-        zlevel: -4
-      }
-    ],
     geo3D: [
       {
         map: '6tisch',
@@ -184,18 +129,18 @@ export function useDrawTopology(chartDom: HTMLElement) {
         boxDepth: 100,
         boxHeight: 1,
         viewControl: {
-          distance: 140,
+          distance: 180,
           maxAlpha: 180,
-          // alpha: 45,
+          alpha: 50,
           // beta: 0,
           maxBeta: 360,
           minBeta: -360,
-          center: [0, 0, 0],
+          center: [0, -20, 0],
           panMouseButton: 'left',
           rotateMouseButton: 'right'
         },
         regions: [],
-        zlevel: -10
+        zlevel: -11
       }
     ],
     series: [
@@ -204,7 +149,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
         map: '6tisch',
         shading: 'realistic',
         realisticMaterial: {
-          roughness: 0,
+          roughness: 0.5,
           textureTiling: 1,
           detailTexture: texture
         },
@@ -216,7 +161,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
           main: {
             intensity: 60,
             shadow: true,
-            shadowQuality: 'high',
+            shadowQuality: 'medium',
             alpha: 30
           }
         },
@@ -241,19 +186,19 @@ export function useDrawTopology(chartDom: HTMLElement) {
         boxDepth: 100,
         boxHeight: 1,
         viewControl: {
-          distance: 140,
+          distance: 180,
           maxAlpha: 180,
-          // alpha: 45,
+          alpha: 50,
           // beta: 0,
           maxBeta: 360,
           minBeta: -360,
-          center: [0, 0, 0],
+          center: [0, -20, 0],
           panMouseButton: 'left',
           rotateMouseButton: 'right'
         },
         regions: [],
         regionHeight: 3,
-        zlevel: -50
+        zlevel: -11
       },
       {
         name: 'links',
@@ -261,8 +206,8 @@ export function useDrawTopology(chartDom: HTMLElement) {
         coordinateSystem: 'geo3D',
         geo3DIndex: 0,
         lineStyle: {
-          width: 1,
-          opacity: 0.4
+          width: 1.2,
+          opacity: 0.8
         },
         data: [],
         zlevel: -11,
@@ -277,9 +222,8 @@ export function useDrawTopology(chartDom: HTMLElement) {
           show: true,
           trailColor: 'white',
           trailWidth: 1.5,
-          trailOpacity: 0.6,
+          trailOpacity: 1,
           trailLength: 0.12,
-          delay: 0,
           // constantSpeed: 2
           period: (Network.SlotDuration.value / 1000) * 0.8
         },
@@ -290,57 +234,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
         },
         data: [],
         // silent: true,
-        zlevel: -12
-      },
-      {
-        name: 'minimap-scatter',
-        type: 'scatter',
-        symbolSize: 5,
-        data: [],
-        itemStyle: {
-          color: 'royalblue',
-          opacity: 1
-        },
-        markLine: {
-          z: 1,
-          symbol: 'none',
-          lineStyle: {
-            width: 0.8,
-            // color: 'grey',
-            type: 'solid'
-          },
-          data: [],
-          silent: true
-        },
-        zlevel: -5,
-        animation: false,
-        silent: true
-      },
-      {
-        name: 'minimap-tree',
-        type: 'tree',
-        orient: 'TB',
-        data: [treeNodes[1]],
-        left: '2px',
-        top: '7px',
-        width: '140px',
-        height: '127px',
-        symbol: 'circle',
-        symbolSize: 5,
-        initialTreeDepth: -1,
-        edgeShape: 'polyline',
-        label: { show: false },
-        itemStyle: {
-          color: 'royalblue'
-        },
-        lineStyle: {
-          width: 0.8,
-          color: 'royalblue'
-        },
-        selectedMode: 'single',
-        zlevel: -5,
-        animation: false,
-        silent: true
+        zlevel: -10
       }
     ]
   }
@@ -365,10 +259,6 @@ export function useDrawTopology(chartDom: HTMLElement) {
       }
     })
     echarts.registerMap('6tisch', mapBase)
-
-    // 2D
-    option.series[2].data = option.series[2].data.filter((item: any) => item.name != id)
-    drawMinimapScatter()
 
     drawLinks()
     drawCurrentPackets()
@@ -395,11 +285,6 @@ export function useDrawTopology(chartDom: HTMLElement) {
           coordinates: [coordinates],
           type: 'Polygon'
         }
-      })
-      // minimap
-      option.series[3].data.push({
-        name: n.id,
-        value: n.pos
       })
     }
     echarts.registerMap('6tisch', mapBase)
@@ -437,7 +322,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
     radius: number,
     numSegments: number
   ): number[][] {
-    const distanceX = radius / (10 * Math.cos((center[1] * Math.PI) / 180))
+    const distanceX = radius / (11 * Math.cos((center[1] * Math.PI) / 180))
     const distanceY = radius / 10
     const coordinates: number[][] = []
 
@@ -455,55 +340,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
     return coordinates
   }
 
-  function drawMinimapScatter() {
-    option.series[3].data = []
-    option.series[3].markLine.data = []
-    const drawnLinks: any = {}
-    for (const n of Network.Nodes.value) {
-      if (n.id == 0) continue
-      option.series[3].data.push({
-        name: n.id,
-        value: n.pos
-      })
-      for (const nn of n.neighbors) {
-        const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
-        if (drawnLinks[linkName] == undefined) {
-          drawnLinks[linkName] = true
-          option.series[3].markLine.data.push([
-            {
-              name: linkName,
-              label: {
-                show: false
-              },
-              coord: n.pos
-            },
-            {
-              coord: Network.Nodes.value[nn].pos
-            }
-          ])
-        }
-      }
-    }
-  }
-
-  function drawMinimapTree() {
-    for (const n of Network.Nodes.value) {
-      if (n.joined && n.parent != 0) {
-        if (treeNodes[n.id] == undefined) {
-          treeNodes[n.id] = { name: n.id, children: [] }
-          if (treeNodes[n.parent] != undefined) {
-            treeNodes[n.parent].children.push(treeNodes[n.id])
-          } else {
-            treeNodes[n.parent] = { name: n.id, children: [treeNodes[n.id]] }
-          }
-        }
-      }
-    }
-    option.series[4].data = [treeNodes[1]]
-  }
-
   drawNodes()
-  chart.dispatchAction({ type: 'legendUnSelect', name: 'minimap-tree' })
 
   watch(
     Network.SlotDone,
@@ -511,8 +348,6 @@ export function useDrawTopology(chartDom: HTMLElement) {
       if (Network.SlotDone.value) {
         drawLinks()
         drawCurrentPackets()
-        drawMinimapScatter()
-        drawMinimapTree()
         chart.setOption(option)
       }
     },
@@ -522,11 +357,19 @@ export function useDrawTopology(chartDom: HTMLElement) {
   watch(Network.SignalReset, () => {
     option.series[1].data = []
     option.series[2].data = []
-    option.series[3].data = []
-    option.series[3].markLine.data = []
-    treeNodes = { 1: { name: 1, children: [] } }
-    option.series[4].data = [treeNodes[1]]
     drawNodes()
+    chart.setOption(option)
+  })
+
+  watch(SignalResetCamera, () => {
+    option.geo3D[0].viewControl.distance = 180
+    option.geo3D[0].viewControl.alpha = 50
+    option.geo3D[0].viewControl.beta = 0
+    option.geo3D[0].viewControl.center = [0, -20, 0]
+    option.series[0].viewControl.distance = 180
+    option.series[0].viewControl.alpha = 50
+    option.series[0].viewControl.beta = 0
+    option.series[0].viewControl.center = [0, -20, 0]
     chart.setOption(option)
   })
 }

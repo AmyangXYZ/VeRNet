@@ -18,7 +18,7 @@ const columns: any = [
     key: 'id',
     title: 'No.',
     dataKey: 'id',
-    width: 50,
+    width: 40,
     align: 'center',
     cellRenderer: ({ rowIndex }: any) => rowIndex + 1
   },
@@ -26,35 +26,35 @@ const columns: any = [
     key: 'asn',
     title: 'ASN',
     dataKey: 'asn',
-    width: 50,
+    width: 40,
     align: 'center'
   },
   {
     key: 'ch',
     title: 'CH',
     dataKey: 'ch',
-    width: 35,
+    width: 30,
     align: 'center'
   },
   {
     key: 'src',
     title: 'SRC',
     dataKey: 'src',
-    width: 40,
+    width: 30,
     align: 'center'
   },
   {
     key: 'dst',
     title: 'DST',
     dataKey: 'dst',
-    width: 40,
+    width: 30,
     align: 'center'
   },
   {
     key: 'uid',
     title: 'UID',
     dataKey: 'uid',
-    width: 65,
+    width: 60,
     align: 'center',
     cellRenderer: ({ cellData: uid }: any) => '0x' + uid.toString(16).toUpperCase().padStart(4, '0')
   },
@@ -62,7 +62,7 @@ const columns: any = [
     key: 'type',
     title: 'TYPE',
     dataKey: 'type',
-    width: 85,
+    width: 80,
     align: 'center',
     cellRenderer: ({ cellData: type }: any) => PKT_TYPES[type]
   },
@@ -77,16 +77,8 @@ const columns: any = [
     key: 'len',
     title: 'LEN',
     dataKey: 'len',
-    width: 40,
+    width: 60,
     align: 'center'
-  },
-  {
-    key: 'payload',
-    title: 'PAYLOAD',
-    dataKey: 'payload',
-    width: 50,
-    align: 'center',
-    cellRenderer: () => ''
   }
 ]
 
@@ -123,30 +115,30 @@ Row.inheritAttrs = false
         />
       </div>
     </template>
-    <el-auto-resizer>
-      <template #default="{ width }">
-        <el-table-v2
-          ref="tableRef"
-          class="table"
-          :columns="columns"
-          :data="Network.Packets.value.filter(filterFunc)"
-          :width="width"
-          :height="378"
-          :expand-column-key="columns[8].key"
-          :estimated-row-height="18"
-          :header-height="24"
-        >
-          <template #row="props">
-            <Row v-bind="props" />
-          </template>
-        </el-table-v2>
+
+    <el-table-v2
+      ref="tableRef"
+      class="table"
+      :columns="columns"
+      :data="Network.Packets.value.filter(filterFunc)"
+      :width="360"
+      :height="400"
+      :expand-column-key="columns[7].key"
+      :estimated-row-height="16"
+      :header-height="18"
+    >
+      <template #row="props">
+        <Row v-bind="props" />
       </template>
-    </el-auto-resizer>
+    </el-table-v2>
     <ChannelChart />
   </el-card>
 </template>
 
 <style scoped>
+.card {
+  background-color: rgba(0, 0, 0, 0.1);
+}
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -155,13 +147,14 @@ Row.inheritAttrs = false
 .filter-input {
   width: 240px;
   height: 24px;
-  font-size: 0.77rem;
+  font-size: 0.7rem;
 }
 .table {
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-family: Menlo;
   text-align: center;
 }
+
 .row-detail {
   width: 100%;
   text-align: center;

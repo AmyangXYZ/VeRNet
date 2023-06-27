@@ -40,7 +40,7 @@ const handleSelect = (key: string, keyPath: string[]) => {
       />
     </el-menu-item>
     <el-menu-item style="margin: auto; width: 24px">
-      <el-link :underline="false" href="https://github.com/AmyangXYZ/VeRNet" st>
+      <el-link :underline="false" href="https://github.com/AmyangXYZ/VeRNet">
         <el-icon :color="isDark ? 'white' : 'black'" :size="24">
           <IconGithub />
         </el-icon>

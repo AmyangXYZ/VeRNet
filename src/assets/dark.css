@@ -3,3 +3,15 @@ html.dark {
   --el-bg-color: #0e1116;
   --el-bg-color-overlay: #0e1116;
 }
+
+.el-card {
+  --el-card-padding: 20px;
+}
+.el-card__body {
+  padding: 10px;
+}
+
+.el-table-v2__main,
+.el-table-v2__header-cell {
+  background-color: rgba(0, 0, 0, 0);
+}

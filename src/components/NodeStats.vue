@@ -25,14 +25,10 @@ import { Network, SelectedNode } from '@/hooks/useStates'
 
 <style scoped>
 .card {
-  position: absolute;
-  top: 2;
-  left: 280px;
-  z-index: 9999;
-  margin-top: 2px;
-  height: 140px;
-  width: 380px;
-  background-color: transparent;
+  /* margin-top: 2px; */
+  height: 130px;
+  /* width: 380px; */
+  background-color: rgba(0, 0, 0, 0.1);
   font-size: 0.82rem;
 }
 .card img {
