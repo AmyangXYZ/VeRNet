@@ -70,19 +70,15 @@ onKeyStroke('ArrowRight', () => {
 </template>
 
 <style scoped>
-.panel {
-  width: 100%;
-  font-size: 2rem;
-  /* height: 100%; */
-  bottom: 0;
-  /* padding-top: 5px; */
+.btns {
+  margin-top: -10px;
 }
 .el-col {
   text-align: center;
 }
 .btn {
-  width: 27px;
-  height: 20px;
+  width: 24px;
+  height: 18px;
   border-radius: 5px;
 }
 </style>

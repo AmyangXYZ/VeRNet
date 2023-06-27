@@ -25,8 +25,34 @@ export function useDrawTopology(chartDom: HTMLElement) {
 
   const mapBase: any = {
     type: 'FeatureCollection',
-    features: []
+    features: [
+      // {
+      //   type: 'Feature',
+      //   properties: {
+      //     id: 100,
+      //     name: `100`
+      //   },
+      //   geometry: {
+      //     coordinates: [
+      //       [
+      //         [1, 80],
+
+      //         [80, 1],
+      //         [1, 80]
+      //       ]
+      //     ],
+      //     type: 'Polygon'
+      //   }
+      // }
+    ]
   }
+  const gridBase: any = {
+    type: 'FeatureCollection',
+    features: [
+      
+    ]
+  }
+  echarts.registerMap('grid', gridBase)
   const editing = ref(false)
 
   chart.on('click', (item) => {
@@ -266,7 +292,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
   }
 
   function drawNodes() {
-    mapBase.features = []
+    // mapBase.features = []
     for (const n of Network.Nodes.value) {
       if (n.id == 0) continue
 
