@@ -302,7 +302,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
   }
 
   function drawNodes() {
-    // mapBase.features = []
+    mapBase.features = []
     for (const n of Network.Nodes.value) {
       if (n.id == 0) continue
 
@@ -393,8 +393,10 @@ export function useDrawTopology(chartDom: HTMLElement) {
   watch(Network.SignalReset, () => {
     option.series[1].data = []
     option.series[2].data = []
-    drawNodes()
-    chart.setOption(option)
+    setTimeout(() => {
+      drawNodes()
+      chart.setOption(option)
+    }, 50)
   })
 
   watch(SignalResetCamera, () => {
