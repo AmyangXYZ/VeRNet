@@ -3,38 +3,47 @@ import * as echarts from 'echarts'
 
 import { CELL_TYPES } from '@/networks/TSCH/typedefs'
 
-import { Network } from './useStates'
+import { Network, SignalShowSchedule } from './useStates'
 
 export function useDrawSchedule(chartDom: HTMLElement): any {
   const chart = echarts.init(chartDom)
   const option: any = {
     grid: {
-      top: '42px',
-      left: '40px',
-      right: '12px',
-      bottom: '2px'
+      top: '35px',
+      left: '32px',
+      right: '1px',
+      bottom: '1px'
     },
     xAxis: {
       name: 'Time',
       type: 'category',
       position: 'top',
       nameLocation: 'center',
-      nameGap: '26',
+      nameGap: '22',
+      interval: 0,
       splitLine: {
         interval: 0,
         show: true,
         lineStyle: { color: 'lightgrey', width: 0.5 }
       },
+      axisTick: {
+        interval: 0
+      },
+      axisLabel: {
+        fontSize: 10
+        // interval:0
+      },
       data: []
     },
     yAxis: {
-      name: 'Channel',
+      name: 'Channels',
       type: 'category',
       inverse: true,
       nameLocation: 'center',
       nameGap: 20,
       axisLabel: {
-        interval: 0
+        interval: 0,
+        fontSize: 11
       },
       splitLine: {
         show: true,
@@ -52,10 +61,10 @@ export function useDrawSchedule(chartDom: HTMLElement): any {
       textStyle: {
         color: 'grey'
       },
-      itemHeight: 12,
-      itemWidth: 18,
-      top: 0,
-      right: 10,
+      itemHeight: 10,
+      itemWidth: 15,
+      top: -4,
+      right: 0,
       orient: 'horizontal'
     },
     series: [
@@ -66,7 +75,7 @@ export function useDrawSchedule(chartDom: HTMLElement): any {
           borderColor: 'lightgrey',
           borderWidth: 0.5
         },
-        label: { show: true, fontSize: 11 },
+        label: { show: true, fontSize: 10 },
         animation: false,
         data: [],
         markLine: {
@@ -93,7 +102,7 @@ export function useDrawSchedule(chartDom: HTMLElement): any {
       for (let ch = 1; ch <= Network.SchConfig.value.num_channels; ch++) {
         const cell = Network.Schedule.value[slot][ch]
         if (cell != undefined) {
-          let label = `${cell.src}->${cell.dst == -1 ? '*' : cell.dst}`
+          let label = `${cell.src}\n${cell.dst}`
           if (cell.type == CELL_TYPES.SHARED) {
             label = ''
           }
@@ -132,5 +141,9 @@ export function useDrawSchedule(chartDom: HTMLElement): any {
 
   watch(Network.ASN, () => {
     drawSlotOffset()
+  })
+
+  watch(SignalShowSchedule, () => {
+    setInterval(chart.resize, 50)
   })
 }

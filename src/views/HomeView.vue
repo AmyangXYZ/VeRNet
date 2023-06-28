@@ -2,12 +2,18 @@
 import ControlPanel from '@/components/ControlPanel.vue'
 import Topology from '@/components/NetworkTopology.vue'
 import PacketSniffer from '@/components/PacketSniffer.vue'
-// import ScheduleTable from '@/components/ScheduleTable.vue'
+import ScheduleTable from '@/components/ScheduleTable.vue'
 import NodeStats from '@/components/NodeStats.vue'
 import MiniMap from '@/components/MiniMap.vue'
+import SettingsPanel from '@/components/SettingsPanel.vue'
 </script>
 
 <template>
+  <transition name="el-zoom-in-center">
+    <SettingsPanel
+      style="position: absolute; left: 25%; width: 50%; top: 14%; height: 64%; z-index: 9999"
+    />
+  </transition>
   <ControlPanel
     style="position: absolute; top: 16px; left: 40%; min-width: 336px; width: 20%; z-index: 999"
   />
@@ -19,4 +25,9 @@ import MiniMap from '@/components/MiniMap.vue'
   <PacketSniffer
     style="position: absolute; bottom: 16px; right: 16px; width: 380px; z-index: 999"
   />
+  <transition name="el-zoom-in-center">
+    <ScheduleTable
+      style="position: absolute; left: 16px; top: 64px; min-width: 336px; width: 32%; z-index: 999"
+    />
+  </transition>
 </template>

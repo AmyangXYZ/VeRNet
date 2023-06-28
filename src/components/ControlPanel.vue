@@ -8,6 +8,11 @@ import IconReset from './icons/IconReset.vue'
 
 import { onKeyStroke } from '@vueuse/core'
 
+onKeyStroke(' ', () => {
+  if (Network.Running.value) Network.Pause()
+  else Network.Run()
+})
+
 onKeyStroke('ArrowRight', () => {
   Network.Step()
 })

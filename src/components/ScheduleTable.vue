@@ -2,6 +2,13 @@
 import { ref, onMounted } from 'vue'
 import { useDrawSchedule } from '@/hooks/useDrawSchedule'
 
+import { onKeyStroke } from '@vueuse/core'
+import { SignalShowSchedule } from '@/hooks/useStates'
+
+onKeyStroke('`', () => {
+  SignalShowSchedule.value = !SignalShowSchedule.value
+})
+
 const chartDom = ref()
 onMounted(() => {
   useDrawSchedule(chartDom.value)
@@ -9,30 +16,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <el-card>
-    <template #header>
-      <div class="card-header">Schedule</div>
-    </template>
-
+  <el-card class="card" v-show="SignalShowSchedule">
     <div class="chart" ref="chartDom"></div>
   </el-card>
 </template>
 
 <style scoped>
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.item {
-  width: 180px;
-  text-align: center;
-}
-.in {
-  width: 88px;
+.card {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 .chart {
   width: 100%;
-  height: 200px;
+  height: 240px;
 }
 </style>
