@@ -34,7 +34,7 @@ watch(
         <span class="label">Num Nodes</span>
       </el-col>
       <el-col :span="12">
-        <el-input-number v-model="Network.TopoConfig.value.num_nodes" :min="1" :max="100" class="input-number" />
+        <el-input-number v-model="Network.TopoConfig.value.num_nodes" :min="1" :max="200" class="input-number" />
       </el-col>
     </el-row>
 
@@ -54,7 +54,7 @@ watch(
         <span class="label">Num Slots</span>
       </el-col>
       <el-col :span="12">
-        <el-input-number v-model="Network.SchConfig.value.num_slots" :min="1" :max="10" class="input-number" />
+        <el-input-number v-model="Network.SchConfig.value.num_slots" :min="1" :max="200" class="input-number" />
       </el-col>
     </el-row>
     
@@ -64,7 +64,7 @@ watch(
         <span class="label">Num Channels</span>
       </el-col>
       <el-col :span="12">
-        <el-input-number v-model="Network.SchConfig.value.num_channels" :min="1" :max="10" class="input-number" />
+        <el-input-number v-model="Network.SchConfig.value.num_channels" :min="1" :max="64" class="input-number" />
       </el-col>
     </el-row>
   </el-card>
