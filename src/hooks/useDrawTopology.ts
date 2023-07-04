@@ -10,7 +10,7 @@ import {
   SignalShowSchedule
 } from './useStates'
 
-import texture from '@/assets/texture.jpg'
+import texture from '@/assets/texture.jpeg'
 
 import { Network } from './useStates'
 
@@ -156,10 +156,14 @@ export function useDrawTopology(chartDom: HTMLElement) {
       {
         map: '6tisch',
         groundPlane: {
-          show: false
+          show: true,
+          color: 'rgba(0,0,0,0)'
         },
-        itemStyle: { opacity: 0 },
-        label: { show: false, color: 'white' },
+        itemStyle: {
+          color: '#007fff',
+          opacity: 1
+        },
+        label: { show: true, color: 'white' },
         silent: true,
         boxWidth: 100,
         boxDepth: 100,
@@ -181,6 +185,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
     ],
     series: [
       {
+        name: 'texture',
         type: 'map3D',
         map: '6tisch',
         shading: 'realistic',
@@ -191,18 +196,18 @@ export function useDrawTopology(chartDom: HTMLElement) {
         },
         groundPlane: {
           show: true,
-          color: '#0a0a0a'
+          color: '#444'
         },
         light: {
           main: {
-            intensity: 64,
+            intensity: 4,
             shadow: true,
-            shadowQuality: 'medium',
+            shadowQuality: 'high',
             alpha: 30
           }
         },
         label: {
-          show: true,
+          show: false,
           color: 'white'
         },
         emphasis: {
@@ -214,9 +219,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
         itemStyle: {
           color: '#007fff'
         },
-        postEffect: {
-          enable: true
-        },
+
         environment: 'auto',
         boxWidth: 100,
         boxDepth: 100,

@@ -22,9 +22,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.card {
-  background-color: rgba(0, 0, 0, 0.1);
-}
 .chart {
   width: 100%;
   height: 240px;

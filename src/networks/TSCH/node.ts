@@ -202,10 +202,14 @@ class TSCHNode {
     }
   }
 
-  ackPktHandler = (pkt: Packet) => {
-    if (this.queue[0] != undefined && this.queue[0].uid == pkt.uid) {
-      if (this.queue[0].callback != undefined) {
-        this.queue[0].callback()
+  ackPktHandler = (ack: Packet) => {
+    if (this.queue[0] != undefined && this.queue[0].uid == ack.uid) {
+      if (
+        this.queue[0].type == PKT_TYPES.ASSOC_RSP &&
+        this.queue[0].payload.parent == this.id &&
+        this.queue[0].payload.permit
+      ) {
+        this.joinedNeighbors[this.queue[0].payload.id] = true
       }
       this.queue.shift()
     }

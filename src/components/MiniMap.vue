@@ -51,7 +51,6 @@ onMounted(() => {
 
 <style scoped>
 .card {
-  background-color: transparent;
   border-width: 1px;
   width: 220px;
   height: 220px;
@@ -64,7 +63,6 @@ onMounted(() => {
 
 .btn {
   margin: 3px;
-  background-color: rgba(0, 0, 0, 0.1);
   opacity: 0.77;
   height: 24px;
   width: 24px;

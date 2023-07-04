@@ -136,9 +136,6 @@ Row.inheritAttrs = false
 </template>
 
 <style scoped>
-.card {
-  background-color: rgba(0, 0, 0, 0.1);
-}
 .card-header {
   display: flex;
   justify-content: space-between;

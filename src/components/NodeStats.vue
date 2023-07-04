@@ -28,7 +28,6 @@ import { Network, SelectedNode } from '@/hooks/useStates'
   /* margin-top: 2px; */
   height: 130px;
   /* width: 380px; */
-  background-color: rgba(0, 0, 0, 0.1);
   font-size: 0.82rem;
 }
 .card img {
