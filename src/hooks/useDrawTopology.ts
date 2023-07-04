@@ -200,7 +200,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
         },
         light: {
           main: {
-            intensity: 4,
+            intensity: 5,
             shadow: true,
             shadowQuality: 'high',
             alpha: 35
