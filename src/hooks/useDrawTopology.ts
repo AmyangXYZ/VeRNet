@@ -180,7 +180,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
           rotateMouseButton: 'right'
         },
         regions: [],
-        zlevel: -11
+        zlevel: -10
       }
     ],
     series: [
@@ -203,23 +203,13 @@ export function useDrawTopology(chartDom: HTMLElement) {
             intensity: 4,
             shadow: true,
             shadowQuality: 'high',
-            alpha: 30
+            alpha: 35
           }
         },
         label: {
           show: false,
           color: 'white'
         },
-        emphasis: {
-          itemStyle: {
-            color: '#007fff',
-            opacity: 0.1
-          }
-        },
-        itemStyle: {
-          color: '#007fff'
-        },
-
         environment: 'auto',
         boxWidth: 100,
         boxDepth: 100,
@@ -237,7 +227,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
         },
         regions: [],
         regionHeight: 3,
-        zlevel: -11
+        zlevel: -20
       },
       {
         name: 'links',
@@ -249,7 +239,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
           opacity: 0.8
         },
         data: [],
-        zlevel: -11,
+        zlevel: -10,
         silent: true
       },
       {
@@ -272,7 +262,7 @@ export function useDrawTopology(chartDom: HTMLElement) {
           opacity: 0.01
         },
         data: [],
-        // silent: true,
+        silent: true,
         zlevel: -10
       }
     ]
