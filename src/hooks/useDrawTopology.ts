@@ -204,13 +204,19 @@ export function useDrawTopology(chartDom: HTMLElement) {
             shadow: true,
             shadowQuality: 'high',
             alpha: 35
+          },
+          ambientCubemap: {
+            texture: '/lake.hdr',
+            exposure: 1,
+            diffuseIntensity: 1,
+            specularIntensity: 1
           }
         },
         label: {
           show: false,
           color: 'white'
         },
-        environment: 'auto',
+        environment: '#10101c',
         boxWidth: 100,
         boxDepth: 100,
         boxHeight: 1,
