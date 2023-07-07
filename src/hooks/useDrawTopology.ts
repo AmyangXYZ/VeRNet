@@ -1,412 +1,235 @@
-import { ref, watch } from 'vue'
-
-import * as echarts from 'echarts'
-import 'echarts-gl'
-
-import {
-  SelectedNode,
-  SignalResetCamera,
-  SignalShowSettings,
-  SignalShowSchedule
-} from './useStates'
-
-import texture from '@/assets/texture.jpeg'
-
-import { Network } from './useStates'
-
+import { watch } from 'vue'
+import { Network, SelectedNode } from './useStates'
 import { ADDR, PKT_TYPES } from '@/networks/TSCH/typedefs'
 
-export function useDrawTopology(chartDom: HTMLElement) {
-  const chart = echarts.init(chartDom, { useDirtyRect: true })
-  chart.showLoading({
-    text: 'Rendering...',
-    textColor: 'lightgrey',
-    fontSize: 15,
-    maskColor: '#0e1116'
+import * as THREE from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
+
+export function useDrawTopology(dom: HTMLElement) {
+  const scene = new THREE.Scene()
+  const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000)
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
+  const controls = new OrbitControls(camera, renderer.domElement)
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.shadowMap.enabled = true
+  renderer.setPixelRatio(window.devicePixelRatio)
+
+  dom.appendChild(renderer.domElement)
+  const objectsToDrag: any = []
+
+  // Ground plane
+  const geometry = new THREE.PlaneGeometry(100, 100, 64, 64)
+  const textureLoader = new THREE.TextureLoader()
+  const texture = textureLoader.load('/src/assets/texture.jpeg') // Replace with the path to your image
+  const material = new THREE.MeshLambertMaterial({
+    map: texture,
+    color: '#558',
+    side: THREE.DoubleSide
   })
-  setTimeout(() => {
-    chart.hideLoading()
-  }, 800)
+  const plane = new THREE.Mesh(geometry, material)
+  plane.receiveShadow = true
+  plane.rotation.x = Math.PI / 2
+  plane.userData.name = 'ground'
+  scene.add(plane)
 
-  const mapBase: any = {
-    type: 'FeatureCollection',
-    features: [
-      // {
-      //   type: 'Feature',
-      //   properties: {
-      //     id: 100,
-      //     name: `100`
-      //   },
-      //   geometry: {
-      //     coordinates: [
-      //       [
-      //         [1, 80],
-      //         [80, 1],
-      //         [1, 80]
-      //       ]
-      //     ],
-      //     type: 'Polygon'
-      //   }
-      // }
-    ]
-  }
-  const gridBase: any = {
-    type: 'FeatureCollection',
-    features: []
-  }
-  echarts.registerMap('grid', gridBase)
-  const editing = ref(false)
+  // lights
+  const ambientLight = new THREE.AmbientLight(0x404040, 20)
+  scene.add(ambientLight)
 
-  chart.on('click', (item) => {
-    // console.log(item,editing.value)
-    SelectedNode.value = parseInt(item.name)
-    if (editing.value) {
-      const pos = [item.event?.offsetX, item.event?.offsetY]
-      chart.setOption({
-        geo: {
-          map: '6tisch',
-          aspectScale: 1,
-          silent: true,
-          itemStyle: { opacity: 0 },
-          zlevel: 10,
-          zoom: 0.85
-        },
-        graphic: [
-          {
-            type: 'circle',
-            position: pos,
-            shape: { r: 8, cx: 0, cy: 0 },
-            style: {
-              fill: 'red'
-            },
-            draggable: true,
-            z: 100,
-            zlevel: 1,
-            ondrag: (item: any) => {
-              if (SelectedNode.value > 0) {
-                Network.Nodes.value[SelectedNode.value].pos = chart.convertFromPixel('geo', [
-                  item.offsetX,
-                  item.offsetY
-                ])
-                drawNode(SelectedNode.value)
-              }
-            }
-          }
-        ]
-      })
-    }
-  })
+  const pointLight = new THREE.PointLight(0xffffff, 10, 200)
+  pointLight.position.set(20, 50, 25)
+  // Configure the shadow map resolution
+  pointLight.shadow.mapSize.width = 2048 // default is 512
+  pointLight.shadow.mapSize.height = 2048 // default is 512
+  // Configure the shadow map bias
+  pointLight.shadow.bias = -0.001 // default is 0, you can adjust this value based on your scene
+  pointLight.castShadow = true
+  scene.add(pointLight)
 
-  const option: any = {
-    toolbox: {
-      top: '16px',
-      left: '16px',
-      itemSize: 16,
-      feature: {
-        mySettings: {
-          show: true,
-          title: 'Show settings',
-          icon: 'path://M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z',
-          onclick: () => {
-            SignalShowSettings.value = !SignalShowSettings.value
-          }
-        },
-        mySchedule: {
-          show: true,
-          title: 'Show schedule',
-          icon: 'path://M64 144a48 48 0 1 0 0-96 48 48 0 1 0 0 96zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM64 464a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm48-208a48 48 0 1 0 -96 0 48 48 0 1 0 96 0z',
-          onclick: () => {
-            SignalShowSchedule.value = !SignalShowSchedule.value
-          }
-        },
-        myToolEdit: {
-          show: true,
-          title: 'Edit topology',
-          icon: 'path://M14.06 9.02l.92.92L5.92 19H5v-.92l9.06-9.06M17.66 3c-.25 0-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.2-.2-.45-.29-.71-.29zm-3.6 3.19L3 17.25V21h3.75L17.81 9.94l-3.75-3.75z',
-          onclick: () => {
-            if (editing.value) {
-              editing.value = false
-              option.geo3D[0].viewControl.distance = 180
-              option.geo3D[0].viewControl.alpha = 50
-              option.geo3D[0].viewControl.beta = 0
-              option.geo3D[0].viewControl.center = [0, -20, 0]
-              option.series[0].viewControl.distance = 180
-              option.series[0].viewControl.alpha = 50
-              option.series[0].viewControl.beta = 0
-              option.series[0].viewControl.center = [0, -20, 0]
-              chart.setOption(option, { replaceMerge: ['geo', 'graphic'] })
-              return
-            }
+  // draw TSCH node
+  let model: THREE.Group
+  // GLTF Loader
+  const loader = new GLTFLoader()
+  loader.load(
+    'https://docs.mapbox.com/mapbox-gl-js/assets/34M_17/34M_17.gltf',
+    function (gltf: any) {
+      model = gltf.scene
+      model.scale.set(0.2, 0.2, 0.2)
 
-            editing.value = true
-            option.geo3D[0].viewControl.distance = 180
-            option.geo3D[0].viewControl.alpha = 90
-            option.geo3D[0].viewControl.beta = 0
-            option.geo3D[0].viewControl.center = [0, -20, 0]
-            option.series[0].viewControl.distance = 180
-            option.series[0].viewControl.alpha = 90
-            option.series[0].viewControl.beta = 0
-            option.series[0].viewControl.center = [0, -20, 0]
-            chart.setOption(option)
-          }
-        }
-      }
-    },
-    geo3D: [
-      {
-        map: '6tisch',
-        groundPlane: {
-          show: true,
-          color: 'rgba(0,0,0,0)'
-        },
-        itemStyle: {
-          color: '#007fff',
-          opacity: 1
-        },
-        label: { show: true, color: 'white' },
-        silent: true,
-        boxWidth: 100,
-        boxDepth: 100,
-        boxHeight: 1,
-        viewControl: {
-          distance: 180,
-          maxAlpha: 180,
-          alpha: 50,
-          // beta: 0,
-          maxBeta: 360,
-          minBeta: -360,
-          center: [0, -20, 0],
-          panMouseButton: 'left',
-          rotateMouseButton: 'right'
-        },
-        regions: [],
-        zlevel: -10
-      }
-    ],
-    series: [
-      {
-        name: 'texture',
-        type: 'map3D',
-        map: '6tisch',
-        shading: 'realistic',
-        realisticMaterial: {
-          roughness: 0,
-          textureTiling: 1,
-          detailTexture: texture
-        },
-        groundPlane: {
-          show: true,
-          color: '#444'
-        },
-        light: {
-          main: {
-            intensity: 5,
-            shadow: true,
-            shadowQuality: 'high',
-            alpha: 35
-          },
-          ambientCubemap: {
-            texture: '/lake.hdr',
-            exposure: 1,
-            diffuseIntensity: 1,
-            specularIntensity: 1
-          }
-        },
-        label: {
-          show: false,
-          color: 'white'
-        },
-        environment: '#10101c',
-        boxWidth: 100,
-        boxDepth: 100,
-        boxHeight: 1,
-        viewControl: {
-          distance: 180,
-          maxAlpha: 180,
-          alpha: 50,
-          // beta: 0,
-          maxBeta: 360,
-          minBeta: -360,
-          center: [0, -20, 0],
-          panMouseButton: 'left',
-          rotateMouseButton: 'right'
-        },
-        regions: [],
-        regionHeight: 3,
-        zlevel: -20
-      },
-      {
-        name: 'links',
-        type: 'lines3D',
-        coordinateSystem: 'geo3D',
-        geo3DIndex: 0,
-        lineStyle: {
-          width: 1.2,
-          opacity: 0.8
-        },
-        data: [],
-        zlevel: -10,
-        silent: true
-      },
-      {
-        name: 'Packets',
-        type: 'lines3D',
-        coordinateSystem: 'geo3D',
-        geo3DIndex: 0,
-        effect: {
-          show: true,
-          trailColor: 'white',
-          trailWidth: 1.5,
-          trailOpacity: 1,
-          trailLength: 0.12,
-          // constantSpeed: 2
-          period: (Network.SlotDuration.value / 1000) * 0.8
-        },
-        blendMode: 'lighter',
-        lineStyle: {
-          width: 0.01,
-          opacity: 0.01
-        },
-        data: [],
-        silent: true,
-        zlevel: -10
-      }
-    ]
-  }
-
-  // to support draggable
-  function drawNode(id: number) {
-    const center = Network.Nodes.value[id].pos //
-    const radius = 7
-    const numSegments = 8 // The more segments, the smoother the circle
-
-    const coordinates = generateNodeCoordinates(center, radius, numSegments)
-    mapBase.features = mapBase.features.filter((item: any) => item.properties.id != id)
-    mapBase.features.push({
-      type: 'Feature',
-      properties: {
-        id: id,
-        name: `${id}`
-      },
-      geometry: {
-        coordinates: [coordinates],
-        type: 'Polygon'
-      }
-    })
-    echarts.registerMap('6tisch', mapBase)
-
-    drawLinks()
-    drawCurrentPackets()
-    chart.setOption(option)
-  }
-
-  function drawNodes() {
-    mapBase.features = []
-    for (const n of Network.Nodes.value) {
-      if (n.id == 0) continue
-
-      const center = n.pos // San Francisco, for example
-      const radius = 8
-      const numSegments = 8 // The more segments, the smoother the circle
-
-      const coordinates = generateNodeCoordinates(center, radius, numSegments)
-      mapBase.features.push({
-        type: 'Feature',
-        properties: {
-          id: n.id,
-          name: `${n.id}`
-        },
-        geometry: {
-          coordinates: [coordinates],
-          type: 'Polygon'
+      // Compute the bounding box of the model
+      const box = new THREE.Box3().setFromObject(model)
+      model.position.y = -box.min.y
+      model.traverse(function (object: any) {
+        if (object.isMesh) {
+          object.castShadow = true // enable shadow casting
+          object.receiveShadow = true
         }
       })
-    }
-    echarts.registerMap('6tisch', mapBase)
-    chart.setOption(option)
-  }
+      // scene.add(model)
 
+      for (const node of Network.Nodes.value) {
+        if (node.id == 0) continue
+        const clonedModel = model.clone()
+        clonedModel.name = `${node.id}`
+        clonedModel.traverse(function (object: any) {
+          if (object.isMesh) {
+            object.userData.name = `${node.id}`
+          }
+        })
+        clonedModel.position.x = node.pos[0]
+        clonedModel.position.z = node.pos[1]
+        scene.add(clonedModel)
+        // objectsToDrag.push(clonedModel)
+      }
+    }
+  )
+
+  // set camera
+  camera.position.z = 80 // Move the camera back
+  camera.position.y = 60 // Move the camera up
+  camera.lookAt(new THREE.Vector3(0, 0, 0))
+
+  let PacketCurves: any = []
+  // Use clock to get time delta
+  const clock = new THREE.Clock()
+  let time = 0
+  const speed = 1 // Speed of the movement, adjust as needed
+  const animate = function () {
+    const delta = clock.getDelta()
+    time += speed * delta
+
+    for (const p of PacketCurves) {
+      // Reset time if it exceeds 1
+      time = time >= 1 ? 0 : time;
+
+      // Get point at time
+      const point = p.curve.getPoint(time)
+
+      // Update object position
+      p.mesh.position.copy(point)
+    }
+
+    requestAnimationFrame(animate)
+    controls.update()
+    renderer.render(scene, camera)
+  }
+  animate()
+
+  // Set up drag controls
+  const dragControls = new DragControls(objectsToDrag, camera, renderer.domElement)
+
+  dragControls.addEventListener('dragstart', function (event) {
+    // Cancel orbit controls when dragging
+    controls.enabled = false
+  })
+
+  dragControls.addEventListener('dragend', function (event) {
+    // Re-enable orbit controls when dragging stops
+    controls.enabled = true
+  })
+
+  const drawnLinks: any = {}
   function drawLinks() {
-    option.series[1].data = []
-    const drawnLinks: any = {}
     for (const n of Network.Nodes.value) {
       for (const nn of n.neighbors) {
         const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
         if (drawnLinks[linkName] == undefined) {
           drawnLinks[linkName] = true
-          option.series[1].data.push([n.pos, Network.Nodes.value[nn].pos])
+          drawLink(n.id, nn)
         }
       }
     }
   }
 
-  function drawCurrentPackets() {
-    option.series[2].data = []
+  function drawLink(src: number, dst: number) {
+    const p1 = new THREE.Vector3(
+      Network.Nodes.value[src].pos[0],
+      5,
+      Network.Nodes.value[src].pos[1]
+    )
+    const p3 = new THREE.Vector3(
+      Network.Nodes.value[dst].pos[0],
+      5,
+      Network.Nodes.value[dst].pos[1]
+    )
+
+    const x2 = (p1.x + p3.x) / 2
+    const z2 = (p1.z + p3.z) / 2
+    const h = 15
+    const p2 = new THREE.Vector3(x2, h, z2)
+
+    const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
+    const points = curve.getPoints(50)
+    const geometry1 = new THREE.BufferGeometry().setFromPoints(points)
+
+    const material1 = new THREE.LineBasicMaterial({ color: 'white' })
+    const curveObject = new THREE.Line(geometry1, material1)
+    scene.add(curveObject)
+  }
+
+  function drawPackets() {
     for (const pkt of Network.PacketsCurrent.value) {
       if (pkt.type != PKT_TYPES.ACK && pkt.dst != ADDR.BROADCAST) {
-        option.series[2].data.push([
-          Network.Nodes.value[pkt.src].pos,
-          Network.Nodes.value[pkt.dst].pos
-        ])
+        const mesh = new THREE.Mesh(
+          new THREE.SphereGeometry(.5, 16, 16),
+          new THREE.MeshNormalMaterial()
+        )
+        scene.add(mesh)
+
+        const p1 = new THREE.Vector3(
+          Network.Nodes.value[pkt.src].pos[0],
+          5,
+          Network.Nodes.value[pkt.src].pos[1]
+        )
+        const p3 = new THREE.Vector3(
+          Network.Nodes.value[pkt.dst].pos[0],
+          5,
+          Network.Nodes.value[pkt.dst].pos[1]
+        )
+    
+        const x2 = (p1.x + p3.x) / 2
+        const z2 = (p1.z + p3.z) / 2
+        const h = 15
+        const p2 = new THREE.Vector3(x2, h, z2)
+    
+        const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
+
+        PacketCurves.push({ mesh, curve })
       }
     }
   }
 
-  function generateNodeCoordinates(
-    center: number[],
-    radius: number,
-    numSegments: number
-  ): number[][] {
-    const distanceX = radius / (11 * Math.cos((center[1] * Math.PI) / 180))
-    const distanceY = radius / 10
-    const coordinates: number[][] = []
-
-    for (let i = 0; i < numSegments; i++) {
-      const theta = (i / numSegments) * (2 * Math.PI)
-      const dx = distanceX * Math.cos(theta)
-      const dy = distanceY * Math.sin(theta)
-
-      const point: number[] = [center[0] + dx, center[1] + dy]
-      coordinates.push(point)
-    }
-    // Add the first point again at the end to close the circle
-    coordinates.push(coordinates[0])
-
-    return coordinates
-  }
-
-  drawNodes()
-
-  watch(
-    Network.SlotDone,
-    () => {
-      if (Network.SlotDone.value) {
-        drawLinks()
-        drawCurrentPackets()
-        chart.setOption(option)
+  watch(Network.SlotDone, () => {
+    if (Network.SlotDone.value) {
+    drawLinks()
+    drawPackets()
+    } else {
+      for (const p of PacketCurves) {
+        scene.remove(p.mesh)
       }
-    },
-    { deep: true }
-  )
-
-  watch(Network.SignalReset, () => {
-    option.series[1].data = []
-    option.series[2].data = []
-    setTimeout(() => {
-      drawNodes()
-      chart.setOption(option)
-    }, 50)
+      time = 0
+      PacketCurves = []
+    }
   })
 
-  watch(SignalResetCamera, () => {
-    option.geo3D[0].viewControl.distance = 180
-    option.geo3D[0].viewControl.alpha = 50
-    option.geo3D[0].viewControl.beta = 0
-    option.geo3D[0].viewControl.center = [0, -20, 0]
-    option.series[0].viewControl.distance = 180
-    option.series[0].viewControl.alpha = 50
-    option.series[0].viewControl.beta = 0
-    option.series[0].viewControl.center = [0, -20, 0]
-    chart.setOption(option)
-  })
+  const raycaster = new THREE.Raycaster()
+  const mouse = new THREE.Vector2()
+  function onClick(event: any) {
+    event.preventDefault()
+
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+
+    raycaster.setFromCamera(mouse, camera)
+
+    const intersects = raycaster.intersectObjects(scene.children, true)
+
+    if (intersects.length > 0) {
+      if (intersects[0].object.userData.name != 'ground')
+        SelectedNode.value = parseInt(intersects[0].object.userData.name)
+    }
+  }
+  window.addEventListener('click', onClick, false)
 }
