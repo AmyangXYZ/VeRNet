@@ -37,19 +37,9 @@ export function useDrawTopology(dom: HTMLElement) {
   // lights
   const ambientLight = new THREE.AmbientLight(0x404040, 20)
   scene.add(ambientLight)
-  /*
-  const pointLight = new THREE.PointLight(0xffffff, 10, 200)
-  pointLight.position.set(20, 50, 25)
-  // Configure the shadow map resolution
-  pointLight.shadow.mapSize.width = 2048 // default is 512
-  pointLight.shadow.mapSize.height = 2048 // default is 512
-  // Configure the shadow map bias
-  pointLight.shadow.bias = -0.001 // default is 0, you can adjust this value based on your scene
-  pointLight.castShadow = true
-  scene.add(pointLight)
-  */
+  
   const spotLight = new THREE.SpotLight(0xffffff, 10, 400, Math.PI / 4, 0.2) // adjust angle and penumbra as needed
-  spotLight.position.set(0, 100, 0) // x, y, z coordinates
+  spotLight.position.set(50, 100, 50) // x, y, z coordinates
   spotLight.castShadow = true
   scene.add(spotLight)
 
