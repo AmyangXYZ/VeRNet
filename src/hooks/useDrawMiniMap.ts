@@ -17,8 +17,8 @@ export function useDrawMiniMap(chartDom: HTMLElement) {
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: { show: false },
-      min: 0,
-      max: Network.TopoConfig.value.grid_x,
+      min: -Network.TopoConfig.value.grid_size/2,
+      max: Network.TopoConfig.value.grid_size/2,
       zlevel: -4
     },
     yAxis: {
@@ -28,9 +28,10 @@ export function useDrawMiniMap(chartDom: HTMLElement) {
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: { show: false },
-      min: 0,
-      max: Network.TopoConfig.value.grid_y,
-      zlevel: -4
+      min: -Network.TopoConfig.value.grid_size/2,
+      max: Network.TopoConfig.value.grid_size/2,
+      zlevel: -4,
+      inverse:true,
     },
     series: [
       {

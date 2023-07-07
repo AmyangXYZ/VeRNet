@@ -39,9 +39,8 @@ export class TSCHNetwork {
     this.TopoConfig = ref<TopologyConfig>({
       seed: 9,
       num_nodes: 20,
-      grid_x: 100,
-      grid_y: 100,
-      tx_range: 12
+      grid_size: 100,
+      tx_range: 20
     })
     this.SchConfig = ref<ScheduleConfig>({
       num_slots: 40,
@@ -190,8 +189,8 @@ export class TSCHNetwork {
         id: i,
         type: NODE_TYPE.TSCH,
         pos: [
-          Math.floor(rand.next() * (this.TopoConfig.value.grid_x - 1)) + 1,
-          Math.floor(rand.next() * (this.TopoConfig.value.grid_y - 1)) + 1
+          Math.floor(rand.next() * (this.TopoConfig.value.grid_size - 20)) - 40, // -40 to 40
+          Math.floor(rand.next() * (this.TopoConfig.value.grid_size - 20)) - 40 // -40 to 40
         ],
         joined: i == ADDR.ROOT,
         parent: 0,

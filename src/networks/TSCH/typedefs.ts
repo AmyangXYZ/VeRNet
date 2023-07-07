@@ -5,8 +5,7 @@ import type { NodeMeta } from '../typedef'
 export interface TopologyConfig {
   seed: number
   num_nodes: number
-  grid_x: number
-  grid_y: number
+  grid_size: number
   tx_range: number
 }
 
