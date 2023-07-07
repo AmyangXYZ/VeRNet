@@ -39,8 +39,8 @@ export class TSCHNetwork {
     this.TopoConfig = ref<TopologyConfig>({
       seed: 9,
       num_nodes: 20,
-      grid_x: 40,
-      grid_y: 40,
+      grid_x: 100,
+      grid_y: 100,
       tx_range: 12
     })
     this.SchConfig = ref<ScheduleConfig>({

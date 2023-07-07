@@ -2,16 +2,17 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
+import { Network } from './useStates'
 
 export function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+  const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000)
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
   const controls = new OrbitControls(camera, renderer.domElement)
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.shadowMap.enabled = true
   dom.appendChild(renderer.domElement)
-  let objectsToDrag = [];
+  const objectsToDrag: any = []
 
   // Ground plane
   const geometry = new THREE.PlaneGeometry(100, 100, 64, 64)
@@ -19,23 +20,29 @@ export function useDrawTopology(dom: HTMLElement) {
   const texture = textureLoader.load('/src/assets/texture.jpeg') // Replace with the path to your image
   const material = new THREE.MeshLambertMaterial({
     map: texture,
-    // color: '#00f',
+    color: '#779',
     side: THREE.DoubleSide
   })
   const plane = new THREE.Mesh(geometry, material)
   plane.receiveShadow = true
-  plane.rotation.x = (-30 * Math.PI) / 180
-  // plane.position.y = 10
+  plane.rotation.x = Math.PI / 2
   scene.add(plane)
 
-  const ambientLight = new THREE.AmbientLight(0x404040, 10)
+  // lights
+  const ambientLight = new THREE.AmbientLight(0x404040, 20)
   scene.add(ambientLight)
 
-  const pointLight = new THREE.PointLight(0xffffff, 5, 100)
-  pointLight.position.set(0, 50, 10)
+  const pointLight = new THREE.PointLight(0xffffff, 10, 200)
+  pointLight.position.set(20, 50, 25)
+  // Configure the shadow map resolution
+  pointLight.shadow.mapSize.width = 2048 // default is 512
+  pointLight.shadow.mapSize.height = 2048 // default is 512
+  // Configure the shadow map bias
+  pointLight.shadow.bias = -0.001 // default is 0, you can adjust this value based on your scene
   pointLight.castShadow = true
   scene.add(pointLight)
 
+  // draw TSCH node
   let model: THREE.Group
   // GLTF Loader
   const loader = new GLTFLoader()
@@ -45,25 +52,32 @@ export function useDrawTopology(dom: HTMLElement) {
       model = gltf.scene
       model.name = '1'
       model.scale.set(0.25, 0.25, 0.25)
-      model.position.z = 0.5
-      objectsToDrag.push(model);
+
+      // Compute the bounding box of the model
+      const box = new THREE.Box3().setFromObject(model)
+      model.position.y = -box.min.y
       model.traverse(function (object: any) {
         if (object.isMesh) {
           object.castShadow = true // enable shadow casting
+          object.receiveShadow = true
         }
       })
-      model.rotation.x = (60 * Math.PI) / 180
-      scene.add(model)
-
-      const clonedModel = model.clone()
-      clonedModel.name = '2'
-      clonedModel.position.x += 10
-      scene.add(clonedModel)
+      // model.rotation.x = (60 * Math.PI) / 180
+      // scene.add(model)
+      for (const node of Network.Nodes.value) {
+        const clonedModel = model.clone()
+        clonedModel.name = `${node.id}`
+        clonedModel.position.x = node.pos[0] - 50
+        clonedModel.position.z = node.pos[1] - 50
+        scene.add(clonedModel)
+      }
     }
   )
 
-  camera.position.z = 50
-
+  // set camera
+  camera.position.z = 80 // Move the camera back
+  camera.position.y = 60 // Move the camera up
+  camera.lookAt(new THREE.Vector3(0, 0, 0))
   const animate = function () {
     requestAnimationFrame(animate)
     // if (model) {
@@ -93,7 +107,7 @@ export function useDrawTopology(dom: HTMLElement) {
     }
   }
 
-  window.addEventListener('click', onClick, false)
+  // window.addEventListener('click', onClick, false)
 
   // Set up drag controls
   const dragControls = new DragControls(objectsToDrag, camera, renderer.domElement)
