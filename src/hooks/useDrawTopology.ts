@@ -22,7 +22,7 @@ export function useDrawTopology(dom: HTMLElement) {
   // Ground plane
   const geometry = new THREE.PlaneGeometry(100, 100, 64, 64)
   const textureLoader = new THREE.TextureLoader()
-  const texture = textureLoader.load('/src/assets/texture.jpeg') // Replace with the path to your image
+  const texture = textureLoader.load('/texture.jpeg') // Replace with the path to your image
   const material = new THREE.MeshLambertMaterial({
     map: texture,
     color: '#558',
