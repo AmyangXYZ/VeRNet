@@ -95,7 +95,7 @@ export function useDrawTopology(dom: HTMLElement) {
   // Use clock to get time delta
   const clock = new THREE.Clock()
   let time = 0
-  const speed = 1 // Speed of the movement, adjust as needed
+  const speed = 2 // Speed of the movement, adjust as needed
   const animate = function () {
     const delta = clock.getDelta()
     time += speed * delta
@@ -120,12 +120,12 @@ export function useDrawTopology(dom: HTMLElement) {
   // Set up drag controls
   const dragControls = new DragControls(objectsToDrag, camera, renderer.domElement)
 
-  dragControls.addEventListener('dragstart', function (event) {
+  dragControls.addEventListener('dragstart', function () {
     // Cancel orbit controls when dragging
     controls.enabled = false
   })
 
-  dragControls.addEventListener('dragend', function (event) {
+  dragControls.addEventListener('dragend', function () {
     // Re-enable orbit controls when dragging stops
     controls.enabled = true
   })
