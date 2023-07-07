@@ -25,7 +25,7 @@ export function useDrawTopology(dom: HTMLElement) {
   const texture = textureLoader.load('/texture.jpeg') // Replace with the path to your image
   const material = new THREE.MeshLambertMaterial({
     map: texture,
-    color: '#558',
+    color: '#336',
     side: THREE.DoubleSide
   })
   const plane = new THREE.Mesh(geometry, material)
@@ -37,7 +37,7 @@ export function useDrawTopology(dom: HTMLElement) {
   // lights
   const ambientLight = new THREE.AmbientLight(0x404040, 20)
   scene.add(ambientLight)
-
+  /*
   const pointLight = new THREE.PointLight(0xffffff, 10, 200)
   pointLight.position.set(20, 50, 25)
   // Configure the shadow map resolution
@@ -47,6 +47,11 @@ export function useDrawTopology(dom: HTMLElement) {
   pointLight.shadow.bias = -0.001 // default is 0, you can adjust this value based on your scene
   pointLight.castShadow = true
   scene.add(pointLight)
+  */
+  const spotLight = new THREE.SpotLight(0xffffff, 10, 400, Math.PI / 4, 0.2) // adjust angle and penumbra as needed
+  spotLight.position.set(0, 100, 0) // x, y, z coordinates
+  spotLight.castShadow = true
+  scene.add(spotLight)
 
   // draw TSCH node
   let model: THREE.Group
@@ -58,6 +63,9 @@ export function useDrawTopology(dom: HTMLElement) {
       model = gltf.scene
       model.scale.set(0.2, 0.2, 0.2)
 
+      // color of the model
+      const color = new THREE.Color('#8393c9')
+
       // Compute the bounding box of the model
       const box = new THREE.Box3().setFromObject(model)
       model.position.y = -box.min.y
@@ -65,6 +73,7 @@ export function useDrawTopology(dom: HTMLElement) {
         if (object.isMesh) {
           object.castShadow = true // enable shadow casting
           object.receiveShadow = true
+          object.material.color = color
         }
       })
       // scene.add(model)
