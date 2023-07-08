@@ -35,7 +35,7 @@ export class TSCHNetwork {
   msgHandlers: { [type: number]: MsgHandler } = {}
 
   constructor() {
-    this.SlotDuration.value = 500
+    this.SlotDuration.value = 750
     this.TopoConfig = ref<TopologyConfig>({
       seed: 9,
       num_nodes: 20,
