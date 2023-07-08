@@ -20,12 +20,16 @@ export function useDrawTopology(dom: HTMLElement) {
   const objectsToDrag: any = []
 
   // Ground plane
-  const geometry = new THREE.PlaneGeometry(100, 100, 64, 64)
+  const geometry = new THREE.PlaneGeometry(130, 130, 64, 64)
   const textureLoader = new THREE.TextureLoader()
-  const texture = textureLoader.load('/texture.jpeg') // Replace with the path to your image
+  const texture = textureLoader.load('/texture.jpeg', function (texture) {
+    texture.minFilter = THREE.LinearFilter // Minification filter
+    texture.magFilter = THREE.LinearFilter // Magnification filter
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy() // Anisotropic filtering
+  })
   const material = new THREE.MeshLambertMaterial({
     map: texture,
-    color: '#336',
+    color: '#648',
     side: THREE.DoubleSide
   })
   const plane = new THREE.Mesh(geometry, material)
@@ -37,9 +41,11 @@ export function useDrawTopology(dom: HTMLElement) {
   // lights
   const ambientLight = new THREE.AmbientLight(0x404040, 20)
   scene.add(ambientLight)
-  
-  const spotLight = new THREE.SpotLight(0xffffff, 10, 400, Math.PI / 4, 0.2) // adjust angle and penumbra as needed
-  spotLight.position.set(50, 100, 50) // x, y, z coordinates
+
+  const spotLight = new THREE.SpotLight(0xffffff, 10, 420, Math.PI / 4, 0.2) // adjust angle and penumbra as needed
+  spotLight.position.set(50, 120, 90) // x, y, z coordinates
+  spotLight.shadow.mapSize.width = 2048 // default is 512
+  spotLight.shadow.mapSize.height = 2048
   spotLight.castShadow = true
   scene.add(spotLight)
 
@@ -86,8 +92,8 @@ export function useDrawTopology(dom: HTMLElement) {
   )
 
   // set camera
-  camera.position.z = 80 // Move the camera back
-  camera.position.y = 60 // Move the camera up
+  camera.position.z = 57 // Move the camera back
+  camera.position.y = 100 // Move the camera up
   camera.lookAt(new THREE.Vector3(0, 0, 0))
 
   let PacketCurves: any = []
@@ -101,7 +107,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
     for (const p of PacketCurves) {
       // Reset time if it exceeds 1
-      time = time >= 1 ? 0 : time;
+      time = time >= 1 ? 0 : time
 
       // Get point at time
       const point = p.curve.getPoint(time)
@@ -109,7 +115,7 @@ export function useDrawTopology(dom: HTMLElement) {
       // Update object position
       p.mesh.position.copy(point)
     }
-
+    console.log(camera)
     requestAnimationFrame(animate)
     controls.update()
     renderer.render(scene, camera)
@@ -172,7 +178,7 @@ export function useDrawTopology(dom: HTMLElement) {
     for (const pkt of Network.PacketsCurrent.value) {
       if (pkt.type != PKT_TYPES.ACK && pkt.dst != ADDR.BROADCAST) {
         const mesh = new THREE.Mesh(
-          new THREE.SphereGeometry(.5, 16, 16),
+          new THREE.SphereGeometry(0.5, 16, 16),
           new THREE.MeshNormalMaterial()
         )
         scene.add(mesh)
@@ -187,12 +193,12 @@ export function useDrawTopology(dom: HTMLElement) {
           5,
           Network.Nodes.value[pkt.dst].pos[1]
         )
-    
+
         const x2 = (p1.x + p3.x) / 2
         const z2 = (p1.z + p3.z) / 2
         const h = 15
         const p2 = new THREE.Vector3(x2, h, z2)
-    
+
         const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
 
         PacketCurves.push({ mesh, curve })
@@ -202,14 +208,16 @@ export function useDrawTopology(dom: HTMLElement) {
 
   watch(Network.SlotDone, () => {
     if (Network.SlotDone.value) {
-    drawLinks()
-    drawPackets()
+      drawLinks()
+      drawPackets()
     } else {
-      for (const p of PacketCurves) {
-        scene.remove(p.mesh)
+      if (PacketCurves.length > 0) {
+        for (const p of PacketCurves) {
+          scene.remove(p.mesh)
+        }
+        time = 0
+        PacketCurves = []
       }
-      time = 0
-      PacketCurves = []
     }
   })
 
