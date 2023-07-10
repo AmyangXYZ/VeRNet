@@ -1,15 +1,16 @@
 import { watch } from 'vue'
-import { Network, SelectedNode } from './useStates'
+import { Network, SelectedNode, SignalEditTopology, SignalResetCamera } from './useStates'
 import { ADDR, PKT_TYPES } from '@/networks/TSCH/typedefs'
 
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
+import * as TWEEN from '@tweenjs/tween.js'
 
 export function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000)
+  const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000)
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
   const controls = new OrbitControls(camera, renderer.domElement)
   renderer.setSize(window.innerWidth, window.innerHeight)
@@ -20,18 +21,19 @@ export function useDrawTopology(dom: HTMLElement) {
   const objectsToDrag: any = []
 
   const setCamera = () => {
-    camera.position.z = 57 // Move the camera back
-    camera.position.y = 100 // Move the camera up
+    camera.position.x = 0
+    camera.position.y = 88
+    camera.position.z = 72
     camera.lookAt(new THREE.Vector3(0, 0, 0))
   }
   const addLights = () => {
-    const ambientLight = new THREE.AmbientLight(0x404040, 20)
+    const ambientLight = new THREE.AmbientLight(0x404040, 30)
     scene.add(ambientLight)
 
-    const spotLight = new THREE.SpotLight(0xffffff, 10, 420, Math.PI / 4, 0.2) // adjust angle and penumbra as needed
-    spotLight.position.set(50, 120, 90) // x, y, z coordinates
-    spotLight.shadow.mapSize.width = 2048 // default is 512
-    spotLight.shadow.mapSize.height = 2048
+    const spotLight = new THREE.SpotLight(0xffffff, 30, 320, Math.PI / 4, 0.1) // adjust angle and penumbra as needed
+    spotLight.position.set(80, 120, 100)
+    spotLight.shadow.mapSize.width = 4096
+    spotLight.shadow.mapSize.height = 4096
     spotLight.castShadow = true
     scene.add(spotLight)
   }
@@ -40,35 +42,31 @@ export function useDrawTopology(dom: HTMLElement) {
     const geometry = new THREE.PlaneGeometry(130, 130, 64, 64)
     const textureLoader = new THREE.TextureLoader()
     const texture = textureLoader.load('/texture.jpeg', function (texture) {
-      texture.minFilter = THREE.LinearFilter // Minification filter
-      texture.magFilter = THREE.LinearFilter // Magnification filter
+      texture.minFilter = THREE.LinearFilter
+      texture.magFilter = THREE.LinearFilter
       texture.anisotropy = renderer.capabilities.getMaxAnisotropy() // Anisotropic filtering
     })
     const material = new THREE.MeshLambertMaterial({
       map: texture,
-      color: '#648',
+      color: '#423655',
       side: THREE.DoubleSide
     })
     const plane = new THREE.Mesh(geometry, material)
     plane.receiveShadow = true
-    plane.rotation.x = Math.PI / 2
+    plane.rotation.x = -Math.PI / 2
     plane.userData.name = 'ground'
     scene.add(plane)
   }
 
+  let drawnNodes: any = []
   const drawTSCHNodes = () => {
-    // draw TSCH node
-    let model: THREE.Group
     // GLTF Loader
     const loader = new GLTFLoader()
     loader.load(
       'https://docs.mapbox.com/mapbox-gl-js/assets/34M_17/34M_17.gltf',
       function (gltf: any) {
-        model = gltf.scene
+        const model = gltf.scene
         model.scale.set(0.2, 0.2, 0.2)
-
-        // color of the model
-        const color = new THREE.Color('#8393c9')
 
         // Compute the bounding box of the model
         const box = new THREE.Box3().setFromObject(model)
@@ -77,7 +75,7 @@ export function useDrawTopology(dom: HTMLElement) {
           if (object.isMesh) {
             object.castShadow = true // enable shadow casting
             object.receiveShadow = true
-            object.material.color = color
+            object.material.color = new THREE.Color('#aaa')
           }
         })
         // scene.add(model)
@@ -85,47 +83,26 @@ export function useDrawTopology(dom: HTMLElement) {
         for (const node of Network.Nodes.value) {
           if (node.id == 0) continue
           const clonedModel = model.clone()
-          clonedModel.name = `${node.id}`
+          clonedModel.node_id = node.id
           clonedModel.traverse(function (object: any) {
             if (object.isMesh) {
-              object.userData.name = `${node.id}`
+              object.userData.node_id = node.id
             }
           })
           clonedModel.position.x = node.pos[0]
           clonedModel.position.z = node.pos[1]
           scene.add(clonedModel)
+          drawnNodes.push(clonedModel)
           // objectsToDrag.push(clonedModel)
         }
       }
     )
   }
-
-  let PacketObjectsUnicast: any = []
-  let PacketObjectsBeacon: any = []
-
-  // Use clock to get time delta
-  const clock = new THREE.Clock()
-  let time = 0
-  const speed = 1000 / Network.SlotDuration.value // Speed of the movement, adjust as needed
-
-  const animate = () => {
-    const delta = clock.getDelta()
-    time += speed * delta
-    // Reset time if it exceeds 1
-    time = time >= 1 ? 0 : time
-
-    for (const u of PacketObjectsUnicast) {
-      const point = u.curve.getPoint(time)
-      u.mesh.position.copy(point)
+  const clearTSCHNodes = () => {
+    for (const model of drawnNodes) {
+      scene.remove(model)
     }
-    for (const b of PacketObjectsBeacon) {
-      b.mesh.scale.set(time, time, time)
-      b.mesh.position.y = 5 * time + 4
-    }
-
-    requestAnimationFrame(animate)
-    controls.update()
-    renderer.render(scene, camera)
+    drawnNodes = []
   }
 
   // Set up drag controls
@@ -180,12 +157,14 @@ export function useDrawTopology(dom: HTMLElement) {
     scene.add(link)
   }
 
+  let PacketObjectsUnicast: any = []
+  let PacketObjectsBeacon: any = []
   const drawPackets = () => {
     time = 0
     for (const pkt of Network.PacketsCurrent.value) {
       if (pkt.type != PKT_TYPES.ACK && pkt.dst != ADDR.BROADCAST) {
         const mesh = new THREE.Mesh(
-          new THREE.SphereGeometry(0.5, 16, 16),
+          new THREE.SphereGeometry(0.4, 16, 16),
           new THREE.MeshNormalMaterial()
         )
         scene.add(mesh)
@@ -208,7 +187,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
         PacketObjectsUnicast.push({ mesh, curve })
       } else if (pkt.type == PKT_TYPES.BEACON) {
-        const geometry = new THREE.RingGeometry(Network.TopoConfig.value.tx_range-.1, Network.TopoConfig.value.tx_range, 64,64)
+        const geometry = new THREE.TorusGeometry(Network.TopoConfig.value.tx_range, 0.1, 16, 64)
         const material = new THREE.MeshBasicMaterial({
           color: 0xffffff,
           side: THREE.DoubleSide
@@ -220,7 +199,7 @@ export function useDrawTopology(dom: HTMLElement) {
           5,
           Network.Nodes.value[pkt.src].pos[1]
         )
-        mesh.scale.set(0, 0, 0)
+        // mesh.scale.set(0, 0, 0)
         scene.add(mesh)
 
         PacketObjectsBeacon.push({ mesh })
@@ -246,6 +225,51 @@ export function useDrawTopology(dom: HTMLElement) {
     }
   }
 
+  const animateCameraPosition = (targetPosition: any, duration: any) => {
+    const position = { x: camera.position.x, y: camera.position.y, z: camera.position.z }
+    new TWEEN.Tween(position)
+      .to(targetPosition, duration)
+      .onUpdate(() => {
+        camera.position.set(position.x, position.y, position.z)
+        camera.lookAt(new THREE.Vector3(0, 0, 0))
+      })
+      .easing(TWEEN.Easing.Quadratic.Out)
+      .start()
+  }
+
+  const animatePanPosition = (targetPosition: any, duration: any) => {
+    const position = { x: controls.target.x, y: controls.target.y, z: controls.target.z }
+    new TWEEN.Tween(position)
+      .to(targetPosition, duration)
+      .onUpdate(() => {
+        controls.target.set(position.x, position.y, position.z)
+      })
+      .easing(TWEEN.Easing.Quadratic.Out)
+      .start()
+  }
+  const clock = new THREE.Clock()
+  let time = 0
+  const speed = 1000 / Network.SlotDuration.value // Speed of the packet movement, adjust as needed
+  const animate = () => {
+    const delta = clock.getDelta()
+    time += speed * delta
+    time = time >= 1 ? 0 : time
+
+    for (const u of PacketObjectsUnicast) {
+      const point = u.curve.getPoint(time)
+      u.mesh.position.copy(point)
+    }
+    for (const b of PacketObjectsBeacon) {
+      b.mesh.scale.set(time, time, time)
+      b.mesh.position.y = 5 * time + 4
+    }
+
+    requestAnimationFrame(animate)
+    TWEEN.update()
+    controls.update()
+    renderer.render(scene, camera)
+  }
+
   setCamera()
   addLights()
   drawGround()
@@ -260,21 +284,33 @@ export function useDrawTopology(dom: HTMLElement) {
       clearPackets()
     }
   })
+  watch(Network.SignalReset, () => {
+    clearTSCHNodes()
+    drawTSCHNodes()
+  })
+  watch(SignalResetCamera, () => {
+    animateCameraPosition({ x: 0, y: 88, z: 72 }, 800)
+    animatePanPosition({ x: 0, y: 0, z: 0 }, 800)
+  })
+  watch(SignalEditTopology, () => {})
 
   const raycaster = new THREE.Raycaster()
   const mouse = new THREE.Vector2()
-  function onClick(event: any) {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+  window.addEventListener(
+    'click',
+    (event: MouseEvent) => {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
 
-    raycaster.setFromCamera(mouse, camera)
+      raycaster.setFromCamera(mouse, camera)
 
-    const intersects = raycaster.intersectObjects(scene.children, true)
+      const intersects = raycaster.intersectObjects(scene.children, true)
 
-    if (intersects.length > 0) {
-      if (intersects[0].object.userData.name != 'ground')
-        SelectedNode.value = parseInt(intersects[0].object.userData.name)
-    }
-  }
-  window.addEventListener('click', onClick, false)
+      if (intersects.length > 0) {
+        if (intersects[0].object.userData.node_id != undefined)
+          SelectedNode.value = intersects[0].object.userData.node_id
+      }
+    },
+    false
+  )
 }

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
+    "@tweenjs/tween.js": "^21.0.0",
     "@types/three": "^0.153.0",
     "@vitejs/plugin-vue-jsx": "^3.0.1",
     "@vueuse/components": "^10.1.2",

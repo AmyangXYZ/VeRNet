@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MenuBar from '@/components/MenuBar.vue'
 import ControlPanel from '@/components/ControlPanel.vue'
 import Topology from '@/components/NetworkTopology.vue'
 import PacketSniffer from '@/components/PacketSniffer.vue'
@@ -14,6 +15,9 @@ import SettingsPanel from '@/components/SettingsPanel.vue'
       style="position: absolute; left: 25%; width: 50%; top: 14%; height: 64%; z-index: 9999"
     />
   </transition>
+  <MenuBar
+    style="position: absolute; top: 16px; left: 16px; width: 120px; z-index: 999"
+  />
   <ControlPanel
     style="position: absolute; top: 16px; left: 40%; min-width: 336px; width: 20%; z-index: 999"
   />
@@ -27,7 +31,7 @@ import SettingsPanel from '@/components/SettingsPanel.vue'
   />
   <transition name="el-zoom-in-center">
     <ScheduleTable
-      style="position: absolute; left: 16px; top: 64px; min-width: 336px; width: 32%; z-index: 999"
+      style="position: absolute; left: 16px; top: 48px; min-width: 336px; width: 32%; z-index: 999"
     />
   </transition>
 </template>

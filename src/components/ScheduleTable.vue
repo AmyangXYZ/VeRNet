@@ -2,12 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useDrawSchedule } from '@/hooks/useDrawSchedule'
 
-import { onKeyStroke } from '@vueuse/core'
 import { SignalShowSchedule } from '@/hooks/useStates'
-
-onKeyStroke('`', () => {
-  SignalShowSchedule.value = !SignalShowSchedule.value
-})
 
 const chartDom = ref()
 onMounted(() => {

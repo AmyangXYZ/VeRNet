@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { watch } from 'vue'
 import { Network, SignalShowSettings } from '@/hooks/useStates'
-import { onKeyStroke } from '@vueuse/core'
-
-onKeyStroke('Escape', () => {
-  SignalShowSettings.value = !SignalShowSettings.value
-})
 
 watch(
   [Network.TopoConfig, Network.SchConfig],
@@ -27,14 +22,19 @@ watch(
         <el-input-number v-model="Network.TopoConfig.value.seed" class="input-number" />
       </el-col>
     </el-row>
-    
+
     <el-row class="form-row">
       <el-col :span="12" class="label-col">
         <img src="../assets/settings-numnode.png" class="icon" />
         <span class="label">Num Nodes</span>
       </el-col>
       <el-col :span="12">
-        <el-input-number v-model="Network.TopoConfig.value.num_nodes" :min="1" :max="200" class="input-number" />
+        <el-input-number
+          v-model="Network.TopoConfig.value.num_nodes"
+          :min="1"
+          :max="200"
+          class="input-number"
+        />
       </el-col>
     </el-row>
 
@@ -44,27 +44,42 @@ watch(
         <span class="label">Transmission Range</span>
       </el-col>
       <el-col :span="12">
-        <el-input-number v-model="Network.TopoConfig.value.tx_range" :min="1" :max="40" class="input-number" />
+        <el-input-number
+          v-model="Network.TopoConfig.value.tx_range"
+          :min="1"
+          :max="40"
+          class="input-number"
+        />
       </el-col>
     </el-row>
-    
+
     <el-row class="form-row">
       <el-col :span="12" class="label-col">
         <img src="../assets/settings-numslot.png" class="icon" />
         <span class="label">Num Slots</span>
       </el-col>
       <el-col :span="12">
-        <el-input-number v-model="Network.SchConfig.value.num_slots" :min="1" :max="200" class="input-number" />
+        <el-input-number
+          v-model="Network.SchConfig.value.num_slots"
+          :min="1"
+          :max="200"
+          class="input-number"
+        />
       </el-col>
     </el-row>
-    
+
     <el-row class="form-row">
       <el-col :span="12" class="label-col">
         <img src="../assets/settings-numchannel.png" class="icon" />
         <span class="label">Num Channels</span>
       </el-col>
       <el-col :span="12">
-        <el-input-number v-model="Network.SchConfig.value.num_channels" :min="1" :max="64" class="input-number" />
+        <el-input-number
+          v-model="Network.SchConfig.value.num_channels"
+          :min="1"
+          :max="64"
+          class="input-number"
+        />
       </el-col>
     </el-row>
   </el-card>
