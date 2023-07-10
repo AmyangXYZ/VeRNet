@@ -35,11 +35,11 @@ export class TSCHNetwork {
   msgHandlers: { [type: number]: MsgHandler } = {}
 
   constructor() {
-    this.SlotDuration.value = 750
+    this.SlotDuration.value = 500
     this.TopoConfig = ref<TopologyConfig>({
       seed: 9,
       num_nodes: 20,
-      grid_size: 100,
+      grid_size: 80,
       tx_range: 20
     })
     this.SchConfig = ref<ScheduleConfig>({
@@ -189,8 +189,8 @@ export class TSCHNetwork {
         id: i,
         type: NODE_TYPE.TSCH,
         pos: [
-          Math.floor(rand.next() * (this.TopoConfig.value.grid_size - 20)) - 40, // -40 to 40
-          Math.floor(rand.next() * (this.TopoConfig.value.grid_size - 20)) - 40 // -40 to 40
+          Math.floor(rand.next() * (this.TopoConfig.value.grid_size)) - this.TopoConfig.value.grid_size/2,
+          Math.floor(rand.next() * (this.TopoConfig.value.grid_size)) - this.TopoConfig.value.grid_size/2 
         ],
         joined: i == ADDR.ROOT,
         parent: 0,

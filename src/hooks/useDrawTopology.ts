@@ -31,7 +31,7 @@ export function useDrawTopology(dom: HTMLElement) {
     scene.add(ambientLight)
 
     const spotLight = new THREE.SpotLight(0xffffff, 30, 320, Math.PI / 4, 0.1) // adjust angle and penumbra as needed
-    spotLight.position.set(80, 120, 100)
+    spotLight.position.set(80, 140, 100)
     spotLight.shadow.mapSize.width = 4096
     spotLight.shadow.mapSize.height = 4096
     spotLight.castShadow = true
@@ -39,7 +39,12 @@ export function useDrawTopology(dom: HTMLElement) {
   }
 
   const drawGround = () => {
-    const geometry = new THREE.PlaneGeometry(130, 130, 64, 64)
+    const geometry = new THREE.PlaneGeometry(
+      Network.TopoConfig.value.grid_size + 50,
+      Network.TopoConfig.value.grid_size + 50,
+      64,
+      64
+    )
     const textureLoader = new THREE.TextureLoader()
     const texture = textureLoader.load('/texture.jpeg', function (texture) {
       texture.minFilter = THREE.LinearFilter
@@ -145,15 +150,15 @@ export function useDrawTopology(dom: HTMLElement) {
 
     const x2 = (p1.x + p3.x) / 2
     const z2 = (p1.z + p3.z) / 2
-    const h = 10
+    const h = 9
     const p2 = new THREE.Vector3(x2, h, z2)
 
     const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
-    const points = curve.getPoints(128)
-    const lineGeometry = new THREE.BufferGeometry().setFromPoints(points)
-
-    const lineMaterial = new THREE.LineBasicMaterial({ color: 'white' })
-    const link = new THREE.Line(lineGeometry, lineMaterial)
+    const points = curve.getPoints(64)
+    const link = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(points),
+      new THREE.LineBasicMaterial({ color: 'white' })
+    )
     scene.add(link)
   }
 
@@ -163,10 +168,38 @@ export function useDrawTopology(dom: HTMLElement) {
     time = 0
     for (const pkt of Network.PacketsCurrent.value) {
       if (pkt.type != PKT_TYPES.ACK && pkt.dst != ADDR.BROADCAST) {
-        const mesh = new THREE.Mesh(
-          new THREE.SphereGeometry(0.4, 16, 16),
-          new THREE.MeshNormalMaterial()
-        )
+        // for trail
+        const geometry = new THREE.BufferGeometry()
+        const material = new THREE.ShaderMaterial({
+          uniforms: {
+            color: { value: new THREE.Color(0xffffff) }
+          },
+          vertexShader: `
+            attribute float size;
+            varying vec3 vColor;
+            void main() {
+              vColor = color;
+              vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+              gl_PointSize = size * ( 300.0 / -mvPosition.z );
+              gl_Position = projectionMatrix * mvPosition;
+            }
+          `,
+          fragmentShader: `
+            uniform vec3 color;
+            uniform sampler2D pointTexture;
+            varying vec3 vColor;
+            void main() {
+              gl_FragColor = vec4( color * vColor, 1.0 );
+              gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
+            }
+          `,
+          blending: THREE.AdditiveBlending,
+          depthTest: false,
+          transparent: true,
+          vertexColors: true
+        })
+
+        const mesh = new THREE.Points(geometry, material)
         scene.add(mesh)
 
         const p1 = new THREE.Vector3(
@@ -181,11 +214,12 @@ export function useDrawTopology(dom: HTMLElement) {
         )
         const x2 = (p1.x + p3.x) / 2
         const z2 = (p1.z + p3.z) / 2
-        const h = 10
+        const h = 9
         const p2 = new THREE.Vector3(x2, h, z2)
         const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
 
-        PacketObjectsUnicast.push({ mesh, curve })
+        const positions: any = []
+        PacketObjectsUnicast.push({ mesh, curve, positions })
       } else if (pkt.type == PKT_TYPES.BEACON) {
         const geometry = new THREE.TorusGeometry(Network.TopoConfig.value.tx_range, 0.1, 16, 64)
         const material = new THREE.MeshBasicMaterial({
@@ -199,7 +233,6 @@ export function useDrawTopology(dom: HTMLElement) {
           5,
           Network.Nodes.value[pkt.src].pos[1]
         )
-        // mesh.scale.set(0, 0, 0)
         scene.add(mesh)
 
         PacketObjectsBeacon.push({ mesh })
@@ -247,6 +280,11 @@ export function useDrawTopology(dom: HTMLElement) {
       .easing(TWEEN.Easing.Quadratic.Out)
       .start()
   }
+
+  function easeInOutSine(t: number) {
+    return -(Math.cos(Math.PI * t) - 1) / 2
+  }
+
   const clock = new THREE.Clock()
   let time = 0
   const speed = 1000 / Network.SlotDuration.value // Speed of the packet movement, adjust as needed
@@ -256,11 +294,35 @@ export function useDrawTopology(dom: HTMLElement) {
     time = time >= 1 ? 0 : time
 
     for (const u of PacketObjectsUnicast) {
+      if (time == 0) {
+        u.positions = []
+      }
       const point = u.curve.getPoint(time)
-      u.mesh.position.copy(point)
+
+      // make it dense
+      if (u.positions.length > 0) {
+        const lastPosition = u.positions[0]
+        for (let t = 0.1; t < 1; t += 0.1) {
+          const interpolatedPosition = new THREE.Vector3().lerpVectors(lastPosition, point, t)
+          u.positions.unshift(interpolatedPosition)
+        }
+      }
+      u.positions.unshift(point)
+
+      while (u.positions.length > 40) {
+        u.positions.pop()
+      }
+      u.mesh.geometry.setFromPoints(u.positions)
+
+      const sizes = []
+      for (let i = 0; i < u.positions.length; i++) {
+        sizes[i] = (1 - i / u.positions.length) * 1.5
+      }
+      u.mesh.geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1))
     }
+    const scale = easeInOutSine(time)
     for (const b of PacketObjectsBeacon) {
-      b.mesh.scale.set(time, time, time)
+      b.mesh.scale.set(scale, scale, scale)
       b.mesh.position.y = 5 * time + 4
     }
 
