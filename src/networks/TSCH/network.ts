@@ -40,7 +40,7 @@ export class TSCHNetwork {
       seed: 9,
       num_nodes: 20,
       grid_size: 80,
-      tx_range: 20
+      tx_range: 25
     })
     this.SchConfig = ref<ScheduleConfig>({
       num_slots: 40,
