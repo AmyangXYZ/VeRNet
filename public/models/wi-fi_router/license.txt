@@ -1,0 +1,11 @@
+Model Information:
+* title:	Wi-Fi Router
+* source:	https://sketchfab.com/3d-models/wi-fi-router-414a08f14d5745559e2238bb62a0aedc
+* author:	Gabriabel (https://sketchfab.com/Gabriabel)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Wi-Fi Router" (https://sketchfab.com/3d-models/wi-fi-router-414a08f14d5745559e2238bb62a0aedc) by Gabriabel (https://sketchfab.com/Gabriabel) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

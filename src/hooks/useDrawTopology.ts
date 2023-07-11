@@ -30,12 +30,12 @@ export function useDrawTopology(dom: HTMLElement) {
 
   const setCamera = () => {
     camera.position.x = 0
-    camera.position.y = 88
+    camera.position.y = 78
     camera.position.z = 72
     camera.lookAt(new THREE.Vector3(0, 0, 0))
   }
   const addLights = () => {
-    const ambientLight = new THREE.AmbientLight(0x404040, 30)
+    const ambientLight = new THREE.AmbientLight(0x404040, 40)
     scene.add(ambientLight)
 
     const spotLight = new THREE.SpotLight(0xffffff, 30, 320, Math.PI / 4, 0.1) // adjust angle and penumbra as needed
@@ -74,15 +74,16 @@ export function useDrawTopology(dom: HTMLElement) {
   const drawTSCHNodes = () => {
     // GLTF Loader
     const loader = new GLTFLoader()
-    loader.load('/models/34M_17/34M_17.gltf', function (gltf: any) {
+    loader.load('/models/wi-fi_router/scene.gltf', function (gltf: any) {
       const modelTemplate = gltf.scene
 
-      modelTemplate.scale.set(0.2, 0.2, 0.2)
+      modelTemplate.scale.set(1.6,1.6,1.6)
+      modelTemplate.rotation.y = -Math.PI / 2
       modelTemplate.traverse(function (object: any) {
         if (object.isMesh) {
           object.castShadow = true // enable shadow casting
           object.receiveShadow = true
-          object.material.color = new THREE.Color('grey')
+          object.material.color = new THREE.Color('#999')
         }
       })
 
@@ -126,10 +127,10 @@ export function useDrawTopology(dom: HTMLElement) {
     })
   }
   const clearTSCHNodes = () => {
-    for (const node of drawnNodes) {
-      scene.remove(node.model)
+    for (const i in drawnNodes) {
+      scene.remove(drawnNodes[i].model)
     }
-    drawnNodes = []
+    drawnNodes = {}
   }
 
   const draw5GTower = () => {
@@ -176,42 +177,50 @@ export function useDrawTopology(dom: HTMLElement) {
     })
   }
 
-  const drawnLinks: any = {}
+  let drawnLinks: any = {}
   const drawLinks = () => {
     for (const n of Network.Nodes.value) {
       for (const nn of n.neighbors) {
         const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
         if (drawnLinks[linkName] == undefined) {
-          drawnLinks[linkName] = true
-          drawLink(n.id, nn)
+          drawLink(n.id, nn, linkName)
         }
       }
     }
   }
-  const drawLink = (src: number, dst: number) => {
+  const drawLink = (src: number, dst: number, name: string) => {
     const p1 = new THREE.Vector3(
       Network.Nodes.value[src].pos[0],
-      5,
+      1.6,
       Network.Nodes.value[src].pos[1]
     )
     const p3 = new THREE.Vector3(
       Network.Nodes.value[dst].pos[0],
-      5,
+      1.6,
       Network.Nodes.value[dst].pos[1]
     )
 
     const x2 = (p1.x + p3.x) / 2
     const z2 = (p1.z + p3.z) / 2
-    const h = 9
+    const h = 5
     const p2 = new THREE.Vector3(x2, h, z2)
 
     const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
     const points = curve.getPoints(64)
-    const link = new THREE.Line(
+    const mesh = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(points),
       new THREE.LineBasicMaterial({ color: 'white' })
     )
-    scene.add(link)
+    scene.add(mesh)
+    drawnLinks[name] = { mesh }
+  }
+  const clearLinks = () => {
+    for (const i in drawnLinks) {
+      scene.remove(drawnLinks[i].mesh)
+      drawnLinks[i].mesh.geometry.dispose()
+      drawnLinks[i].mesh.material.dispose()
+    }
+    drawnLinks = {}
   }
 
   let PacketObjectsUnicast: any = []
@@ -242,7 +251,6 @@ export function useDrawTopology(dom: HTMLElement) {
             varying vec3 vColor;
             void main() {
               gl_FragColor = vec4( color * vColor, 1.0 );
-              gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
             }
           `,
           blending: THREE.AdditiveBlending,
@@ -256,24 +264,24 @@ export function useDrawTopology(dom: HTMLElement) {
 
         const p1 = new THREE.Vector3(
           Network.Nodes.value[pkt.src].pos[0],
-          5,
+          1.6,
           Network.Nodes.value[pkt.src].pos[1]
         )
         const p3 = new THREE.Vector3(
           Network.Nodes.value[pkt.dst].pos[0],
-          5,
+          1.6,
           Network.Nodes.value[pkt.dst].pos[1]
         )
         const x2 = (p1.x + p3.x) / 2
         const z2 = (p1.z + p3.z) / 2
-        const h = 9
+        const h = 5
         const p2 = new THREE.Vector3(x2, h, z2)
         const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
 
         const positions: any = []
         PacketObjectsUnicast.push({ mesh, curve, positions })
       } else if (pkt.type == PKT_TYPES.BEACON) {
-        const geometry = new THREE.TorusGeometry(Network.TopoConfig.value.tx_range, 0.1, 16, 64)
+        const geometry = new THREE.TorusGeometry(Network.TopoConfig.value.tx_range, 0.08, 16, 64)
         const material = new THREE.MeshBasicMaterial({
           color: 0xffffff,
           side: THREE.DoubleSide
@@ -282,7 +290,7 @@ export function useDrawTopology(dom: HTMLElement) {
         mesh.rotation.x = Math.PI / 2
         mesh.position.set(
           Network.Nodes.value[pkt.src].pos[0],
-          5,
+          1.6,
           Network.Nodes.value[pkt.src].pos[1]
         )
         scene.add(mesh)
@@ -357,21 +365,21 @@ export function useDrawTopology(dom: HTMLElement) {
       }
       u.positions.unshift(point)
 
-      while (u.positions.length > 40) {
+      while (u.positions.length > 36) {
         u.positions.pop()
       }
       u.mesh.geometry.setFromPoints(u.positions)
 
       const sizes = []
       for (let i = 0; i < u.positions.length; i++) {
-        sizes[i] = (1 - i / u.positions.length) * 1.5
+        sizes[i] = (1 - i / u.positions.length) * 1.2
       }
       u.mesh.geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1))
     }
     const scale = -(Math.cos(Math.PI * time) - 1) / 2
     for (const b of PacketObjectsBeacon) {
       b.mesh.scale.set(scale, scale, scale)
-      b.mesh.position.y = 5 * time + 4
+      b.mesh.position.y = 5 * time + 1.6
     }
 
     for (const i in drawnNodes) {
@@ -404,6 +412,8 @@ export function useDrawTopology(dom: HTMLElement) {
   })
   watch(Network.SignalReset, () => {
     clearTSCHNodes()
+    clearLinks()
+    clearPackets()
     drawTSCHNodes()
   })
   watch(SignalResetCamera, () => {
