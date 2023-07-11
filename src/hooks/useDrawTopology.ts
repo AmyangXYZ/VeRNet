@@ -76,12 +76,9 @@ export function useDrawTopology(dom: HTMLElement) {
     const loader = new GLTFLoader()
     loader.load('/models/34M_17/34M_17.gltf', function (gltf: any) {
       const modelTemplate = gltf.scene
-      let modelGroup: any = {}
+
       modelTemplate.scale.set(0.2, 0.2, 0.2)
       modelTemplate.traverse(function (object: any) {
-        if (object instanceof THREE.Group) {
-          modelGroup = object
-        }
         if (object.isMesh) {
           object.castShadow = true // enable shadow casting
           object.receiveShadow = true
@@ -95,11 +92,13 @@ export function useDrawTopology(dom: HTMLElement) {
 
       for (const node of Network.Nodes.value) {
         if (node.id == 0) continue
+        let modelGroup: any = {}
 
         const model = modelTemplate.clone()
         model.position.x = node.pos[0]
         model.position.z = node.pos[1]
         model.position.y = 0.3
+        modelGroup = model
         model.traverse(function (object: any) {
           if (object.isMesh) {
             object.userData.node_id = node.id
@@ -114,11 +113,13 @@ export function useDrawTopology(dom: HTMLElement) {
         dragBox.geometry.translate(0, size.y / 2, 0)
         dragBox.position.copy(model.position)
         dragBox.userData.node_id = node.id
+        dragBox.castShadow = false
         scene.add(dragBox)
         objectsToDrag.push(dragBox)
 
         const boxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
         boxHelper.visible = false
+        boxHelper.castShadow = false
         scene.add(boxHelper)
         drawnNodes[node.id] = { model, modelGroup, dragBox, boxHelper }
       }
@@ -169,6 +170,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
       const boxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
       boxHelper.visible = false
+      boxHelper.castShadow = false
       scene.add(boxHelper)
       drawnNodes['5G'] = { model, modelGroup, dragBox, boxHelper }
     })
@@ -409,6 +411,11 @@ export function useDrawTopology(dom: HTMLElement) {
     animatePanPosition({ x: 0, y: 0, z: 0 }, 800)
   })
   watch(SignalEditTopology, () => {
+    if (SignalEditTopology.value) {
+      dragControls.activate()
+    } else {
+      dragControls.deactivate()
+    }
     for (const i in drawnNodes) {
       const node = drawnNodes[i]
       node.boxHelper.visible = !node.boxHelper.visible
@@ -429,7 +436,10 @@ export function useDrawTopology(dom: HTMLElement) {
       const intersects = raycaster.intersectObjects(scene.children, true)
 
       if (intersects.length > 0) {
-        if (intersects[0].object.userData.node_id != undefined && intersects[0].object.userData.node_id != '5G')
+        if (
+          intersects[0].object.userData.node_id != undefined &&
+          intersects[0].object.userData.node_id != '5G'
+        )
           SelectedNode.value = intersects[0].object.userData.node_id
       }
     },
@@ -438,6 +448,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
   // onDrag
   const dragControls = new DragControls(objectsToDrag, camera, renderer.domElement)
+  dragControls.deactivate()
   dragControls.addEventListener('hoveron', function () {
     controls.enabled = false
   })
