@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
+import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
 
 export function useDrawTopology(dom: HTMLElement) {
@@ -19,6 +20,13 @@ export function useDrawTopology(dom: HTMLElement) {
 
   dom.appendChild(renderer.domElement)
   const objectsToDrag: any = []
+
+  const stats = new Stats()
+  stats.dom.style.position = 'fixed'
+  stats.dom.style.right = '16px'
+  stats.dom.style.top = '16px'
+  stats.dom.style.left = null
+  document.body.appendChild(stats.dom)
 
   const setCamera = () => {
     camera.position.x = 0
@@ -53,8 +61,7 @@ export function useDrawTopology(dom: HTMLElement) {
     })
     const material = new THREE.MeshLambertMaterial({
       map: texture,
-      color: '#423655',
-      side: THREE.DoubleSide
+      color: '#423655'
     })
     const plane = new THREE.Mesh(geometry, material)
     plane.receiveShadow = true
@@ -67,61 +74,105 @@ export function useDrawTopology(dom: HTMLElement) {
   const drawTSCHNodes = () => {
     // GLTF Loader
     const loader = new GLTFLoader()
-    loader.load(
-      'https://docs.mapbox.com/mapbox-gl-js/assets/34M_17/34M_17.gltf',
-      function (gltf: any) {
-        const model = gltf.scene
-        model.scale.set(0.2, 0.2, 0.2)
+    loader.load('/models/34M_17/34M_17.gltf', function (gltf: any) {
+      const modelTemplate = gltf.scene
+      let modelGroup: any = {}
+      modelTemplate.scale.set(0.2, 0.2, 0.2)
+      modelTemplate.traverse(function (object: any) {
+        if (object instanceof THREE.Group) {
+          modelGroup = object
+        }
+        if (object.isMesh) {
+          object.castShadow = true // enable shadow casting
+          object.receiveShadow = true
+          object.material.color = new THREE.Color('grey')
+        }
+      })
 
-        // Compute the bounding box of the model
-        const box = new THREE.Box3().setFromObject(model)
-        model.position.y = -box.min.y
+      const box = new THREE.Box3().setFromObject(modelTemplate)
+      const size = new THREE.Vector3()
+      box.getSize(size)
+
+      for (const node of Network.Nodes.value) {
+        if (node.id == 0) continue
+
+        const model = modelTemplate.clone()
+        model.position.x = node.pos[0]
+        model.position.z = node.pos[1]
+        model.position.y = 0.3
         model.traverse(function (object: any) {
           if (object.isMesh) {
-            object.castShadow = true // enable shadow casting
-            object.receiveShadow = true
-            object.material.color = new THREE.Color('#aaa')
+            object.userData.node_id = node.id
           }
         })
-        // scene.add(model)
+        scene.add(model)
 
-        for (const node of Network.Nodes.value) {
-          if (node.id == 0) continue
-          const clonedModel = model.clone()
-          clonedModel.node_id = node.id
-          clonedModel.traverse(function (object: any) {
-            if (object.isMesh) {
-              object.userData.node_id = node.id
-            }
-          })
-          clonedModel.position.x = node.pos[0]
-          clonedModel.position.z = node.pos[1]
-          scene.add(clonedModel)
-          drawnNodes.push(clonedModel)
-          // objectsToDrag.push(clonedModel)
-        }
+        const dragBox = new THREE.Mesh(
+          new THREE.BoxGeometry(size.x, size.y, size.z),
+          new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
+        )
+        dragBox.geometry.translate(0, size.y / 2, 0)
+        dragBox.position.copy(model.position)
+        dragBox.userData.node_id = node.id
+        scene.add(dragBox)
+        objectsToDrag.push(dragBox)
+
+        const boxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
+        boxHelper.visible = false
+        scene.add(boxHelper)
+        drawnNodes[node.id] = { model, modelGroup, dragBox, boxHelper }
       }
-    )
+    })
   }
   const clearTSCHNodes = () => {
-    for (const model of drawnNodes) {
-      scene.remove(model)
+    for (const node of drawnNodes) {
+      scene.remove(node.model)
     }
     drawnNodes = []
   }
 
-  // Set up drag controls
-  const dragControls = new DragControls(objectsToDrag, camera, renderer.domElement)
+  const draw5GTower = () => {
+    // GLTF Loader
+    const loader = new GLTFLoader()
+    loader.load('/models/5_five_g_tower/scene.gltf', function (gltf: any) {
+      let modelGroup: any = {}
+      const model = gltf.scene
+      model.scale.set(6, 6, 6)
+      model.traverse(function (object: any) {
+        if (object instanceof THREE.Group) {
+          modelGroup = object
+        }
+        if (object.isMesh) {
+          object.castShadow = true // enable shadow casting
+          object.receiveShadow = true
+          object.material.color = new THREE.Color('#666')
+          object.userData.name = '5G'
+        }
+      })
+      model.position.x = 0
+      model.position.z = 0
+      scene.add(model)
 
-  dragControls.addEventListener('dragstart', function () {
-    // Cancel orbit controls when dragging
-    controls.enabled = false
-  })
+      const box = new THREE.Box3().setFromObject(model)
+      const size = new THREE.Vector3()
+      box.getSize(size)
 
-  dragControls.addEventListener('dragend', function () {
-    // Re-enable orbit controls when dragging stops
-    controls.enabled = true
-  })
+      const dragBox = new THREE.Mesh(
+        new THREE.BoxGeometry(size.x, size.y, size.z),
+        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
+      )
+      dragBox.geometry.translate(0, size.y / 2, 0)
+      dragBox.position.copy(modelGroup.position)
+      dragBox.userData.node_id = '5G'
+      scene.add(dragBox)
+      objectsToDrag.push(dragBox)
+
+      const boxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
+      boxHelper.visible = false
+      scene.add(boxHelper)
+      drawnNodes['5G'] = { model, modelGroup, dragBox, boxHelper }
+    })
+  }
 
   const drawnLinks: any = {}
   const drawLinks = () => {
@@ -135,7 +186,6 @@ export function useDrawTopology(dom: HTMLElement) {
       }
     }
   }
-
   const drawLink = (src: number, dst: number) => {
     const p1 = new THREE.Vector3(
       Network.Nodes.value[src].pos[0],
@@ -281,18 +331,14 @@ export function useDrawTopology(dom: HTMLElement) {
       .start()
   }
 
-  function easeInOutSine(t: number) {
-    return -(Math.cos(Math.PI * t) - 1) / 2
-  }
-
   const clock = new THREE.Clock()
   let time = 0
   const speed = 1000 / Network.SlotDuration.value // Speed of the packet movement, adjust as needed
   const animate = () => {
+    // packet animation
     const delta = clock.getDelta()
     time += speed * delta
     time = time >= 1 ? 0 : time
-
     for (const u of PacketObjectsUnicast) {
       if (time == 0) {
         u.positions = []
@@ -320,22 +366,30 @@ export function useDrawTopology(dom: HTMLElement) {
       }
       u.mesh.geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1))
     }
-    const scale = easeInOutSine(time)
+    const scale = -(Math.cos(Math.PI * time) - 1) / 2
     for (const b of PacketObjectsBeacon) {
       b.mesh.scale.set(scale, scale, scale)
       b.mesh.position.y = 5 * time + 4
+    }
+
+    for (const i in drawnNodes) {
+      const node = drawnNodes[i]
+      node.modelGroup.position.copy(node.dragBox.position)
+      node.boxHelper.update()
     }
 
     requestAnimationFrame(animate)
     TWEEN.update()
     controls.update()
     renderer.render(scene, camera)
+    stats.update()
   }
 
   setCamera()
   addLights()
   drawGround()
   drawTSCHNodes()
+  draw5GTower()
   animate()
 
   watch(Network.SlotDone, () => {
@@ -354,8 +408,14 @@ export function useDrawTopology(dom: HTMLElement) {
     animateCameraPosition({ x: 0, y: 88, z: 72 }, 800)
     animatePanPosition({ x: 0, y: 0, z: 0 }, 800)
   })
-  watch(SignalEditTopology, () => {})
+  watch(SignalEditTopology, () => {
+    for (const i in drawnNodes) {
+      const node = drawnNodes[i]
+      node.boxHelper.visible = !node.boxHelper.visible
+    }
+  })
 
+  // onClick
   const raycaster = new THREE.Raycaster()
   const mouse = new THREE.Vector2()
   window.addEventListener(
@@ -369,10 +429,30 @@ export function useDrawTopology(dom: HTMLElement) {
       const intersects = raycaster.intersectObjects(scene.children, true)
 
       if (intersects.length > 0) {
-        if (intersects[0].object.userData.node_id != undefined)
+        if (intersects[0].object.userData.node_id != undefined && intersects[0].object.userData.node_id != '5G')
           SelectedNode.value = intersects[0].object.userData.node_id
       }
     },
     false
   )
+
+  // onDrag
+  const dragControls = new DragControls(objectsToDrag, camera, renderer.domElement)
+  dragControls.addEventListener('hoveron', function () {
+    controls.enabled = false
+  })
+  dragControls.addEventListener('hoveroff', function () {
+    controls.enabled = true
+  })
+  dragControls.addEventListener('dragstart', function () {
+    // Cancel orbit controls when dragging
+    controls.enabled = false
+  })
+  dragControls.addEventListener('dragend', function () {
+    // Re-enable orbit controls when dragging stops
+    controls.enabled = true
+  })
+  dragControls.addEventListener('drag', function (event) {
+    event.object.position.y = 0
+  })
 }
