@@ -135,7 +135,7 @@ export function useDrawTopology(dom: HTMLElement) {
         const model = modelTemplate.clone()
         model.position.x = node.pos[0]
         model.position.z = node.pos[1]
-        model.position.y = 0.3
+        model.position.y = 0
         modelGroup = model
         model.traverse(function (object: any) {
           if (object.isMesh) {
