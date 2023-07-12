@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { SignalShowSettings, SignalShowSchedule, SignalEditTopology } from '@/hooks/useStates'
+import {
+  SignalShowSettings,
+  SignalShowSchedule,
+  SignalShowStatistics,
+  SignalEditTopology
+} from '@/hooks/useStates'
 import { Setting, Timer, DataAnalysis, Edit } from '@element-plus/icons-vue'
 
 onKeyStroke('Escape', () => {
@@ -50,7 +55,7 @@ onKeyStroke('`', () => {
           :hide-after="0"
           placement="right-start"
         >
-          <el-button class="btn" size="small" @click="SignalEditTopology = !SignalEditTopology">
+          <el-button class="btn" size="small" @click="SignalShowStatistics = !SignalShowStatistics">
             <el-icon color="#aaa" size="20">
               <DataAnalysis />
             </el-icon>

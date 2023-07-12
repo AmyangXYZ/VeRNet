@@ -30,15 +30,15 @@ export function useDrawTopology(dom: HTMLElement) {
 
   const setCamera = () => {
     camera.position.x = 0
-    camera.position.y = 78
-    camera.position.z = 72
+    camera.position.y = 70
+    camera.position.z = 80
     camera.lookAt(new THREE.Vector3(0, 0, 0))
   }
   const addLights = () => {
-    const ambientLight = new THREE.AmbientLight(0x404040, 40)
+    const ambientLight = new THREE.AmbientLight(0x404040, 25)
     scene.add(ambientLight)
 
-    const spotLight = new THREE.SpotLight(0xffffff, 30, 320, Math.PI / 4, 0.1) // adjust angle and penumbra as needed
+    const spotLight = new THREE.SpotLight(0xffffff, 40, 320, Math.PI / 4, 0.1) // adjust angle and penumbra as needed
     spotLight.position.set(80, 140, 100)
     spotLight.shadow.mapSize.width = 4096
     spotLight.shadow.mapSize.height = 4096
@@ -70,6 +70,43 @@ export function useDrawTopology(dom: HTMLElement) {
     scene.add(plane)
   }
 
+  const createLabel = (value: string): THREE.Sprite => {
+    const canvas = document.createElement('canvas')
+    const padding = 10
+    const context = canvas.getContext('2d')
+    if (!context) {
+      throw new Error('Unable to get 2D context')
+    }
+
+    context.font = '144px Arial'
+
+    // Measure text and resize canvas
+    const metrics = context.measureText(value)
+    canvas.width = metrics.width + padding * 2
+    canvas.height = 144 + padding * 2
+
+    // Redefine font after resizing canvas
+    context.font = '144px Arial'
+    context.textBaseline = 'top'
+    context.fillStyle = '#bbb'
+
+    // Write text on the canvas with padding
+    context.fillText(value, padding, padding)
+
+    const texture = new THREE.CanvasTexture(canvas)
+    texture.generateMipmaps = false
+    const spriteMaterial = new THREE.SpriteMaterial({
+      map: texture,
+      depthTest: false, // add this line
+      transparent: true
+    })
+    const sprite = new THREE.Sprite(spriteMaterial)
+
+    // Scale down sprite to match your scene
+    sprite.scale.set(canvas.width / 108, canvas.height / 108, 1)
+    return sprite
+  }
+
   let drawnNodes: any = []
   const drawTSCHNodes = () => {
     // GLTF Loader
@@ -77,7 +114,7 @@ export function useDrawTopology(dom: HTMLElement) {
     loader.load('/models/wi-fi_router/scene.gltf', function (gltf: any) {
       const modelTemplate = gltf.scene
 
-      modelTemplate.scale.set(1.6,1.6,1.6)
+      modelTemplate.scale.set(1.6, 1.6, 1.6)
       modelTemplate.rotation.y = -Math.PI / 2
       modelTemplate.traverse(function (object: any) {
         if (object.isMesh) {
@@ -107,6 +144,10 @@ export function useDrawTopology(dom: HTMLElement) {
         })
         scene.add(model)
 
+        const label = createLabel(`V-${node.id}`)
+        label.position.set(model.position.x, 3.5, model.position.z) // Adjust the position as needed
+        scene.add(label)
+
         const dragBox = new THREE.Mesh(
           new THREE.BoxGeometry(size.x, size.y, size.z),
           new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
@@ -122,13 +163,16 @@ export function useDrawTopology(dom: HTMLElement) {
         boxHelper.visible = false
         boxHelper.castShadow = false
         scene.add(boxHelper)
-        drawnNodes[node.id] = { model, modelGroup, dragBox, boxHelper }
+        drawnNodes[node.id] = { model, label, modelGroup, dragBox, boxHelper }
       }
     })
   }
   const clearTSCHNodes = () => {
     for (const i in drawnNodes) {
       scene.remove(drawnNodes[i].model)
+      scene.remove(drawnNodes[i].label)
+      scene.remove(drawnNodes[i].dragBox)
+      scene.remove(drawnNodes[i].boxHelper)
     }
     drawnNodes = {}
   }
@@ -209,10 +253,10 @@ export function useDrawTopology(dom: HTMLElement) {
     const points = curve.getPoints(64)
     const mesh = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(points),
-      new THREE.LineBasicMaterial({ color: 'white' })
+      new THREE.LineBasicMaterial({ color: 'skyblue' })
     )
     scene.add(mesh)
-    drawnLinks[name] = { mesh }
+    drawnLinks[name] = { mesh, src, dst }
   }
   const clearLinks = () => {
     for (const i in drawnLinks) {
@@ -223,8 +267,8 @@ export function useDrawTopology(dom: HTMLElement) {
     drawnLinks = {}
   }
 
-  let PacketObjectsUnicast: any = []
-  let PacketObjectsBeacon: any = []
+  let drawnUnicastPackets: any = []
+  let drawnBeaconPackets: any = []
   const drawPackets = () => {
     time = 0
     for (const pkt of Network.PacketsCurrent.value) {
@@ -233,7 +277,7 @@ export function useDrawTopology(dom: HTMLElement) {
         const geometry = new THREE.BufferGeometry()
         const material = new THREE.ShaderMaterial({
           uniforms: {
-            color: { value: new THREE.Color(0xffffff) }
+            color: { value: new THREE.Color('skyblue') }
           },
           vertexShader: `
             attribute float size;
@@ -279,11 +323,11 @@ export function useDrawTopology(dom: HTMLElement) {
         const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
 
         const positions: any = []
-        PacketObjectsUnicast.push({ mesh, curve, positions })
+        drawnUnicastPackets.push({ mesh, curve, positions, src: pkt.src, dst: pkt.dst })
       } else if (pkt.type == PKT_TYPES.BEACON) {
         const geometry = new THREE.TorusGeometry(Network.TopoConfig.value.tx_range, 0.08, 16, 64)
         const material = new THREE.MeshBasicMaterial({
-          color: 0xffffff,
+          color: 'skyblue',
           side: THREE.DoubleSide
         })
         const mesh = new THREE.Mesh(geometry, material)
@@ -295,26 +339,26 @@ export function useDrawTopology(dom: HTMLElement) {
         )
         scene.add(mesh)
 
-        PacketObjectsBeacon.push({ mesh })
+        drawnBeaconPackets.push({ mesh, src: pkt.src, dst: pkt.dst })
       }
     }
   }
   const clearPackets = () => {
-    if (PacketObjectsUnicast.length > 0) {
-      for (const u of PacketObjectsUnicast) {
+    if (drawnUnicastPackets.length > 0) {
+      for (const u of drawnUnicastPackets) {
         scene.remove(u.mesh)
         u.mesh.geometry.dispose()
         u.mesh.material.dispose()
       }
-      PacketObjectsUnicast = []
+      drawnUnicastPackets = []
     }
-    if (PacketObjectsBeacon.length > 0) {
-      for (const b of PacketObjectsBeacon) {
+    if (drawnBeaconPackets.length > 0) {
+      for (const b of drawnBeaconPackets) {
         scene.remove(b.mesh)
         b.mesh.geometry.dispose()
         b.mesh.material.dispose()
       }
-      PacketObjectsBeacon = []
+      drawnBeaconPackets = []
     }
   }
 
@@ -349,7 +393,7 @@ export function useDrawTopology(dom: HTMLElement) {
     const delta = clock.getDelta()
     time += speed * delta
     time = time >= 1 ? 0 : time
-    for (const u of PacketObjectsUnicast) {
+    for (const u of drawnUnicastPackets) {
       if (time == 0) {
         u.positions = []
       }
@@ -377,15 +421,20 @@ export function useDrawTopology(dom: HTMLElement) {
       u.mesh.geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1))
     }
     const scale = -(Math.cos(Math.PI * time) - 1) / 2
-    for (const b of PacketObjectsBeacon) {
+    for (const b of drawnBeaconPackets) {
       b.mesh.scale.set(scale, scale, scale)
       b.mesh.position.y = 5 * time + 1.6
     }
 
-    for (const i in drawnNodes) {
-      const node = drawnNodes[i]
-      node.modelGroup.position.copy(node.dragBox.position)
-      node.boxHelper.update()
+    if (SignalEditTopology.value) {
+      for (const i in drawnNodes) {
+        const node = drawnNodes[i]
+        node.modelGroup.position.copy(node.dragBox.position)
+        node.boxHelper.update()
+        if (node.label != undefined) {
+          node.label.position.set(node.dragBox.position.x, 3.5, node.dragBox.position.z)
+        }
+      }
     }
 
     requestAnimationFrame(animate)
@@ -458,22 +507,52 @@ export function useDrawTopology(dom: HTMLElement) {
 
   // onDrag
   const dragControls = new DragControls(objectsToDrag, camera, renderer.domElement)
+  let relatedLinks: any = []
+  let relatedUnicastPackets: any = []
+  let relatedBeaconPacket: any = undefined
   dragControls.deactivate()
-  dragControls.addEventListener('hoveron', function () {
-    controls.enabled = false
-  })
-  dragControls.addEventListener('hoveroff', function () {
-    controls.enabled = true
-  })
-  dragControls.addEventListener('dragstart', function () {
-    // Cancel orbit controls when dragging
+  dragControls.addEventListener('dragstart', function (event) {
+    const node = event.object.userData.node_id
+    for (const i in drawnLinks) {
+      if (drawnLinks[i].src == node || drawnLinks[i].dst == node) {
+        relatedLinks.push(drawnLinks[i])
+      }
+    }
+    for (const i in drawnUnicastPackets) {
+      if (drawnUnicastPackets[i].src == node || drawnUnicastPackets[i].dst == node) {
+        relatedUnicastPackets.push(drawnBeaconPackets[i])
+      }
+    }
+    for (const i in drawnBeaconPackets) {
+      if (drawnBeaconPackets[i].src == node) {
+        relatedBeaconPacket = drawnBeaconPackets[i]
+        break
+      }
+    }
     controls.enabled = false
   })
   dragControls.addEventListener('dragend', function () {
-    // Re-enable orbit controls when dragging stops
+    relatedLinks = []
+    relatedUnicastPackets = []
+    relatedBeaconPacket = undefined
     controls.enabled = true
   })
   dragControls.addEventListener('drag', function (event) {
     event.object.position.y = 0
+    Network.Nodes.value[event.object.userData.node_id].pos = [
+      event.object.position.x,
+      event.object.position.z
+    ]
+    // Todo: update position of related unicast packets and links
+    // for (const link of relatedLinks) {
+    //   link.mesh.geometry.attributes.position.array[0] = event.object.position.x;
+    //   link.mesh.geometry.attributes.position.array[1] = event.object.position.y;
+    //   link.mesh.geometry.attributes.position.array[2] = event.object.position.z;
+    //   link.mesh.geometry.attributes.position.needsUpdate = true;
+    // }
+    if (relatedBeaconPacket != undefined) {
+      relatedBeaconPacket.mesh.position.x = event.object.position.x
+      relatedBeaconPacket.mesh.position.z = event.object.position.z
+    }
   })
 }
