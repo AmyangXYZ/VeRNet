@@ -6,7 +6,8 @@ import {
   SignalEditTopology
 } from '@/hooks/useStates'
 import { Setting, Timer, DataAnalysis, Edit } from '@element-plus/icons-vue'
-
+import IconMenu from './icons/IconMenu.vue'
+import IconCube from './icons/IconCube.vue';
 onKeyStroke('Escape', () => {
   SignalShowSettings.value = !SignalShowSettings.value
 })
@@ -19,8 +20,22 @@ onKeyStroke('`', () => {
 
 <template>
   <div>
-    <el-row justify="center">
-      <el-col :span="6">
+    <el-row justify="center" :gutter="30">
+      <el-col :span="4">
+        <el-tooltip
+          effect="light"
+          content="Menu"
+          :hide-after="0"
+          placement="right-start"
+        >
+          <el-button class="btn" size="small" @click="SignalShowSettings = !SignalShowSettings">
+            <el-icon color="#aaa" size="22">
+              <IconMenu />
+            </el-icon>
+          </el-button>
+        </el-tooltip>
+      </el-col>
+      <el-col :span="4">
         <el-tooltip
           effect="light"
           content="Network settings"
@@ -34,21 +49,21 @@ onKeyStroke('`', () => {
           </el-button>
         </el-tooltip>
       </el-col>
-      <el-col :span="6">
+      <el-col :span="4">
         <el-tooltip
           effect="light"
-          content="Network schedule"
+          content="Resoure grid"
           :hide-after="0"
           placement="right-start"
         >
           <el-button class="btn" size="small" @click="SignalShowSchedule = !SignalShowSchedule">
-            <el-icon color="#aaa" size="20">
-              <Timer />
+            <el-icon color="#aaa" size="18">
+              <IconCube />
             </el-icon>
           </el-button>
         </el-tooltip>
       </el-col>
-      <el-col :span="6">
+      <el-col :span="4">
         <el-tooltip
           effect="light"
           content="Network statistics"
@@ -62,7 +77,7 @@ onKeyStroke('`', () => {
           </el-button>
         </el-tooltip>
       </el-col>
-      <el-col :span="6">
+      <el-col :span="4">
         <el-tooltip effect="light" content="Edit topology" :hide-after="0" placement="right-start">
           <el-button class="btn" size="small" @click="SignalEditTopology = !SignalEditTopology">
             <el-icon color="#aaa" size="20">
