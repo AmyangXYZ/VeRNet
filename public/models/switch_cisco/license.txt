@@ -1,0 +1,11 @@
+Model Information:
+* title:	Switch CISCO
+* source:	https://sketchfab.com/3d-models/switch-cisco-bf8e5c96974a40dd82b7618bb2e7962d
+* author:	nando59 (https://sketchfab.com/nando59)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Switch CISCO" (https://sketchfab.com/3d-models/switch-cisco-bf8e5c96974a40dd82b7618bb2e7962d) by nando59 (https://sketchfab.com/nando59) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -139,12 +139,13 @@ export function useDrawTopology(dom: HTMLElement) {
         modelGroup = model
         model.traverse(function (object: any) {
           if (object.isMesh) {
+            object.userData.type = 'TSCH'
             object.userData.node_id = node.id
           }
         })
         scene.add(model)
 
-        const label = createLabel(`V-${node.id}`)
+        const label = createLabel(`TSCH-${node.id}`)
         label.position.set(model.position.x, 3.5, model.position.z) // Adjust the position as needed
         scene.add(label)
 
@@ -154,6 +155,7 @@ export function useDrawTopology(dom: HTMLElement) {
         )
         dragBox.geometry.translate(0, size.y / 2, 0)
         dragBox.position.copy(model.position)
+        dragBox.userData.type = 'TSCH'
         dragBox.userData.node_id = node.id
         dragBox.castShadow = false
         scene.add(dragBox)
@@ -163,7 +165,7 @@ export function useDrawTopology(dom: HTMLElement) {
         boxHelper.visible = false
         boxHelper.castShadow = false
         scene.add(boxHelper)
-        drawnNodes[node.id] = { model, label, modelGroup, dragBox, boxHelper }
+        drawnNodes[`TSCH-${node.id}`] = { model, label, modelGroup, dragBox, boxHelper }
       }
     })
   }
@@ -192,7 +194,8 @@ export function useDrawTopology(dom: HTMLElement) {
           object.castShadow = true // enable shadow casting
           object.receiveShadow = true
           object.material.color = new THREE.Color('#666')
-          object.userData.name = '5G'
+          object.userData.type = 'FiveG'
+          object.userData.node_id = 1
         }
       })
       model.position.x = 0
@@ -203,13 +206,18 @@ export function useDrawTopology(dom: HTMLElement) {
       const size = new THREE.Vector3()
       box.getSize(size)
 
+      const label = createLabel(`5G-Tower-1`)
+      label.position.set(model.position.x, size.y + 1, model.position.z) // Adjust the position as needed
+      scene.add(label)
+
       const dragBox = new THREE.Mesh(
         new THREE.BoxGeometry(size.x, size.y, size.z),
         new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
       )
       dragBox.geometry.translate(0, size.y / 2, 0)
       dragBox.position.copy(modelGroup.position)
-      dragBox.userData.node_id = '5G'
+      dragBox.userData.type = 'FiveG'
+      dragBox.userData.node_id = '1'
       scene.add(dragBox)
       objectsToDrag.push(dragBox)
 
@@ -217,7 +225,7 @@ export function useDrawTopology(dom: HTMLElement) {
       boxHelper.visible = false
       boxHelper.castShadow = false
       scene.add(boxHelper)
-      drawnNodes['5G'] = { model, modelGroup, dragBox, boxHelper }
+      drawnNodes['5G-1'] = { model, label, modelGroup, dragBox, boxHelper }
     })
   }
 
@@ -432,7 +440,11 @@ export function useDrawTopology(dom: HTMLElement) {
         node.modelGroup.position.copy(node.dragBox.position)
         node.boxHelper.update()
         if (node.label != undefined) {
-          node.label.position.set(node.dragBox.position.x, 3.5, node.dragBox.position.z)
+          node.label.position.set(
+            node.dragBox.position.x,
+            node.label.position.y,
+            node.dragBox.position.z
+          )
         }
       }
     }
@@ -466,8 +478,8 @@ export function useDrawTopology(dom: HTMLElement) {
     drawTSCHNodes()
   })
   watch(SignalResetCamera, () => {
-    animateCameraPosition({ x: 0, y: 88, z: 72 }, 800)
-    animatePanPosition({ x: 0, y: 0, z: 0 }, 800)
+    animateCameraPosition({ x: 0, y: 70, z: 80 }, 1000)
+    animatePanPosition({ x: 0, y: 0, z: 0 }, 1000)
   })
   watch(SignalEditTopology, () => {
     if (SignalEditTopology.value) {
@@ -497,7 +509,7 @@ export function useDrawTopology(dom: HTMLElement) {
       if (intersects.length > 0) {
         if (
           intersects[0].object.userData.node_id != undefined &&
-          intersects[0].object.userData.node_id != '5G'
+          intersects[0].object.userData.type == 'TSCH'
         )
           SelectedNode.value = intersects[0].object.userData.node_id
       }
@@ -512,21 +524,23 @@ export function useDrawTopology(dom: HTMLElement) {
   let relatedBeaconPacket: any = undefined
   dragControls.deactivate()
   dragControls.addEventListener('dragstart', function (event) {
-    const node = event.object.userData.node_id
-    for (const i in drawnLinks) {
-      if (drawnLinks[i].src == node || drawnLinks[i].dst == node) {
-        relatedLinks.push(drawnLinks[i])
+    if (event.object.userData.type == 'TSCH') {
+      const node = event.object.userData.node_id
+      for (const i in drawnLinks) {
+        if (drawnLinks[i].src == node || drawnLinks[i].dst == node) {
+          relatedLinks.push(drawnLinks[i])
+        }
       }
-    }
-    for (const i in drawnUnicastPackets) {
-      if (drawnUnicastPackets[i].src == node || drawnUnicastPackets[i].dst == node) {
-        relatedUnicastPackets.push(drawnBeaconPackets[i])
+      for (const i in drawnUnicastPackets) {
+        if (drawnUnicastPackets[i].src == node || drawnUnicastPackets[i].dst == node) {
+          relatedUnicastPackets.push(drawnBeaconPackets[i])
+        }
       }
-    }
-    for (const i in drawnBeaconPackets) {
-      if (drawnBeaconPackets[i].src == node) {
-        relatedBeaconPacket = drawnBeaconPackets[i]
-        break
+      for (const i in drawnBeaconPackets) {
+        if (drawnBeaconPackets[i].src == node) {
+          relatedBeaconPacket = drawnBeaconPackets[i]
+          break
+        }
       }
     }
     controls.enabled = false
@@ -539,20 +553,22 @@ export function useDrawTopology(dom: HTMLElement) {
   })
   dragControls.addEventListener('drag', function (event) {
     event.object.position.y = 0
-    Network.Nodes.value[event.object.userData.node_id].pos = [
-      event.object.position.x,
-      event.object.position.z
-    ]
-    // Todo: update position of related unicast packets and links
-    // for (const link of relatedLinks) {
-    //   link.mesh.geometry.attributes.position.array[0] = event.object.position.x;
-    //   link.mesh.geometry.attributes.position.array[1] = event.object.position.y;
-    //   link.mesh.geometry.attributes.position.array[2] = event.object.position.z;
-    //   link.mesh.geometry.attributes.position.needsUpdate = true;
-    // }
-    if (relatedBeaconPacket != undefined) {
-      relatedBeaconPacket.mesh.position.x = event.object.position.x
-      relatedBeaconPacket.mesh.position.z = event.object.position.z
+    if (event.object.userData.type == 'TSCH') {
+      Network.Nodes.value[event.object.userData.node_id].pos = [
+        event.object.position.x,
+        event.object.position.z
+      ]
+      // Todo: update position of related unicast packets and links
+      // for (const link of relatedLinks) {
+      //   link.mesh.geometry.attributes.position.array[0] = event.object.position.x;
+      //   link.mesh.geometry.attributes.position.array[1] = event.object.position.y;
+      //   link.mesh.geometry.attributes.position.array[2] = event.object.position.z;
+      //   link.mesh.geometry.attributes.position.needsUpdate = true;
+      // }
+      if (relatedBeaconPacket != undefined) {
+        relatedBeaconPacket.mesh.position.x = event.object.position.x
+        relatedBeaconPacket.mesh.position.z = event.object.position.z
+      }
     }
   })
 }

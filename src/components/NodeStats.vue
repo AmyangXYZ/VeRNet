@@ -11,7 +11,7 @@ import { Network, SelectedNode } from '@/hooks/useStates'
         <img :src="SelectedNode == 1 ? rpi4 : sensortag" />
       </el-col>
       <el-col :span="13">
-        <span style="font-weight: 600; font-size: 0.9rem">[V-{{ SelectedNode }}]</span>
+        <span style="font-weight: 600; font-size: 0.9rem">[TSCH-{{ SelectedNode }}]</span>
         6TiSCH {{ SelectedNode == 1 ? 'gateway' : 'end device' }}<br />
         - {{ SelectedNode == 1 ? 'Raspberry Pi 4B' : 'CC2650 SensorTag' }} <br />
         - TX: {{ Network.Nodes.value[SelectedNode].tx_cnt }} , RX:

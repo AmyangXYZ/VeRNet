@@ -5,9 +5,9 @@ import {
   SignalShowStatistics,
   SignalEditTopology
 } from '@/hooks/useStates'
-import { Setting, Timer, DataAnalysis, Edit } from '@element-plus/icons-vue'
+import { Setting, DataAnalysis, Edit } from '@element-plus/icons-vue'
 import IconMenu from './icons/IconMenu.vue'
-import IconCube from './icons/IconCube.vue';
+import IconCube from './icons/IconCube.vue'
 onKeyStroke('Escape', () => {
   SignalShowSettings.value = !SignalShowSettings.value
 })
@@ -22,12 +22,7 @@ onKeyStroke('`', () => {
   <div>
     <el-row justify="center" :gutter="30">
       <el-col :span="4">
-        <el-tooltip
-          effect="light"
-          content="Menu"
-          :hide-after="0"
-          placement="right-start"
-        >
+        <el-tooltip effect="light" content="Menu" :hide-after="0" placement="right-start">
           <el-button class="btn" size="small" @click="SignalShowSettings = !SignalShowSettings">
             <el-icon color="#aaa" size="22">
               <IconMenu />
@@ -50,12 +45,7 @@ onKeyStroke('`', () => {
         </el-tooltip>
       </el-col>
       <el-col :span="4">
-        <el-tooltip
-          effect="light"
-          content="Resoure grid"
-          :hide-after="0"
-          placement="right-start"
-        >
+        <el-tooltip effect="light" content="Resoure grid" :hide-after="0" placement="right-start">
           <el-button class="btn" size="small" @click="SignalShowSchedule = !SignalShowSchedule">
             <el-icon color="#aaa" size="18">
               <IconCube />
