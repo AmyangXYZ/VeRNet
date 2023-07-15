@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  SignalShowScenarios,
   SignalShowSettings,
   SignalShowSchedule,
   SignalShowStatistics,
@@ -34,7 +35,7 @@ onKeyStroke('`', () => {
       </el-col>
       <el-col :span="4">
         <el-tooltip effect="light" content="Scenarios" :hide-after="0" placement="right-start">
-          <el-button class="btn" size="small" @click="SignalShowSettings = !SignalShowSettings">
+          <el-button class="btn" size="small" @click="SignalShowScenarios = !SignalShowScenarios">
             <el-icon color="#aaa" size="18">
               <IconClapperboard />
             </el-icon>

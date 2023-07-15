@@ -7,9 +7,15 @@ import ScheduleTable from '@/components/ScheduleTable.vue'
 import NodeStats from '@/components/NodeStats.vue'
 import MiniMap from '@/components/MiniMap.vue'
 import SettingsPanel from '@/components/SettingsPanel.vue'
+import ScenariosPanel from '@/components/ScenariosPanel.vue'
 </script>
 
 <template>
+  <transition name="el-fade-in-linear">
+    <ScenariosPanel
+      style="position: absolute; left: 5%; width: 90%; top: 20%;height:60%;  z-index: 9999"
+    />
+  </transition>
   <transition name="el-zoom-in-center">
     <SettingsPanel
       style="position: absolute; left: 25%; width: 50%; top: 14%; height: 64%; z-index: 9999"
