@@ -15,9 +15,7 @@ import SettingsPanel from '@/components/SettingsPanel.vue'
       style="position: absolute; left: 25%; width: 50%; top: 14%; height: 64%; z-index: 9999"
     />
   </transition>
-  <MenuBar
-    style="position: absolute; top: 16px; left: 16px; width: 120px; z-index: 999"
-  />
+  <MenuBar style="position: absolute; top: 16px; left: 16px; width: 150px; z-index: 999" />
   <ControlPanel
     style="position: absolute; top: 16px; left: 40%; min-width: 336px; width: 20%; z-index: 999"
   />

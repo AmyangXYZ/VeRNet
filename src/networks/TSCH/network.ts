@@ -189,8 +189,10 @@ export class TSCHNetwork {
         id: i,
         type: NODE_TYPE.TSCH,
         pos: [
-          Math.floor(rand.next() * (this.TopoConfig.value.grid_size)) - this.TopoConfig.value.grid_size/2,
-          Math.floor(rand.next() * (this.TopoConfig.value.grid_size)) - this.TopoConfig.value.grid_size/2 
+          Math.floor(rand.next() * this.TopoConfig.value.grid_size) -
+            this.TopoConfig.value.grid_size / 2,
+          Math.floor(rand.next() * this.TopoConfig.value.grid_size) -
+            this.TopoConfig.value.grid_size / 2
         ],
         joined: i == ADDR.ROOT,
         parent: 0,

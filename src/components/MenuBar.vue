@@ -6,13 +6,15 @@ import {
   SignalEditTopology
 } from '@/hooks/useStates'
 import { Setting, DataAnalysis, Edit } from '@element-plus/icons-vue'
-import IconMenu from './icons/IconMenu.vue'
 import IconCube from './icons/IconCube.vue'
+import IconClapperboard from './icons/IconClapperboard.vue'
+
 onKeyStroke('Escape', () => {
   SignalShowSettings.value = !SignalShowSettings.value
 })
 
 import { onKeyStroke } from '@vueuse/core'
+import IconGithub from './icons/IconGithub.vue'
 onKeyStroke('`', () => {
   SignalShowSchedule.value = !SignalShowSchedule.value
 })
@@ -22,10 +24,19 @@ onKeyStroke('`', () => {
   <div>
     <el-row justify="center" :gutter="30">
       <el-col :span="4">
-        <el-tooltip effect="light" content="Menu" :hide-after="0" placement="right-start">
+        <a href="https://github.com/AmyangXYZ/VeRNet">
+          <el-button class="btn" size="small">
+            <el-icon color="#aaa" size="18">
+              <IconGithub />
+            </el-icon>
+          </el-button>
+        </a>
+      </el-col>
+      <el-col :span="4">
+        <el-tooltip effect="light" content="Scenarios" :hide-after="0" placement="right-start">
           <el-button class="btn" size="small" @click="SignalShowSettings = !SignalShowSettings">
-            <el-icon color="#aaa" size="22">
-              <IconMenu />
+            <el-icon color="#aaa" size="18">
+              <IconClapperboard />
             </el-icon>
           </el-button>
         </el-tooltip>

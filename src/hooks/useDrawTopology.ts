@@ -261,7 +261,7 @@ export function useDrawTopology(dom: HTMLElement) {
     const points = curve.getPoints(64)
     const mesh = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(points),
-      new THREE.LineBasicMaterial({ color: 'skyblue' })
+      new THREE.LineBasicMaterial({ color: 'white' })
     )
     scene.add(mesh)
     drawnLinks[name] = { mesh, src, dst }
@@ -285,7 +285,7 @@ export function useDrawTopology(dom: HTMLElement) {
         const geometry = new THREE.BufferGeometry()
         const material = new THREE.ShaderMaterial({
           uniforms: {
-            color: { value: new THREE.Color('skyblue') }
+            color: { value: new THREE.Color('white') }
           },
           vertexShader: `
             attribute float size;
@@ -335,7 +335,7 @@ export function useDrawTopology(dom: HTMLElement) {
       } else if (pkt.type == PKT_TYPES.BEACON) {
         const geometry = new THREE.TorusGeometry(Network.TopoConfig.value.tx_range, 0.08, 16, 64)
         const material = new THREE.MeshBasicMaterial({
-          color: 'skyblue',
+          color: 'white',
           side: THREE.DoubleSide
         })
         const mesh = new THREE.Mesh(geometry, material)
