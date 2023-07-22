@@ -7,7 +7,7 @@ import { SignalShowScenarios } from '@/hooks/useStates'
     <el-col :span="6">
       <el-card class="card" :body-style="{ padding: '0px' }">
         <img
-          src="https://aio.inria.fr/files/2015/10/logo_6tisch.png"
+          src="src/assets/scenarios-6tisch-logo.png"
           class="image"
         />
         <div style="padding: 14px">
@@ -22,7 +22,7 @@ import { SignalShowScenarios } from '@/hooks/useStates'
     <el-col :span="6">
       <el-card class="card" :body-style="{ padding: '0px' }">
         <img
-          src="https://1.ieee802.org/wp-content/uploads/2020/05/802.1-logo.png"
+          src="src/assets/scenarios-802.1-logo.png"
           class="image"
         />
         <div style="padding: 14px">
