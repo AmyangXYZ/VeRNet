@@ -11,7 +11,7 @@ const updateSelectedScenario = (val: any) => {
     <el-col :span="6">
       <el-card class="card" :body-style="{ padding: '0px' }">
         <img
-          src="src/assets/scenarios-6tisch-logo.png"
+          src="@/assets/scenarios-6tisch-logo.png"
           class="image"
           @click="updateSelectedScenario('6TiSCH')"
         />
@@ -27,7 +27,7 @@ const updateSelectedScenario = (val: any) => {
     <el-col :span="6">
       <el-card class="card" :body-style="{ padding: '0px' }">
         <img
-          src="src/assets/scenarios-802.1-logo.png"
+          src="@/assets/scenarios-802.1-logo.png"
           class="image"
           @click="updateSelectedScenario('TSN')"
         />
@@ -43,7 +43,7 @@ const updateSelectedScenario = (val: any) => {
     <el-col :span="6">
       <el-card class="card" :body-style="{ padding: '0px' }">
         <img
-          src="src/assets/scenarios-5G-logo_500px.jpg"
+          src="@/assets/scenarios-5G-logo_500px.jpg"
           class="image"
           @click="updateSelectedScenario('5G')"
         />
