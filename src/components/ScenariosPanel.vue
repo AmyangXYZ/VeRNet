@@ -37,7 +37,7 @@ import { SignalShowScenarios } from '@/hooks/useStates'
     <el-col :span="6">
       <el-card class="card" :body-style="{ padding: '0px' }">
         <img
-          src="https://www.3gpp.org/images/5G-logo_500px.jpg"
+          src="src/assets/scenarios-5G-logo_500px.jpg"
           class="image"
         />
         <div style="padding: 14px">
