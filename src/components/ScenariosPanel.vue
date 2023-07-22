@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { SignalShowScenarios } from '@/hooks/useStates'
+import { SignalShowScenarios, SelectedScenario } from '@/hooks/useStates'
+
+const updateSelectedScenario = (val: any) => {
+    SelectedScenario.value = val
+}
 </script>
 
 <template>
@@ -9,6 +13,7 @@ import { SignalShowScenarios } from '@/hooks/useStates'
         <img
           src="src/assets/scenarios-6tisch-logo.png"
           class="image"
+          @click="updateSelectedScenario('6TiSCH')"
         />
         <div style="padding: 14px">
           <span>6TiSCH</span>
@@ -24,6 +29,7 @@ import { SignalShowScenarios } from '@/hooks/useStates'
         <img
           src="src/assets/scenarios-802.1-logo.png"
           class="image"
+          @click="updateSelectedScenario('TSN')"
         />
         <div style="padding: 14px">
           <span>TSN</span>
@@ -39,6 +45,7 @@ import { SignalShowScenarios } from '@/hooks/useStates'
         <img
           src="src/assets/scenarios-5G-logo_500px.jpg"
           class="image"
+          @click="updateSelectedScenario('5G')"
         />
         <div style="padding: 14px">
           <span>5G</span>
@@ -54,6 +61,7 @@ import { SignalShowScenarios } from '@/hooks/useStates'
         <img
           src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
           class="image"
+          @click="updateSelectedScenario('Composite')"
         />
         <div style="padding: 14px">
           <span>Composite</span>

@@ -16,3 +16,4 @@ export const SignalShowSettings = ref(false)
 export const SignalShowSchedule = ref(false)
 export const SignalShowStatistics = ref(false)
 export const SignalEditTopology = ref(false)
+export const SelectedScenario = ref('') // added by Jack Medrek
