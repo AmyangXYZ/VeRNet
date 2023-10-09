@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useDrawSchedule } from '@/hooks/useDrawSchedule'
+// import { useDrawSchedule } from '@/hooks/useDrawSchedule'
+import { useDrawSchedule3D } from '@/hooks/useDrawSchedule3D'
 
 import { SignalShowSchedule } from '@/hooks/useStates'
 
 const chartDom = ref()
 onMounted(() => {
-  useDrawSchedule(chartDom.value)
+  useDrawSchedule3D(chartDom.value)
 })
 </script>
 
