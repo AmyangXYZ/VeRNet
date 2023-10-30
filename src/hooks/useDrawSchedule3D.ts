@@ -3,53 +3,69 @@ import 'echarts-gl'
 
 import { Network } from './useStates'
 
-import { CELL_TYPES } from '@/networks/TSCH/typedefs'
-
 export function useDrawSchedule3D(chartDom: HTMLElement): any {
     const chart = echarts.init(chartDom)
+
+    const zCategories = ['Shared', 'Mgmt', 'Data'];
 
     const option: any = {
         dataset: {
             dimensions: ['slot', 'channel', 'type'],
             source: []
         },
-        xAxis3D: {
+        yAxis3D: {
             type: 'category',
+            name: 'Channels',
+            nameTextStyle: {
+                color: 'white'
+            },
             data: Array.from({length: Network.SchConfig.value.num_slots}, (_, i) => i + 1),
             axisTick: {
-                interval: 0
+                interval: 1
+            },
+            axisLabel: {
+                color: 'white'
             },
             min: 0,
             max: 10
         },
-        yAxis3D: {
+        xAxis3D: {
             type: 'category',
+            name: 'Slots',
+            nameTextStyle: {
+                color: 'white'
+            },
             data: Array.from({length: Network.SchConfig.value.num_channels}, (_, i) => i + 1),
             axisTick: {
-                interval: 0
+                interval: 1
+            },
+            axisLabel: {
+                color: 'white'
             },
             min: 0,
-            max: 10
+            max: 20
         },
         zAxis3D: {
             type: 'category',
-            data: [CELL_TYPES.SHARED, CELL_TYPES.MGMT, CELL_TYPES.DATA],
+            data: zCategories,
+            axisTick: {
+                interval: 1
+            },
+            axisLabel: {
+                color: 'white'
+            },
             min: 0,
             max: 2
         },
         grid3D: {
-            boxWidth: 100,
-            boxDepth: 100,
-            boxHeight: 80,
-            axisPointer: {
-                show: false
+            light: {
+                main: {
+                  shadow: true,
+                  quality: 'ultra',
+                  intensity: 1.5
+                }
             },
-            viewControl: {
-                alpha: 50,
-                distance: 200,
-                rotateSensitivity: 1,
-                zoomSensitivity: 1
-            }
+            borderColor: 'white'
         },
         series: [{
             type: 'bar3D',
@@ -60,14 +76,28 @@ export function useDrawSchedule3D(chartDom: HTMLElement): any {
 
             seriesIndex: 0,
             itemStyle: {
-                depth: 20
+                depth: 20,
+                height: 20
             },
             encode: {
                 x: 'slot',
                 y: 'channel',
-                z: { field: 'type', ordinal: 'true' }
+                z: {
+                    field: 'type', 
+                    ordinal: 'true',
+                },
+                color: 'color'
             }
-        }]
+        }],
+        visualMap: {
+            show: false,
+            dimension: 2,
+            categories: [0, 1, 2],
+            inRange: {
+                color: ['green', 'red', 'blue']
+            }
+        },
+        responsive: true
     }
 
     for (let slot = 1; slot <= Network.SchConfig.value.num_slots; slot++) {
@@ -83,7 +113,5 @@ export function useDrawSchedule3D(chartDom: HTMLElement): any {
         }
     }
     console.log(option.dataset.source)
-
     chart.setOption(option)
-    chart.resize()
 }
