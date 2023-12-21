@@ -1,4 +1,4 @@
-class TSNBridge {
+class TSNNode {
   id: number = 0
   ports: { [p: number]: number } = {}
   constructor() {}
@@ -8,4 +8,4 @@ class TSNBridge {
   }
 }
 
-new TSNBridge().Run()
+new TSNNode().Run()

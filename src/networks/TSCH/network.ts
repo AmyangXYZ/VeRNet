@@ -9,8 +9,8 @@ import type {
 } from './typedefs'
 import { ADDR, MSG_TYPES, PKT_TYPES, CELL_TYPES } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
-import { Network, NODE_TYPE } from '../typedefs'
-import type { Packet, Message, MsgHandler } from '../typedefs'
+import { Network, NODE_TYPE } from '../common'
+import type { Packet, Message, MsgHandler } from '../common'
 
 export class TSCHNetwork extends Network {
   asnTimer = 0

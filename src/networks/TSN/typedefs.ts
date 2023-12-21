@@ -1,4 +1,4 @@
-import type { NodeMeta } from '../typedefs'
+import type { NodeMeta } from '../common'
 
 export interface ScheduleConfig {
   num_slots: number

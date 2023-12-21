@@ -1,8 +1,9 @@
 import { ref, type Ref } from 'vue'
 
 export class Network {
-  id: any
+  id: number
   Nodes: any
+  EndSystems: any
   TopoConfig: Ref<TopologyConfig>
   SchConfig: any
   Schedule: any
@@ -17,12 +18,22 @@ export class Network {
   constructor() {
     this.id = 1
     this.TopoConfig = ref<TopologyConfig>({
-      seed: 9,
-      num_nodes: 20,
+      seed: 1,
+      num_nodes: 10,
+      num_es: 4,
       grid_size: 80,
       tx_range: 25
     })
+    this.createEndSystems()
   }
+  createEndSystems = () => {}
+}
+
+export enum NODE_TYPE {
+  FiveGTower,
+  TSCH,
+  TSN,
+  ES
 }
 
 export interface NodeMeta {
@@ -35,11 +46,18 @@ export interface NodeMeta {
   w: Worker | undefined
 }
 
-export enum NODE_TYPE {
-  FiveGTower,
-  TSCH,
-  TSN,
-  EndSystem
+export enum END_SYSTEM_TYPE {
+  Server,
+  RoboticArm,
+  Sensor
+  // add more and find the corresponding 3D models
+}
+
+export interface EndSystemMeta {
+  id: number
+  type: number
+  pos: number[]
+  neighbor: number // an es only connects with one network node/switch/base-station
 }
 
 // Packet is transfered among nodes, at data-link layer
@@ -77,6 +95,7 @@ export type PktHandler = (pkt: Packet) => void
 export interface TopologyConfig {
   seed: number
   num_nodes: number
+  num_es: number
   grid_size: number
   tx_range: number
 }

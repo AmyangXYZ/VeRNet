@@ -1,6 +1,6 @@
 // all types and enums here
 
-import type { NodeMeta } from '../typedefs'
+import type { NodeMeta } from '../common'
 
 export interface TSCHNodeMeta extends NodeMeta {
   joined: boolean

@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { Network, NODE_TYPE } from '../typedefs'
+import { Network, NODE_TYPE } from '../common'
 import type { ScheduleConfig, TSNNodeMeta } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
 
@@ -16,7 +16,7 @@ export class TSNNetwork extends Network {
     this.Nodes = ref<TSNNodeMeta[]>([])
     const rand = new SeededRandom(this.TopoConfig.value.seed)
 
-    // clear old nodes
+    // clear old nodes and webworkers
     if (this.Nodes.value.length > 1) {
       for (const n of this.Nodes.value) {
         if (n.w != undefined) {

@@ -8,7 +8,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
-import { NODE_TYPE } from '@/networks/typedefs'
+import { NODE_TYPE } from '@/networks/common'
 
 export function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
@@ -111,8 +111,9 @@ export function useDrawTopology(dom: HTMLElement) {
   let drawnNodes: any = []
   const drawNodes = () => {
     drawTSCHNodes()
-    draw5GTower()
+    // draw5GTower()
     drawTSNNodes()
+    drawEndSystems()
   }
   const clearNodes = () => {
     for (const i in drawnNodes) {
@@ -306,6 +307,10 @@ export function useDrawTopology(dom: HTMLElement) {
       scene.add(boxHelper)
       drawnNodes['5G-1'] = { model, label, modelGroup, dragBox, boxHelper }
     })
+  }
+
+  const drawEndSystems = ()=>{
+    
   }
 
   let drawnLinks: any = {}

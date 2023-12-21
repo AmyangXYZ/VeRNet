@@ -9,7 +9,7 @@ import type {
   ASSOC_RSP_PKT_PAYLOAD
 } from './typedefs'
 import { MSG_TYPES, ADDR, CELL_TYPES, PKT_TYPES } from './typedefs'
-import type { Packet, Message, MsgHandler, PktHandler } from '../typedefs'
+import type { Packet, Message, MsgHandler, PktHandler } from '../common'
 
 class TSCHNode {
   id: number = 0
