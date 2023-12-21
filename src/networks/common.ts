@@ -9,12 +9,13 @@ export class Network {
   Schedule: any
   Packets = ref<Packet[]>([])
   ASN = ref(0)
-
+  asnTimer = 0
   PacketsCurrent = ref<Packet[]>([])
   SignalReset = ref(0)
   SlotDone = ref(true)
   Running = ref(false)
   SlotDuration = ref(1000)
+  
   constructor() {
     this.id = 1
     this.TopoConfig = ref<TopologyConfig>({
@@ -27,6 +28,29 @@ export class Network {
     this.createEndSystems()
   }
   createEndSystems = () => {}
+
+
+  Run = () => {
+    this.Step()
+    this.Running.value = true
+    this.asnTimer = setInterval(() => {
+      this.ASN.value++
+      this.SlotDone.value = false
+    }, this.SlotDuration.value)
+  }
+  Step = () => {
+    this.ASN.value++
+    this.SlotDone.value = false
+  }
+  Pause = () => {
+    this.Running.value = false
+    clearInterval(this.asnTimer)
+  }
+  Reset = () => {
+    this.Running.value = false
+    clearInterval(this.asnTimer)
+    this.SignalReset.value++
+  }
 }
 
 export enum NODE_TYPE {

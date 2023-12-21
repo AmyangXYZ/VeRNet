@@ -13,7 +13,7 @@ import { Network, NODE_TYPE } from '../common'
 import type { Packet, Message, MsgHandler } from '../common'
 
 export class TSCHNetwork extends Network {
-  asnTimer = 0
+
   doneCnt = 0
 
   msgHandlers: { [type: number]: MsgHandler } = {}
@@ -60,28 +60,6 @@ export class TSCHNetwork extends Network {
       this.createNodes()
       this.createSchedule()
     })
-  }
-
-  Run = () => {
-    this.Step()
-    this.Running.value = true
-    this.asnTimer = setInterval(() => {
-      this.ASN.value++
-      this.SlotDone.value = false
-    }, this.SlotDuration.value)
-  }
-  Step = () => {
-    this.ASN.value++
-    this.SlotDone.value = false
-  }
-  Pause = () => {
-    this.Running.value = false
-    clearInterval(this.asnTimer)
-  }
-  Reset = () => {
-    this.Running.value = false
-    clearInterval(this.asnTimer)
-    this.SignalReset.value++
   }
 
   registerMsgHandler(type: number, handler: MsgHandler) {
