@@ -2,7 +2,7 @@
 import { SignalShowScenarios, SelectedScenario } from '@/hooks/useStates'
 
 const updateSelectedScenario = (val: any) => {
-    SelectedScenario.value = val
+  SelectedScenario.value = val
 }
 </script>
 

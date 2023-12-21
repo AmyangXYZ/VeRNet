@@ -13,7 +13,7 @@ import ScenariosPanel from '@/components/ScenariosPanel.vue'
 <template>
   <transition name="el-fade-in-linear">
     <ScenariosPanel
-      style="position: absolute; left: 5%; width: 90%; top: 20%;height:60%;  z-index: 9999"
+      style="position: absolute; left: 5%; width: 90%; top: 20%; height: 60%; z-index: 9999"
     />
   </transition>
   <transition name="el-zoom-in-center">

@@ -1,4 +1,4 @@
 export class FiveGNetwork {
-  ID: number = 33
+  id: number = 33
   constructor() {}
 }

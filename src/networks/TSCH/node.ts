@@ -1,3 +1,4 @@
+// run as a webworker
 import type {
   ScheduleConfig,
   Cell,

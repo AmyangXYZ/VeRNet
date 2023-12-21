@@ -8,6 +8,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
+import { NODE_TYPE } from '@/networks/typedefs'
 
 export function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
@@ -108,6 +109,20 @@ export function useDrawTopology(dom: HTMLElement) {
   }
 
   let drawnNodes: any = []
+  const drawNodes = () => {
+    drawTSCHNodes()
+    draw5GTower()
+    drawTSNNodes()
+  }
+  const clearNodes = () => {
+    for (const i in drawnNodes) {
+      scene.remove(drawnNodes[i].model)
+      scene.remove(drawnNodes[i].label)
+      scene.remove(drawnNodes[i].dragBox)
+      scene.remove(drawnNodes[i].boxHelper)
+    }
+    drawnNodes = {}
+  }
   const drawTSCHNodes = () => {
     // GLTF Loader
     const loader = new GLTFLoader()
@@ -129,7 +144,7 @@ export function useDrawTopology(dom: HTMLElement) {
       box.getSize(size)
 
       for (const node of Network.Nodes.value) {
-        if (node.id == 0) continue
+        if (node.id == 0 || node.type != NODE_TYPE.TSCH) continue
         let modelGroup: any = {}
 
         const model = modelTemplate.clone()
@@ -139,13 +154,13 @@ export function useDrawTopology(dom: HTMLElement) {
         modelGroup = model
         model.traverse(function (object: any) {
           if (object.isMesh) {
-            object.userData.type = 'TSCH'
+            object.userData.type = NODE_TYPE[node.type]
             object.userData.node_id = node.id
           }
         })
         scene.add(model)
 
-        const label = createLabel(`TSCH-${node.id}`)
+        const label = createLabel(`${NODE_TYPE[node.type]}-${node.id}`)
         label.position.set(model.position.x, 3.5, model.position.z) // Adjust the position as needed
         scene.add(label)
 
@@ -155,7 +170,7 @@ export function useDrawTopology(dom: HTMLElement) {
         )
         dragBox.geometry.translate(0, size.y / 2, 0)
         dragBox.position.copy(model.position)
-        dragBox.userData.type = 'TSCH'
+        dragBox.userData.type = NODE_TYPE[node.type]
         dragBox.userData.node_id = node.id
         dragBox.castShadow = false
         scene.add(dragBox)
@@ -165,18 +180,82 @@ export function useDrawTopology(dom: HTMLElement) {
         boxHelper.visible = false
         boxHelper.castShadow = false
         scene.add(boxHelper)
-        drawnNodes[`TSCH-${node.id}`] = { model, label, modelGroup, dragBox, boxHelper }
+        drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
+          model,
+          label,
+          modelGroup,
+          dragBox,
+          boxHelper
+        }
       }
     })
   }
-  const clearTSCHNodes = () => {
-    for (const i in drawnNodes) {
-      scene.remove(drawnNodes[i].model)
-      scene.remove(drawnNodes[i].label)
-      scene.remove(drawnNodes[i].dragBox)
-      scene.remove(drawnNodes[i].boxHelper)
-    }
-    drawnNodes = {}
+  const drawTSNNodes = () => {
+    // GLTF Loader
+    const loader = new GLTFLoader()
+    loader.load('/models/wi-fi_router/scene.gltf', function (gltf: any) {
+      const modelTemplate = gltf.scene
+
+      modelTemplate.scale.set(1.6, 1.6, 1.6)
+      modelTemplate.rotation.y = -Math.PI / 2
+      modelTemplate.traverse(function (object: any) {
+        if (object.isMesh) {
+          object.castShadow = true // enable shadow casting
+          object.receiveShadow = true
+          object.material.color = new THREE.Color('#999')
+        }
+      })
+
+      const box = new THREE.Box3().setFromObject(modelTemplate)
+      const size = new THREE.Vector3()
+      box.getSize(size)
+
+      for (const node of Network.Nodes.value) {
+        if (node.id == 0 || node.type != NODE_TYPE.TSN) continue
+        let modelGroup: any = {}
+
+        const model = modelTemplate.clone()
+        model.position.x = node.pos[0]
+        model.position.z = node.pos[1]
+        model.position.y = 0
+        modelGroup = model
+        model.traverse(function (object: any) {
+          if (object.isMesh) {
+            object.userData.type = NODE_TYPE[node.type]
+            object.userData.node_id = node.id
+          }
+        })
+        scene.add(model)
+
+        const label = createLabel(`${NODE_TYPE[node.type]}-${node.id}`)
+        label.position.set(model.position.x, 3.5, model.position.z) // Adjust the position as needed
+        scene.add(label)
+
+        const dragBox = new THREE.Mesh(
+          new THREE.BoxGeometry(size.x, size.y, size.z),
+          new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
+        )
+        dragBox.geometry.translate(0, size.y / 2, 0)
+        dragBox.position.copy(model.position)
+        dragBox.userData.type = NODE_TYPE[node.type]
+        dragBox.userData.node_id = node.id
+        dragBox.castShadow = false
+        scene.add(dragBox)
+        objectsToDrag.push(dragBox)
+
+        const boxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
+        boxHelper.visible = false
+        boxHelper.castShadow = false
+        scene.add(boxHelper)
+        drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
+          model,
+          label,
+          modelGroup,
+          dragBox,
+          boxHelper
+        }
+      }
+    })
   }
 
   const draw5GTower = () => {
@@ -198,8 +277,8 @@ export function useDrawTopology(dom: HTMLElement) {
           object.userData.node_id = 1
         }
       })
-      model.position.x = 0
-      model.position.z = 0
+      model.position.x = -10
+      model.position.z = -10
       scene.add(model)
 
       const box = new THREE.Box3().setFromObject(model)
@@ -459,8 +538,8 @@ export function useDrawTopology(dom: HTMLElement) {
   setCamera()
   addLights()
   drawGround()
-  drawTSCHNodes()
-  draw5GTower()
+  drawNodes()
+  // draw5GTower()
   animate()
 
   watch(Network.SlotDone, () => {
@@ -472,10 +551,10 @@ export function useDrawTopology(dom: HTMLElement) {
     }
   })
   watch(Network.SignalReset, () => {
-    clearTSCHNodes()
+    clearNodes()
     clearLinks()
     clearPackets()
-    drawTSCHNodes()
+    drawNodes()
   })
   watch(SignalResetCamera, () => {
     animateCameraPosition({ x: 0, y: 70, z: 80 }, 1000)

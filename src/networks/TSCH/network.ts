@@ -1,47 +1,27 @@
 import { ref, watch, toRaw } from 'vue'
-import type { Ref } from 'vue'
 import type {
   Cell,
-  Message,
-  Packet,
   TSCHNodeMeta,
-  TopologyConfig,
   ScheduleConfig,
-  MsgHandler,
   INIT_MSG_PAYLOAD,
   ASN_MSG_PAYLOAD,
   ASSOC_RSP_PKT_PAYLOAD
 } from './typedefs'
 import { ADDR, MSG_TYPES, PKT_TYPES, CELL_TYPES } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
-import { NODE_TYPE } from '../typedef'
+import { Network, NODE_TYPE } from '../typedefs'
+import type { Packet, Message, MsgHandler } from '../typedefs'
 
-export class TSCHNetwork {
-  ID = 11
-  Nodes = ref<TSCHNodeMeta[]>([])
-  Packets = ref<Packet[]>([])
-  ASN = ref(0)
-  Schedule = ref<Cell[][]>([])
-  TopoConfig: Ref<TopologyConfig>
-  SchConfig: Ref<ScheduleConfig>
-  SignalReset = ref(0)
-  PacketsCurrent = ref<Packet[]>([])
-  SlotDone = ref(true)
-  Running = ref(false)
-  SlotDuration = ref(1000)
+export class TSCHNetwork extends Network {
   asnTimer = 0
   doneCnt = 0
 
   msgHandlers: { [type: number]: MsgHandler } = {}
 
   constructor() {
+    super()
     this.SlotDuration.value = 500
-    this.TopoConfig = ref<TopologyConfig>({
-      seed: 9,
-      num_nodes: 20,
-      grid_size: 80,
-      tx_range: 25
-    })
+    this.Schedule = ref<Cell[][]>([])
     this.SchConfig = ref<ScheduleConfig>({
       num_slots: 40,
       num_channels: 8,
@@ -158,6 +138,7 @@ export class TSCHNetwork {
   }
 
   createNodes = () => {
+    this.Nodes = ref<TSCHNodeMeta[]>([])
     const rand = new SeededRandom(this.TopoConfig.value.seed)
 
     // clear old nodes
@@ -318,7 +299,7 @@ export class TSCHNetwork {
       // check conflict
       if (
         this.Schedule.value[slot].filter(
-          (x) =>
+          (x: any) =>
             x.src == src ||
             x.src == dst ||
             x.dst == src ||

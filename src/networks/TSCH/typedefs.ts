@@ -1,20 +1,11 @@
 // all types and enums here
 
-import type { NodeMeta } from '../typedef'
-
-export interface TopologyConfig {
-  seed: number
-  num_nodes: number
-  grid_size: number
-  tx_range: number
-}
-
-export type MsgHandler = (msg: Message) => void
-export type PktHandler = (pkt: Packet) => void
+import type { NodeMeta } from '../typedefs'
 
 export interface TSCHNodeMeta extends NodeMeta {
   joined: boolean
   parent: number
+  queueLen: number
   rank: number
 }
 
@@ -42,14 +33,6 @@ export enum CELL_TYPES {
   DATA
 }
 
-// Message is used for direct communication (debug, cmd, stats) between nodes and controller
-export interface Message {
-  type: number
-  src: number
-  dst: number
-  payload: any
-}
-
 export enum MSG_TYPES {
   INIT,
   ASN,
@@ -67,27 +50,6 @@ export interface INIT_MSG_PAYLOAD {
   id: number
   pos: number[]
   sch_config: ScheduleConfig
-}
-
-// Packet is transfered among nodes, at data-link layer
-export interface Packet {
-  uid: number
-  type: number
-  ch: number
-  src: number
-  dst: number
-  seq: number
-  asn: number
-  len: number
-  payload: any
-
-  // callback function when the packet is successfully tranmistted
-  // (received ack)
-  callback: () => void | undefined
-
-  // for display on packet sniffer
-  id: number
-  children: any
 }
 
 export enum ADDR {
