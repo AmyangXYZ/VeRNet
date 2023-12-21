@@ -18,6 +18,7 @@ export interface ScheduleConfig {
   shared_channel: number
 }
 
+
 // basic unit of the communication schedule
 export interface Cell {
   type: number
