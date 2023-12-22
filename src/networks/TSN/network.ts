@@ -1,11 +1,12 @@
 import { ref } from 'vue'
-import { Network, NODE_TYPE } from '../common'
+import { Network, NetworkType, NODE_TYPE } from '../common'
 import type { ScheduleConfig, TSNNodeMeta } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
 
 export class TSNNetwork extends Network {
   constructor() {
     super()
+    this.Type = NetworkType.TSN
     // this.Schedule = ref<Cell[][]>([])
     this.SchConfig = ref<ScheduleConfig>({
       num_slots: 40
@@ -27,7 +28,7 @@ export class TSNNetwork extends Network {
     this.Nodes.value = [
       <TSNNodeMeta>{
         id: 0,
-        type: NODE_TYPE.TSCH,
+        type: NODE_TYPE.TSN,
         pos: [0, 0],
         neighbors: [],
         queueLen: 0,

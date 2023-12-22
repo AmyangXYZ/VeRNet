@@ -1,7 +1,8 @@
 import { ref, type Ref } from 'vue'
 
 export class Network {
-  id: number
+  ID: number
+  Type: number
   Nodes: any
   EndSystems: any
   TopoConfig: Ref<TopologyConfig>
@@ -11,13 +12,15 @@ export class Network {
   ASN = ref(0)
   asnTimer = 0
   PacketsCurrent = ref<Packet[]>([])
+
   SignalReset = ref(0)
   SlotDone = ref(true)
   Running = ref(false)
   SlotDuration = ref(1000)
-  
+
   constructor() {
-    this.id = 1
+    this.ID = 1
+    this.Type = -1
     this.TopoConfig = ref<TopologyConfig>({
       seed: 1,
       num_nodes: 10,
@@ -28,7 +31,6 @@ export class Network {
     this.createEndSystems()
   }
   createEndSystems = () => {}
-
 
   Run = () => {
     this.Step()
@@ -53,11 +55,18 @@ export class Network {
   }
 }
 
-export enum NODE_TYPE {
-  FiveGTower,
+export enum NetworkType {
   TSCH,
   TSN,
-  ES
+  FiveG
+}
+
+export enum NODE_TYPE {
+  TSCH,
+  TSN,
+  FiveGBS,
+  FiveGUE,
+  EndSystem
 }
 
 export interface NodeMeta {

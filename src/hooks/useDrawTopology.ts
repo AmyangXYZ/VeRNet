@@ -8,7 +8,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
-import { NODE_TYPE } from '@/networks/common'
+import { NODE_TYPE, NetworkType } from '@/networks/common'
 
 export function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
@@ -110,9 +110,19 @@ export function useDrawTopology(dom: HTMLElement) {
 
   let drawnNodes: any = []
   const drawNodes = () => {
-    drawTSCHNodes()
-    // draw5GTower()
-    drawTSNNodes()
+    switch (Network.Type) {
+      case NetworkType.TSCH:
+        drawTSCHNodes()
+        break
+      case NetworkType.TSN:
+        drawTSNNodes()
+        break
+      case NetworkType.FiveG:
+        drawFiveGBS()
+        drawFiveGUE()
+        break
+    }
+
     drawEndSystems()
   }
   const clearNodes = () => {
@@ -259,7 +269,11 @@ export function useDrawTopology(dom: HTMLElement) {
     })
   }
 
-  const draw5GTower = () => {
+  const drawFiveGBS = () => {
+    if (Network.Nodes.value.length == 0) {
+      return
+    }
+    const node = Network.Nodes.value[0]
     // GLTF Loader
     const loader = new GLTFLoader()
     loader.load('/models/5_five_g_tower/scene.gltf', function (gltf: any) {
@@ -274,19 +288,19 @@ export function useDrawTopology(dom: HTMLElement) {
           object.castShadow = true // enable shadow casting
           object.receiveShadow = true
           object.material.color = new THREE.Color('#666')
-          object.userData.type = 'FiveG'
-          object.userData.node_id = 1
+          object.userData.type = NODE_TYPE[node.type]
+          object.userData.node_id = 0
         }
       })
-      model.position.x = -10
-      model.position.z = -10
+      model.position.x = node.pos[0]
+      model.position.z = node.pos[1]
       scene.add(model)
 
       const box = new THREE.Box3().setFromObject(model)
       const size = new THREE.Vector3()
       box.getSize(size)
 
-      const label = createLabel(`5G-Tower-1`)
+      const label = createLabel(`5G-BS-1`)
       label.position.set(model.position.x, size.y + 1, model.position.z) // Adjust the position as needed
       scene.add(label)
 
@@ -296,8 +310,8 @@ export function useDrawTopology(dom: HTMLElement) {
       )
       dragBox.geometry.translate(0, size.y / 2, 0)
       dragBox.position.copy(modelGroup.position)
-      dragBox.userData.type = 'FiveG'
-      dragBox.userData.node_id = '1'
+      dragBox.userData.type = NODE_TYPE[node.type]
+      dragBox.userData.node_id = node.id
       scene.add(dragBox)
       objectsToDrag.push(dragBox)
 
@@ -305,13 +319,85 @@ export function useDrawTopology(dom: HTMLElement) {
       boxHelper.visible = false
       boxHelper.castShadow = false
       scene.add(boxHelper)
-      drawnNodes['5G-1'] = { model, label, modelGroup, dragBox, boxHelper }
+      drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
+        model,
+        label,
+        modelGroup,
+        dragBox,
+        boxHelper
+      }
     })
   }
 
-  const drawEndSystems = ()=>{
-    
+  const drawFiveGUE = () => {
+    // GLTF Loader
+    const loader = new GLTFLoader()
+    loader.load('/models/wi-fi_router/scene.gltf', function (gltf: any) {
+      const modelTemplate = gltf.scene
+
+      modelTemplate.scale.set(1.6, 1.6, 1.6)
+      modelTemplate.rotation.y = -Math.PI / 2
+      modelTemplate.traverse(function (object: any) {
+        if (object.isMesh) {
+          object.castShadow = true // enable shadow casting
+          object.receiveShadow = true
+          object.material.color = new THREE.Color('#999')
+        }
+      })
+
+      const box = new THREE.Box3().setFromObject(modelTemplate)
+      const size = new THREE.Vector3()
+      box.getSize(size)
+
+      for (const node of Network.Nodes.value) {
+        if (node.id == 0 || node.type != NODE_TYPE.FiveGUE) continue
+        let modelGroup: any = {}
+
+        const model = modelTemplate.clone()
+        model.position.x = node.pos[0]
+        model.position.z = node.pos[1]
+        model.position.y = 0
+        modelGroup = model
+        model.traverse(function (object: any) {
+          if (object.isMesh) {
+            object.userData.type = NODE_TYPE[node.type]
+            object.userData.node_id = node.id
+          }
+        })
+        scene.add(model)
+
+        const label = createLabel(`UE-${node.id}`)
+        label.position.set(model.position.x, 3.5, model.position.z) // Adjust the position as needed
+        scene.add(label)
+
+        const dragBox = new THREE.Mesh(
+          new THREE.BoxGeometry(size.x, size.y, size.z),
+          new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
+        )
+        dragBox.geometry.translate(0, size.y / 2, 0)
+        dragBox.position.copy(model.position)
+        dragBox.userData.type = NODE_TYPE[node.type]
+        dragBox.userData.node_id = node.id
+        dragBox.castShadow = false
+        scene.add(dragBox)
+        objectsToDrag.push(dragBox)
+
+        const boxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
+        boxHelper.visible = false
+        boxHelper.castShadow = false
+        scene.add(boxHelper)
+        drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
+          model,
+          label,
+          modelGroup,
+          dragBox,
+          boxHelper
+        }
+      }
+    })
   }
+
+  const drawEndSystems = () => {}
 
   let drawnLinks: any = {}
   const drawLinks = () => {

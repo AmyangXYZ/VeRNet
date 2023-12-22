@@ -9,7 +9,7 @@ import type {
 } from './typedefs'
 import { ADDR, MSG_TYPES, PKT_TYPES, CELL_TYPES } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
-import { Network, NODE_TYPE } from '../common'
+import { Network, NetworkType, NODE_TYPE } from '../common'
 import type { Packet, Message, MsgHandler } from '../common'
 
 export class TSCHNetwork extends Network {
@@ -20,6 +20,7 @@ export class TSCHNetwork extends Network {
 
   constructor() {
     super()
+    this.Type = NetworkType.TSCH
     this.SlotDuration.value = 500
     this.Schedule = ref<Cell[][]>([])
     this.SchConfig = ref<ScheduleConfig>({
