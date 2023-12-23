@@ -397,7 +397,9 @@ export function useDrawTopology(dom: HTMLElement) {
     })
   }
 
-  const drawEndSystems = () => {}
+  const drawEndSystems = () => {
+    // TODO: draw end systems
+  }
 
   let drawnLinks: any = {}
   const drawLinks = () => {
@@ -630,7 +632,7 @@ export function useDrawTopology(dom: HTMLElement) {
   addLights()
   drawGround()
   drawNodes()
-  // draw5GTower()
+//   draw5GTower()
   animate()
 
   watch(Network.SlotDone, () => {
