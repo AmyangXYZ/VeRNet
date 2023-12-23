@@ -108,7 +108,7 @@ export function useDrawTopology(dom: HTMLElement) {
     return sprite
   }
 
-  let drawnNodes: {[name:string]:any} = {}
+  let drawnNodes: { [name: string]: any } = {}
   const drawNodes = () => {
     switch (Network.Type) {
       case NetworkType.TSCH:
@@ -596,21 +596,6 @@ export function useDrawTopology(dom: HTMLElement) {
       b.mesh.scale.set(scale, scale, scale)
     }
 
-    // show dragbox helper
-    if (SignalEditTopology.value) {
-      for (const node of Object.values(drawnNodes)) {
-        node.modelGroup.position.copy(node.dragBox.position)
-        node.dragBoxHelper.update()
-        if (node.label != undefined) {
-          node.label.position.set(
-            node.dragBox.position.x,
-            node.label.position.y,
-            node.dragBox.position.z
-          )
-        }
-      }
-    }
-
     requestAnimationFrame(animate)
     TWEEN.update()
     controls.update()
@@ -651,6 +636,7 @@ export function useDrawTopology(dom: HTMLElement) {
       dragControls.deactivate()
     }
     for (const node of Object.values(drawnNodes)) {
+      node.dragBox.visible = !node.dragBoxHelper.visible
       node.dragBoxHelper.visible = !node.dragBoxHelper.visible
     }
   })
@@ -714,8 +700,10 @@ export function useDrawTopology(dom: HTMLElement) {
     controls.enabled = true
   })
   dragControls.addEventListener('drag', function (event) {
+    // snap to ground
     event.object.position.y = 0
-    if (event.object.userData.type == 'TSCH') {
+
+    if (NODE_TYPE[event.object.userData.type] != undefined) {
       Network.Nodes.value[event.object.userData.node_id].pos = [
         event.object.position.x,
         event.object.position.z
@@ -729,9 +717,22 @@ export function useDrawTopology(dom: HTMLElement) {
         clearPacket(pkt.uid)
         drawUnicastPacket(pkt)
       }
-      if (relatedBeaconPacket!=undefined) {
+      if (relatedBeaconPacket != undefined) {
         clearPacket(relatedBeaconPacket.uid)
         drawBeaconPacket(relatedBeaconPacket)
+      }
+    }
+
+    // update dragbox and model
+    for (const node of Object.values(drawnNodes)) {
+      node.modelGroup.position.copy(node.dragBox.position)
+      node.dragBoxHelper.update()
+      if (node.label != undefined) {
+        node.label.position.set(
+          node.dragBox.position.x,
+          node.label.position.y,
+          node.dragBox.position.z
+        )
       }
     }
   })
