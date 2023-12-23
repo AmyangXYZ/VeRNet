@@ -8,7 +8,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
-import { NODE_TYPE, NetworkType } from '@/networks/common'
+import { NODE_TYPE, NetworkType, type Packet } from '@/networks/common'
 
 export function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
@@ -108,7 +108,7 @@ export function useDrawTopology(dom: HTMLElement) {
     return sprite
   }
 
-  let drawnNodes: any = []
+  let drawnNodes: {[name:string]:any} = {}
   const drawNodes = () => {
     switch (Network.Type) {
       case NetworkType.TSCH:
@@ -126,11 +126,11 @@ export function useDrawTopology(dom: HTMLElement) {
     drawEndSystems()
   }
   const clearNodes = () => {
-    for (const i in drawnNodes) {
-      scene.remove(drawnNodes[i].model)
-      scene.remove(drawnNodes[i].label)
-      scene.remove(drawnNodes[i].dragBox)
-      scene.remove(drawnNodes[i].dragBoxHelper)
+    for (const node of Object.values(drawnNodes)) {
+      scene.remove(node.model)
+      scene.remove(node.label)
+      scene.remove(node.dragBox)
+      scene.remove(node.dragBoxHelper)
     }
     drawnNodes = {}
   }
@@ -240,7 +240,6 @@ export function useDrawTopology(dom: HTMLElement) {
       }
     })
   }
-
   const drawFiveGBS = () => {
     if (Network.Nodes.value.length == 0) {
       return
@@ -287,7 +286,6 @@ export function useDrawTopology(dom: HTMLElement) {
       }
     })
   }
-
   const drawFiveGUE = () => {
     // GLTF Loader
     const loader = new GLTFLoader()
@@ -394,122 +392,143 @@ export function useDrawTopology(dom: HTMLElement) {
       new THREE.LineBasicMaterial({ color: 'white' })
     )
     scene.add(mesh)
-    drawnLinks[uid] = { mesh, v1, v2 }
+    drawnLinks[uid] = { mesh, uid, v1, v2 }
+  }
+  const clearLink = (uid: number) => {
+    scene.remove(drawnLinks[uid].mesh)
+    drawnLinks[uid].mesh.geometry.dispose()
+    drawnLinks[uid].mesh.material.dispose()
+    drawnLinks[uid] = undefined
   }
   const clearLinks = () => {
-    for (const i in drawnLinks) {
-      scene.remove(drawnLinks[i].mesh)
-      drawnLinks[i].mesh.geometry.dispose()
-      drawnLinks[i].mesh.material.dispose()
+    for (const l of Object.values(drawnLinks)) {
+      scene.remove(l.mesh)
+      l.mesh.geometry.dispose()
+      l.mesh.material.dispose()
     }
     drawnLinks = {}
   }
 
-  let drawnUnicastPackets: any = []
-  let drawnBeaconPackets: any = []
+  let drawnUnicastPackets: { [uid: number]: any } = {}
+  let drawnBeaconPackets: { [uid: number]: any } = {}
   const drawPackets = () => {
-    time = 0
+    time = 0 // reset animation timer
     for (const pkt of Network.PacketsCurrent.value) {
       if (pkt.type != PKT_TYPES.ACK && pkt.dst != ADDR.BROADCAST) {
-        // for trail
-        const geometry = new THREE.BufferGeometry()
-        const material = new THREE.ShaderMaterial({
-          uniforms: {
-            color: { value: new THREE.Color('white') }
-          },
-          vertexShader: `
-            attribute float size;
-            varying vec3 vColor;
-            void main() {
-              vColor = color;
-              vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-              gl_PointSize = size * ( 300.0 / -mvPosition.z );
-              gl_Position = projectionMatrix * mvPosition;
-            }
-          `,
-          fragmentShader: `
-            uniform vec3 color;
-            uniform sampler2D pointTexture;
-            varying vec3 vColor;
-            void main() {
-              gl_FragColor = vec4( color * vColor, 1.0 );
-            }
-          `,
-          blending: THREE.AdditiveBlending,
-          depthTest: false,
-          transparent: true,
-          vertexColors: true
-        })
-
-        const mesh = new THREE.Points(geometry, material)
-        scene.add(mesh)
-
-        const p1 = new THREE.Vector3(
-          Network.Nodes.value[pkt.src].pos[0],
-          1.6,
-          Network.Nodes.value[pkt.src].pos[1]
-        )
-        const p3 = new THREE.Vector3(
-          Network.Nodes.value[pkt.dst].pos[0],
-          1.6,
-          Network.Nodes.value[pkt.dst].pos[1]
-        )
-        const x2 = (p1.x + p3.x) / 2
-        const z2 = (p1.z + p3.z) / 2
-        const h = 5
-        const p2 = new THREE.Vector3(x2, h, z2)
-        const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
-
-        const positions: any = []
-        drawnUnicastPackets.push({ mesh, curve, positions, src: pkt.src, dst: pkt.dst })
+        drawUnicastPacket(pkt)
       } else if (pkt.type == PKT_TYPES.BEACON) {
-        // const geometry = new THREE.TorusGeometry(Network.TopoConfig.value.tx_range, 0.08, 16, 64)
-        const geometry = new THREE.SphereGeometry(
-          Network.TopoConfig.value.tx_range,
-          32,
-          32,
-          0,
-          Math.PI,
-          0,
-          -Math.PI
-        )
-        const material = new THREE.MeshBasicMaterial({
-          color: 'skyblue',
-          opacity: 0.33,
-          transparent: true,
-          // map: texture, To-do: add texture
-          side: THREE.DoubleSide
-        })
-        const mesh = new THREE.Mesh(geometry, material)
-        mesh.rotation.x = Math.PI / 2
-        mesh.position.set(
-          Network.Nodes.value[pkt.src].pos[0],
-          .5,
-          Network.Nodes.value[pkt.src].pos[1]
-        )
-        scene.add(mesh)
-
-        drawnBeaconPackets.push({ mesh, src: pkt.src, dst: pkt.dst })
+        drawBeaconPacket(pkt)
       }
     }
   }
+  const drawUnicastPacket = (pkt: Packet) => {
+    const geometry = new THREE.BufferGeometry()
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        color: { value: new THREE.Color('white') }
+      },
+      vertexShader: `
+        attribute float size;
+        varying vec3 vColor;
+        void main() {
+          vColor = color;
+          vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+          gl_PointSize = size * ( 300.0 / -mvPosition.z );
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 color;
+        uniform sampler2D pointTexture;
+        varying vec3 vColor;
+        void main() {
+          gl_FragColor = vec4( color * vColor, 1.0 );
+        }
+      `,
+      blending: THREE.AdditiveBlending,
+      depthTest: false,
+      transparent: true,
+      vertexColors: true
+    })
+
+    const mesh = new THREE.Points(geometry, material)
+    scene.add(mesh)
+
+    const p1 = new THREE.Vector3(
+      Network.Nodes.value[pkt.src].pos[0],
+      1.6,
+      Network.Nodes.value[pkt.src].pos[1]
+    )
+    const p3 = new THREE.Vector3(
+      Network.Nodes.value[pkt.dst].pos[0],
+      1.6,
+      Network.Nodes.value[pkt.dst].pos[1]
+    )
+    const x2 = (p1.x + p3.x) / 2
+    const z2 = (p1.z + p3.z) / 2
+    const h = 5
+    const p2 = new THREE.Vector3(x2, h, z2)
+
+    drawnUnicastPackets[pkt.uid] = {
+      mesh,
+      curve: new THREE.QuadraticBezierCurve3(p1, p2, p3),
+      positions: [],
+      uid: pkt.uid,
+      src: pkt.src,
+      dst: pkt.dst
+    }
+  }
+  const drawBeaconPacket = (pkt: Packet) => {
+    const geometry = new THREE.SphereGeometry(
+      Network.TopoConfig.value.tx_range,
+      32,
+      32,
+      0,
+      Math.PI,
+      0,
+      -Math.PI
+    )
+    const material = new THREE.MeshBasicMaterial({
+      color: 'skyblue',
+      opacity: 0.33,
+      transparent: true,
+      // map: texture, To-do: add texture
+      side: THREE.DoubleSide
+    })
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.rotation.x = Math.PI / 2
+    mesh.position.set(Network.Nodes.value[pkt.src].pos[0], 0.5, Network.Nodes.value[pkt.src].pos[1])
+    scene.add(mesh)
+    drawnBeaconPackets[pkt.uid] = { mesh, uid: pkt.uid, src: pkt.src, dst: pkt.dst }
+  }
+  const clearPacket = (uid: number) => {
+    if (drawnUnicastPackets[uid] != undefined) {
+      scene.remove(drawnUnicastPackets[uid].mesh)
+      drawnUnicastPackets[uid].mesh.geometry.dispose()
+      drawnUnicastPackets[uid].mesh.material.dispose()
+    }
+
+    if (drawnBeaconPackets[uid] != undefined) {
+      scene.remove(drawnBeaconPackets[uid].mesh)
+      drawnBeaconPackets[uid].mesh.geometry.dispose()
+      drawnBeaconPackets[uid].mesh.material.dispose()
+    }
+  }
+
   const clearPackets = () => {
-    if (drawnUnicastPackets.length > 0) {
-      for (const u of drawnUnicastPackets) {
-        scene.remove(u.mesh)
-        u.mesh.geometry.dispose()
-        u.mesh.material.dispose()
-      }
-      drawnUnicastPackets = []
+    for (const u of Object.values(drawnUnicastPackets)) {
+      scene.remove(u.mesh)
+      u.mesh.geometry.dispose()
+      u.mesh.material.dispose()
     }
-    if (drawnBeaconPackets.length > 0) {
-      for (const b of drawnBeaconPackets) {
-        scene.remove(b.mesh)
-        b.mesh.geometry.dispose()
-        b.mesh.material.dispose()
-      }
-      drawnBeaconPackets = []
+    drawnUnicastPackets = {}
+
+    for (const b of Object.values(drawnBeaconPackets)) {
+      scene.remove(b.mesh)
+      b.mesh.geometry.dispose()
+      b.mesh.material.dispose()
     }
+    drawnBeaconPackets = []
   }
 
   const animateCameraPosition = (targetPosition: any, duration: any) => {
@@ -523,7 +542,6 @@ export function useDrawTopology(dom: HTMLElement) {
       .easing(TWEEN.Easing.Quadratic.Out)
       .start()
   }
-
   const animatePanPosition = (targetPosition: any, duration: any) => {
     const position = { x: controls.target.x, y: controls.target.y, z: controls.target.z }
     new TWEEN.Tween(position)
@@ -543,13 +561,14 @@ export function useDrawTopology(dom: HTMLElement) {
     const delta = clock.getDelta()
     time += speed * delta
     time = time >= 1 ? 0 : time
-    for (const u of drawnUnicastPackets) {
+
+    // unicast
+    for (const u of Object.values(drawnUnicastPackets)) {
       if (time == 0) {
         u.positions = []
       }
       const point = u.curve.getPoint(time)
 
-      // make it dense
       if (u.positions.length > 0) {
         const lastPosition = u.positions[0]
         for (let t = 0.1; t < 1; t += 0.1) {
@@ -566,18 +585,20 @@ export function useDrawTopology(dom: HTMLElement) {
 
       const sizes = []
       for (let i = 0; i < u.positions.length; i++) {
-        sizes[i] = (1 - i / u.positions.length) * 1.2
+        sizes[i] = (1 - i / u.positions.length) * 1.5
       }
       u.mesh.geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1))
     }
+
+    // beacon
     const scale = -(Math.cos(Math.PI * time) - 1) / 2
-    for (const b of drawnBeaconPackets) {
+    for (const b of Object.values(drawnBeaconPackets)) {
       b.mesh.scale.set(scale, scale, scale)
     }
 
+    // show dragbox helper
     if (SignalEditTopology.value) {
-      for (const i in drawnNodes) {
-        const node = drawnNodes[i]
+      for (const node of Object.values(drawnNodes)) {
         node.modelGroup.position.copy(node.dragBox.position)
         node.dragBoxHelper.update()
         if (node.label != undefined) {
@@ -629,8 +650,7 @@ export function useDrawTopology(dom: HTMLElement) {
     } else {
       dragControls.deactivate()
     }
-    for (const i in drawnNodes) {
-      const node = drawnNodes[i]
+    for (const node of Object.values(drawnNodes)) {
       node.dragBoxHelper.visible = !node.dragBoxHelper.visible
     }
   })
@@ -668,19 +688,19 @@ export function useDrawTopology(dom: HTMLElement) {
   dragControls.addEventListener('dragstart', function (event) {
     if (event.object.userData.type == 'TSCH') {
       const node = event.object.userData.node_id
-      for (const i in drawnLinks) {
-        if (drawnLinks[i].src == node || drawnLinks[i].dst == node) {
-          relatedLinks.push(drawnLinks[i])
+      for (const l of Object.values(drawnLinks)) {
+        if (l.v1 == node || l.v2 == node) {
+          relatedLinks.push(l)
         }
       }
-      for (const i in drawnUnicastPackets) {
-        if (drawnUnicastPackets[i].src == node || drawnUnicastPackets[i].dst == node) {
-          relatedUnicastPackets.push(drawnBeaconPackets[i])
+      for (const u of Object.values(drawnUnicastPackets)) {
+        if (u.src == node || u.dst == node) {
+          relatedUnicastPackets.push(u)
         }
       }
-      for (const i in drawnBeaconPackets) {
-        if (drawnBeaconPackets[i].src == node) {
-          relatedBeaconPacket = drawnBeaconPackets[i]
+      for (const b of Object.values(drawnBeaconPackets)) {
+        if (b.src == node) {
+          relatedBeaconPacket = b
           break
         }
       }
@@ -700,16 +720,18 @@ export function useDrawTopology(dom: HTMLElement) {
         event.object.position.x,
         event.object.position.z
       ]
-      // Todo: update position of related unicast packets and links
-      // for (const link of relatedLinks) {
-      //   link.mesh.geometry.attributes.position.array[0] = event.object.position.x;
-      //   link.mesh.geometry.attributes.position.array[1] = event.object.position.y;
-      //   link.mesh.geometry.attributes.position.array[2] = event.object.position.z;
-      //   link.mesh.geometry.attributes.position.needsUpdate = true;
-      // }
-      if (relatedBeaconPacket != undefined) {
-        relatedBeaconPacket.mesh.position.x = event.object.position.x
-        relatedBeaconPacket.mesh.position.z = event.object.position.z
+
+      for (const link of relatedLinks) {
+        clearLink(link.uid)
+        drawLink(link.uid, link.v1, link.v2)
+      }
+      for (const pkt of relatedUnicastPackets) {
+        clearPacket(pkt.uid)
+        drawUnicastPacket(pkt)
+      }
+      if (relatedBeaconPacket!=undefined) {
+        clearPacket(relatedBeaconPacket.uid)
+        drawBeaconPacket(relatedBeaconPacket)
       }
     }
   })
