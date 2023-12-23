@@ -20,7 +20,6 @@ export class TSCHNetwork extends Network {
   constructor() {
     super()
     this.Type = NetworkType.TSCH
-    this.SlotDuration.value = 500
     this.Schedule = ref<Cell[][]>([])
     this.SchConfig = ref<ScheduleConfig>({
       num_slots: 40,

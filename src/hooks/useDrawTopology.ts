@@ -130,7 +130,7 @@ export function useDrawTopology(dom: HTMLElement) {
       scene.remove(drawnNodes[i].model)
       scene.remove(drawnNodes[i].label)
       scene.remove(drawnNodes[i].dragBox)
-      scene.remove(drawnNodes[i].boxHelper)
+      scene.remove(drawnNodes[i].dragBoxHelper)
     }
     drawnNodes = {}
   }
@@ -175,28 +175,14 @@ export function useDrawTopology(dom: HTMLElement) {
         label.position.set(model.position.x, 3.5, model.position.z) // Adjust the position as needed
         scene.add(label)
 
-        const dragBox = new THREE.Mesh(
-          new THREE.BoxGeometry(size.x, size.y, size.z),
-          new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
-        )
-        dragBox.geometry.translate(0, size.y / 2, 0)
-        dragBox.position.copy(model.position)
-        dragBox.userData.type = NODE_TYPE[node.type]
-        dragBox.userData.node_id = node.id
-        dragBox.castShadow = false
-        scene.add(dragBox)
-        objectsToDrag.push(dragBox)
+        const { dragBox, dragBoxHelper } = createDragBox(node, model)
 
-        const boxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
-        boxHelper.visible = false
-        boxHelper.castShadow = false
-        scene.add(boxHelper)
         drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
           model,
           label,
           modelGroup,
           dragBox,
-          boxHelper
+          dragBoxHelper
         }
       }
     })
@@ -242,28 +228,14 @@ export function useDrawTopology(dom: HTMLElement) {
         label.position.set(model.position.x, 3.5, model.position.z) // Adjust the position as needed
         scene.add(label)
 
-        const dragBox = new THREE.Mesh(
-          new THREE.BoxGeometry(size.x, size.y, size.z),
-          new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
-        )
-        dragBox.geometry.translate(0, size.y / 2, 0)
-        dragBox.position.copy(model.position)
-        dragBox.userData.type = NODE_TYPE[node.type]
-        dragBox.userData.node_id = node.id
-        dragBox.castShadow = false
-        scene.add(dragBox)
-        objectsToDrag.push(dragBox)
+        const { dragBox, dragBoxHelper } = createDragBox(node, model)
 
-        const boxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
-        boxHelper.visible = false
-        boxHelper.castShadow = false
-        scene.add(boxHelper)
         drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
           model,
           label,
           modelGroup,
           dragBox,
-          boxHelper
+          dragBoxHelper
         }
       }
     })
@@ -304,27 +276,14 @@ export function useDrawTopology(dom: HTMLElement) {
       label.position.set(model.position.x, size.y + 1, model.position.z) // Adjust the position as needed
       scene.add(label)
 
-      const dragBox = new THREE.Mesh(
-        new THREE.BoxGeometry(size.x, size.y, size.z),
-        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
-      )
-      dragBox.geometry.translate(0, size.y / 2, 0)
-      dragBox.position.copy(modelGroup.position)
-      dragBox.userData.type = NODE_TYPE[node.type]
-      dragBox.userData.node_id = node.id
-      scene.add(dragBox)
-      objectsToDrag.push(dragBox)
+      const { dragBox, dragBoxHelper } = createDragBox(node, model)
 
-      const boxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
-      boxHelper.visible = false
-      boxHelper.castShadow = false
-      scene.add(boxHelper)
       drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
         model,
         label,
         modelGroup,
         dragBox,
-        boxHelper
+        dragBoxHelper
       }
     })
   }
@@ -344,10 +303,6 @@ export function useDrawTopology(dom: HTMLElement) {
           object.material.color = new THREE.Color('#999')
         }
       })
-
-      const box = new THREE.Box3().setFromObject(modelTemplate)
-      const size = new THREE.Vector3()
-      box.getSize(size)
 
       for (const node of Network.Nodes.value) {
         if (node.id == 0 || node.type != NODE_TYPE.FiveGUE) continue
@@ -370,33 +325,41 @@ export function useDrawTopology(dom: HTMLElement) {
         label.position.set(model.position.x, 3.5, model.position.z) // Adjust the position as needed
         scene.add(label)
 
-        const dragBox = new THREE.Mesh(
-          new THREE.BoxGeometry(size.x, size.y, size.z),
-          new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
-        )
-        dragBox.geometry.translate(0, size.y / 2, 0)
-        dragBox.position.copy(model.position)
-        dragBox.userData.type = NODE_TYPE[node.type]
-        dragBox.userData.node_id = node.id
-        dragBox.castShadow = false
-        scene.add(dragBox)
-        objectsToDrag.push(dragBox)
+        const { dragBox, dragBoxHelper } = createDragBox(node, model)
 
-        const boxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
-        boxHelper.visible = false
-        boxHelper.castShadow = false
-        scene.add(boxHelper)
         drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
           model,
           label,
           modelGroup,
           dragBox,
-          boxHelper
+          dragBoxHelper
         }
       }
     })
   }
+  const createDragBox = (node: any, model: any): any => {
+    const box = new THREE.Box3().setFromObject(model)
+    const size = new THREE.Vector3()
+    box.getSize(size)
+    const dragBox = new THREE.Mesh(
+      new THREE.BoxGeometry(size.x, size.y, size.z),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
+    )
+    dragBox.geometry.translate(0, size.y / 2, 0)
+    dragBox.position.copy(model.position)
+    dragBox.userData.type = NODE_TYPE[node.type]
+    dragBox.userData.node_id = node.id
+    dragBox.castShadow = false
+    dragBox.visible = false
+    scene.add(dragBox)
+    objectsToDrag.push(dragBox)
 
+    const dragBoxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
+    dragBoxHelper.visible = false
+    dragBoxHelper.castShadow = false
+    scene.add(dragBoxHelper)
+    return { dragBox, dragBoxHelper }
+  }
   const drawEndSystems = () => {}
 
   let drawnLinks: { [uid: number]: any } = {}
@@ -500,16 +463,28 @@ export function useDrawTopology(dom: HTMLElement) {
         const positions: any = []
         drawnUnicastPackets.push({ mesh, curve, positions, src: pkt.src, dst: pkt.dst })
       } else if (pkt.type == PKT_TYPES.BEACON) {
-        const geometry = new THREE.TorusGeometry(Network.TopoConfig.value.tx_range, 0.08, 16, 64)
+        // const geometry = new THREE.TorusGeometry(Network.TopoConfig.value.tx_range, 0.08, 16, 64)
+        const geometry = new THREE.SphereGeometry(
+          Network.TopoConfig.value.tx_range,
+          32,
+          32,
+          0,
+          Math.PI,
+          0,
+          -Math.PI
+        )
         const material = new THREE.MeshBasicMaterial({
-          color: 'white',
+          color: 'skyblue',
+          opacity: 0.33,
+          transparent: true,
+          // map: texture, To-do: add texture
           side: THREE.DoubleSide
         })
         const mesh = new THREE.Mesh(geometry, material)
         mesh.rotation.x = Math.PI / 2
         mesh.position.set(
           Network.Nodes.value[pkt.src].pos[0],
-          1.6,
+          .5,
           Network.Nodes.value[pkt.src].pos[1]
         )
         scene.add(mesh)
@@ -598,14 +573,13 @@ export function useDrawTopology(dom: HTMLElement) {
     const scale = -(Math.cos(Math.PI * time) - 1) / 2
     for (const b of drawnBeaconPackets) {
       b.mesh.scale.set(scale, scale, scale)
-      b.mesh.position.y = 5 * time + 1.6
     }
 
     if (SignalEditTopology.value) {
       for (const i in drawnNodes) {
         const node = drawnNodes[i]
         node.modelGroup.position.copy(node.dragBox.position)
-        node.boxHelper.update()
+        node.dragBoxHelper.update()
         if (node.label != undefined) {
           node.label.position.set(
             node.dragBox.position.x,
@@ -623,12 +597,12 @@ export function useDrawTopology(dom: HTMLElement) {
     stats.update()
   }
 
+  // main
   setCamera()
   addLights()
   drawGround()
   drawNodes()
   drawLinks()
-  // draw5GTower()
   animate()
 
   watch(Network.SlotDone, () => {
@@ -657,7 +631,7 @@ export function useDrawTopology(dom: HTMLElement) {
     }
     for (const i in drawnNodes) {
       const node = drawnNodes[i]
-      node.boxHelper.visible = !node.boxHelper.visible
+      node.dragBoxHelper.visible = !node.dragBoxHelper.visible
     }
   })
 

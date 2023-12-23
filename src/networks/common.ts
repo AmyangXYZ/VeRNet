@@ -17,7 +17,7 @@ export class Network {
   SignalReset = ref(0)
   SlotDone = ref(true)
   Running = ref(false)
-  SlotDuration = ref(1000)
+  SlotDuration = ref(750)
 
   constructor() {
     this.ID = 1
