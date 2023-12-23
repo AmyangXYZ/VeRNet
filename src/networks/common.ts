@@ -4,6 +4,7 @@ export class Network {
   ID: number
   Type: number
   Nodes: any
+  Links = ref<LinkMeta[]>([])
   EndSystems: any
   TopoConfig: Ref<TopologyConfig>
   SchConfig: any
@@ -77,6 +78,13 @@ export interface NodeMeta {
   tx_cnt: number
   rx_cnt: number
   w: Worker | undefined
+}
+
+export interface LinkMeta {
+  // undirected link for visualization
+  uid: number // uid=v1*2+v2*3
+  v1: number
+  v2: number
 }
 
 export enum END_SYSTEM_TYPE {

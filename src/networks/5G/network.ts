@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { Network, NetworkType, NODE_TYPE } from '../common'
+import { Network, NetworkType, NODE_TYPE, type LinkMeta } from '../common'
 import type { ScheduleConfig, FiveGNodeMeta } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
 
@@ -53,6 +53,9 @@ export class FiveGNetwork extends Network {
         rx_cnt: 0,
         w: new Worker(new URL('@/networks/5G/node.ts', import.meta.url), { type: 'module' })
       }
+      // add links
+      this.Links.value.push(<LinkMeta>{ uid: i * 3, v1: 0, v2: i })
+
       // send init msg
       // n.w!.postMessage(<Message>{
       //   type: MSG_TYPES.INIT,

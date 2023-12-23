@@ -399,27 +399,24 @@ export function useDrawTopology(dom: HTMLElement) {
 
   const drawEndSystems = () => {}
 
-  let drawnLinks: any = {}
+  let drawnLinks: { [uid: number]: any } = {}
   const drawLinks = () => {
-    for (const n of Network.Nodes.value) {
-      for (const nn of n.neighbors) {
-        const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
-        if (drawnLinks[linkName] == undefined) {
-          drawLink(n.id, nn, linkName)
-        }
+    for (const l of Network.Links.value) {
+      if (drawnLinks[l.uid] == undefined) {
+        drawLink(l.uid, l.v1, l.v2)
       }
     }
   }
-  const drawLink = (src: number, dst: number, name: string) => {
+  const drawLink = (uid: number, v1: number, v2: number) => {
     const p1 = new THREE.Vector3(
-      Network.Nodes.value[src].pos[0],
+      Network.Nodes.value[v1].pos[0],
       1.6,
-      Network.Nodes.value[src].pos[1]
+      Network.Nodes.value[v1].pos[1]
     )
     const p3 = new THREE.Vector3(
-      Network.Nodes.value[dst].pos[0],
+      Network.Nodes.value[v2].pos[0],
       1.6,
-      Network.Nodes.value[dst].pos[1]
+      Network.Nodes.value[v2].pos[1]
     )
 
     const x2 = (p1.x + p3.x) / 2
@@ -434,7 +431,7 @@ export function useDrawTopology(dom: HTMLElement) {
       new THREE.LineBasicMaterial({ color: 'white' })
     )
     scene.add(mesh)
-    drawnLinks[name] = { mesh, src, dst }
+    drawnLinks[uid] = { mesh, v1, v2 }
   }
   const clearLinks = () => {
     for (const i in drawnLinks) {
@@ -630,6 +627,7 @@ export function useDrawTopology(dom: HTMLElement) {
   addLights()
   drawGround()
   drawNodes()
+  drawLinks()
   // draw5GTower()
   animate()
 
