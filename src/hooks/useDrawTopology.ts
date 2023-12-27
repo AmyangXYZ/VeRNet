@@ -398,7 +398,71 @@ export function useDrawTopology(dom: HTMLElement) {
   }
 
   const drawEndSystems = () => {
-    // TODO: draw end systems
+    const loader = new GLTFLoader()
+    // TODO: we will need as many load() calls as there are end system types - one for each model
+    loader.load('/models/server_rack/scene.gltf', function (gltf: any) {
+      const modelTemplate = gltf.scene
+
+      // mess around with scale and rotation
+      modelTemplate.scale.set(3, 3, 3)
+      modelTemplate.rotation.y = -Math.PI / 2
+      modelTemplate.traverse(function (object: any) {
+        if (object.isMesh) {
+          object.castShadow = true
+          object.receiveShadow = true
+          object.material.color = new THREE.Color('#999')
+        }
+      })
+
+      const box = new THREE.Box3().setFromObject(modelTemplate)
+      const size = new THREE.Vector3()
+      box.getSize(size)
+
+      for (const es of Network.EndSystems.value) {
+        let modelGroup: any = {}
+
+        const model = modelTemplate.clone()
+        model.position.x = es.pos[0]
+        model.position.z = es.pos[1]
+        model.position.y = size.y / 2 // for this specific gltf
+        modelGroup = model
+        model.traverse(function (object: any) {
+          if (object.isMesh) {
+            object.userData.type = NODE_TYPE[4] // EndSystem
+            object.userData.node_id = es.id
+          }
+        })
+        scene.add(model)
+
+        const label = createLabel(`${NODE_TYPE[4]}-${es.id}`) // EndSystem-{ID}
+        label.position.set(model.position.x, 7, model.position.z) // adjust as needed
+        scene.add(label)
+
+        const dragBox = new THREE.Mesh(
+          new THREE.BoxGeometry(size.x, size.y, size.z),
+          new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
+        )
+        dragBox.geometry.translate(0, size.y / 2, 0)
+        dragBox.position.copy(model.position)
+        dragBox.userData.type = NODE_TYPE[4] // EndSystem
+        dragBox.userData.node_id = es.id
+        dragBox.castShadow = false
+        scene.add(dragBox)
+        objectsToDrag.push(dragBox)
+
+        const boxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
+        boxHelper.visible = false
+        boxHelper.castShadow = false
+        scene.add(boxHelper)
+        drawnNodes[`${NODE_TYPE[4]}-${es.id}`] = {
+          model,
+          label,
+          modelGroup,
+          dragBox,
+          boxHelper
+        }
+      }
+    })
   }
 
   let drawnLinks: any = {}
