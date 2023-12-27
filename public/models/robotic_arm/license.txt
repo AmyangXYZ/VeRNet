@@ -1,0 +1,11 @@
+Model Information:
+* title:	Robotic Arm - Brazo Robotico
+* source:	https://sketchfab.com/3d-models/robotic-arm-brazo-robotico-e10b8ba5105b4d5c9ff5ba3de5e649c3
+* author:	pcorralr (https://sketchfab.com/pcorralr)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Robotic Arm - Brazo Robotico" (https://sketchfab.com/3d-models/robotic-arm-brazo-robotico-e10b8ba5105b4d5c9ff5ba3de5e649c3) by pcorralr (https://sketchfab.com/pcorralr) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

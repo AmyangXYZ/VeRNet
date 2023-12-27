@@ -335,6 +335,67 @@ export function useDrawTopology(dom: HTMLElement) {
       }
     })
   }
+
+  const drawEndSystems = () => {
+    const loader = new GLTFLoader();
+  
+    const loadAndPlaceModel = async (modelPath: any, scale: any, rotationY: any, positionY: any, labelY: any, typeVal: any) => {
+      const gltf: any = await new Promise((resolve) => {
+        loader.load(modelPath, (gltf: any) => resolve(gltf));
+      });
+  
+      const modelTemplate = gltf.scene;
+  
+      modelTemplate.scale.set(...scale);
+      modelTemplate.rotation.y = rotationY;
+      modelTemplate.traverse((object: any) => {
+        if (object.isMesh) {
+          object.castShadow = true;
+          object.receiveShadow = true;
+          object.material.color = new THREE.Color('#999');
+        }
+      });
+  
+      const box = new THREE.Box3().setFromObject(modelTemplate);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+  
+      for (const es of Network.EndSystems.value) {
+        if (es.type !== typeVal) continue;
+  
+        const model = modelTemplate.clone();
+        model.position.set(es.pos[0], positionY, es.pos[1]);
+        model.traverse((object: any) => {
+          if (object.isMesh) {
+            object.userData.type = NODE_TYPE[4]; // EndSystem
+            object.userData.node_id = es.id;
+          }
+        });
+        scene.add(model);
+  
+        const label = createLabel(`${NODE_TYPE[4]}-${es.id}`);
+        label.position.set(model.position.x, labelY, model.position.z);
+        scene.add(label);
+  
+        const { dragBox, dragBoxHelper } = createDragBox(node, model)
+  
+        drawnNodes[`${NODE_TYPE[4]}-${es.id}`] = {
+          model,
+          label,
+          modelGroup: model,
+          dragBox,
+          boxHelper,
+        };
+      }
+    };
+  
+    // Load and place models
+    loadAndPlaceModel('/models/server/scene.gltf', [3, 3, 3], -Math.PI / 2, 3, 7, 0);
+    loadAndPlaceModel('/models/robotic_arm/scene.gltf', [0.004, 0.004, 0.004], -Math.PI / 2, 0, 7, 1);
+    loadAndPlaceModel('/models/sensor/scene.gltf', [2, 2, 2], -Math.PI / 2, 0, 5, 2);
+  };
+  
+
   const createDragBox = (node: any, model: any): any => {
     const box = new THREE.Box3().setFromObject(model)
     const size = new THREE.Vector3()

@@ -1,4 +1,5 @@
 import { ref, type Ref } from 'vue'
+import { SeededRandom } from '@/hooks/useSeed'
 
 export class Network {
   ID: number
@@ -31,7 +32,29 @@ export class Network {
     })
     this.createEndSystems()
   }
-  createEndSystems = () => {}
+  createEndSystems = () => {
+    // initialize ref array if it does not already exist
+    this.EndSystems = ref<EndSystemMeta[]>([]) 
+    const rand = new SeededRandom(this.TopoConfig.value.seed)
+    
+    this.EndSystems.value = [] // clear any old end systems
+    
+    for (let i = 1; i <= this.TopoConfig.value.num_es; i++) {
+      const es = {
+        id: i,
+        type: Math.floor(rand.next() * Object.keys(END_SYSTEM_TYPE).filter(key => isNaN(Number(key))).length), // Object.keys(...).filter(...) is used to count # of elements in enum
+        pos: [
+          Math.floor(rand.next() * this.TopoConfig.value.grid_size) -
+            this.TopoConfig.value.grid_size / 2,
+          Math.floor(rand.next() * this.TopoConfig.value.grid_size) -
+            this.TopoConfig.value.grid_size / 2
+        ],
+        neighbor: 1 + Math.floor(rand.next() * this.TopoConfig.value.num_nodes) // range from 1 to num_nodes inclusive
+      }
+
+      this.EndSystems.value.push(es)
+    }
+  }
 
   Run = () => {
     this.Step()
