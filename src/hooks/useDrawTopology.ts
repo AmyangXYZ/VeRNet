@@ -8,7 +8,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
-import { NODE_TYPE, NetworkType, type Packet } from '@/networks/common'
+import { NODE_TYPE, NETWORK_TYPE, type Packet } from '@/networks/common'
 
 export function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
@@ -26,7 +26,7 @@ export function useDrawTopology(dom: HTMLElement) {
   stats.dom.style.position = 'fixed'
   stats.dom.style.right = '16px'
   stats.dom.style.top = '16px'
-  stats.dom.style.left = null
+  stats.dom.style.left = ''
   document.body.appendChild(stats.dom)
 
   const setCamera = () => {
@@ -111,13 +111,13 @@ export function useDrawTopology(dom: HTMLElement) {
   let drawnNodes: { [name: string]: any } = {}
   const drawNodes = () => {
     switch (Network.Type) {
-      case NetworkType.TSCH:
+      case NETWORK_TYPE.TSCH:
         drawTSCHNodes()
         break
-      case NetworkType.TSN:
+      case NETWORK_TYPE.TSN:
         drawTSNNodes()
         break
-      case NetworkType.FiveG:
+      case NETWORK_TYPE.FiveG:
         drawFiveGBS()
         drawFiveGUE()
         break
@@ -337,64 +337,77 @@ export function useDrawTopology(dom: HTMLElement) {
   }
 
   const drawEndSystems = () => {
-    const loader = new GLTFLoader();
-  
-    const loadAndPlaceModel = async (modelPath: any, scale: any, rotationY: any, positionY: any, labelY: any, typeVal: any) => {
+    const loader = new GLTFLoader()
+
+    const loadAndPlaceModel = async (
+      modelPath: any,
+      scale: any,
+      rotationY: any,
+      positionY: any,
+      labelY: any,
+      typeVal: any
+    ) => {
       const gltf: any = await new Promise((resolve) => {
-        loader.load(modelPath, (gltf: any) => resolve(gltf));
-      });
-  
-      const modelTemplate = gltf.scene;
-  
-      modelTemplate.scale.set(...scale);
-      modelTemplate.rotation.y = rotationY;
+        loader.load(modelPath, (gltf: any) => resolve(gltf))
+      })
+
+      const modelTemplate = gltf.scene
+
+      modelTemplate.scale.set(...scale)
+      modelTemplate.rotation.y = rotationY
       modelTemplate.traverse((object: any) => {
         if (object.isMesh) {
-          object.castShadow = true;
-          object.receiveShadow = true;
-          object.material.color = new THREE.Color('#999');
+          object.castShadow = true
+          object.receiveShadow = true
+          object.material.color = new THREE.Color('#999')
         }
-      });
-  
-      const box = new THREE.Box3().setFromObject(modelTemplate);
-      const size = new THREE.Vector3();
-      box.getSize(size);
-  
+      })
+
+      const box = new THREE.Box3().setFromObject(modelTemplate)
+      const size = new THREE.Vector3()
+      box.getSize(size)
+
       for (const es of Network.EndSystems.value) {
-        if (es.type !== typeVal) continue;
-  
-        const model = modelTemplate.clone();
-        model.position.set(es.pos[0], positionY, es.pos[1]);
+        if (es.type !== typeVal) continue
+
+        const model = modelTemplate.clone()
+        model.position.set(es.pos[0], positionY, es.pos[1])
         model.traverse((object: any) => {
           if (object.isMesh) {
-            object.userData.type = NODE_TYPE[4]; // EndSystem
-            object.userData.node_id = es.id;
+            object.userData.type = NODE_TYPE[4] // EndSystem
+            object.userData.node_id = es.id
           }
-        });
-        scene.add(model);
-  
-        const label = createLabel(`${NODE_TYPE[4]}-${es.id}`);
-        label.position.set(model.position.x, labelY, model.position.z);
-        scene.add(label);
-  
-        const { dragBox, dragBoxHelper } = createDragBox(node, model)
-  
+        })
+        scene.add(model)
+
+        const label = createLabel(`${NODE_TYPE[4]}-${es.id}`)
+        label.position.set(model.position.x, labelY, model.position.z)
+        scene.add(label)
+
+        const { dragBox, dragBoxHelper } = createDragBox(es, model)
+
         drawnNodes[`${NODE_TYPE[4]}-${es.id}`] = {
           model,
           label,
           modelGroup: model,
           dragBox,
-          boxHelper,
-        };
+          dragBoxHelper
+        }
       }
-    };
-  
+    }
+
     // Load and place models
-    loadAndPlaceModel('/models/server/scene.gltf', [3, 3, 3], -Math.PI / 2, 3, 7, 0);
-    loadAndPlaceModel('/models/robotic_arm/scene.gltf', [0.004, 0.004, 0.004], -Math.PI / 2, 0, 7, 1);
-    loadAndPlaceModel('/models/sensor/scene.gltf', [2, 2, 2], -Math.PI / 2, 0, 5, 2);
-  };
-  
+    loadAndPlaceModel('/models/server/scene.gltf', [3, 3, 3], -Math.PI / 2, 0, 7, 0)
+    loadAndPlaceModel(
+      '/models/robotic_arm/scene.gltf',
+      [0.004, 0.004, 0.004],
+      -Math.PI / 2,
+      0,
+      7,
+      1
+    )
+    loadAndPlaceModel('/models/sensor/scene.gltf', [2, 2, 2], -Math.PI / 2, 0, 5, 2)
+  }
 
   const createDragBox = (node: any, model: any): any => {
     const box = new THREE.Box3().setFromObject(model)
@@ -419,7 +432,6 @@ export function useDrawTopology(dom: HTMLElement) {
     scene.add(dragBoxHelper)
     return { dragBox, dragBoxHelper }
   }
-  const drawEndSystems = () => {}
 
   let drawnLinks: { [uid: number]: any } = {}
   const drawLinks = () => {
@@ -644,7 +656,7 @@ export function useDrawTopology(dom: HTMLElement) {
       }
       u.mesh.geometry.setFromPoints(u.positions)
 
-      const sizes = []
+      const sizes: number[] = []
       for (let i = 0; i < u.positions.length; i++) {
         sizes[i] = (1 - i / u.positions.length) * 1.5
       }

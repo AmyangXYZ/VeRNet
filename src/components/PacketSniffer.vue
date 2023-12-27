@@ -158,5 +158,4 @@ Row.inheritAttrs = false
   text-align: center;
 }
 </style>
-@/networks/TSCH
-@/networks/common
+@/networks/TSCH @/networks/common

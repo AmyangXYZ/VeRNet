@@ -1,5 +1,5 @@
 import { ref, toRaw } from 'vue'
-import { Network, NetworkType, NODE_TYPE, type Message } from '../common'
+import { Network, NETWORK_TYPE, NODE_TYPE, type Message } from '../common'
 import { MSG_TYPES, type INIT_MSG_PAYLOAD, type ScheduleConfig, type TSNNodeMeta } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
 
@@ -9,7 +9,7 @@ export class TSNNetwork extends Network {
 
   constructor() {
     super()
-    this.Type = NetworkType.TSN
+    this.Type = NETWORK_TYPE.TSN
     // this.Schedule = ref<Cell[][]>([])
     this.SchConfig = ref<ScheduleConfig>({
       num_slots: 40

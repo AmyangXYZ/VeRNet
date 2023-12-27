@@ -12,7 +12,7 @@ export class Network {
   Schedule: any
   Packets = ref<Packet[]>([])
   ASN = ref(0)
-  asnTimer = 0
+  asnTimer: any
   PacketsCurrent = ref<Packet[]>([])
 
   SignalReset = ref(0)
@@ -34,15 +34,17 @@ export class Network {
   }
   createEndSystems = () => {
     // initialize ref array if it does not already exist
-    this.EndSystems = ref<EndSystemMeta[]>([]) 
+    this.EndSystems = ref<EndSystemMeta[]>([])
     const rand = new SeededRandom(this.TopoConfig.value.seed)
-    
+
     this.EndSystems.value = [] // clear any old end systems
-    
+
     for (let i = 1; i <= this.TopoConfig.value.num_es; i++) {
       const es = {
         id: i,
-        type: Math.floor(rand.next() * Object.keys(END_SYSTEM_TYPE).filter(key => isNaN(Number(key))).length), // Object.keys(...).filter(...) is used to count # of elements in enum
+        type: Math.floor(
+          rand.next() * Object.keys(END_SYSTEM_TYPE).filter((key) => isNaN(Number(key))).length
+        ), // Object.keys(...).filter(...) is used to count # of elements in enum
         pos: [
           Math.floor(rand.next() * this.TopoConfig.value.grid_size) -
             this.TopoConfig.value.grid_size / 2,
@@ -79,7 +81,7 @@ export class Network {
   }
 }
 
-export enum NetworkType {
+export enum NETWORK_TYPE {
   TSCH,
   TSN,
   FiveG

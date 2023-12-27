@@ -1,12 +1,12 @@
 import { ref } from 'vue'
-import { Network, NetworkType, NODE_TYPE, type LinkMeta } from '../common'
+import { Network, NETWORK_TYPE, NODE_TYPE, type LinkMeta } from '../common'
 import type { ScheduleConfig, FiveGNodeMeta } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
 
 export class FiveGNetwork extends Network {
   constructor() {
     super()
-    this.Type = NetworkType.FiveG
+    this.Type = NETWORK_TYPE.FiveG
     // this.Schedule = ref<Cell[][]>([])
     this.SchConfig = ref<ScheduleConfig>({
       num_slots: 40
