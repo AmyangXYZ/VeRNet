@@ -51,7 +51,7 @@ class TSCHNode {
 
   run() {
     onmessage = (e: any) => {
-      if ('ch' in e.data == false) {
+      if ('uid' in e.data == false) {
         const msg: Message = e.data
         if (this.msgHandlers[msg.type] != undefined) {
           this.msgHandlers[msg.type](msg)

@@ -24,7 +24,7 @@ export class Network {
     this.Type = -1
     this.TopoConfig = ref<TopologyConfig>({
       seed: 1,
-      num_nodes: 10,
+      num_nodes: 5,
       num_es: 4,
       grid_size: 80,
       tx_range: 25
@@ -112,10 +112,6 @@ export interface Packet {
   asn: number
   len: number
   payload: any
-
-  // callback function when the packet is successfully tranmistted
-  // (received ack)
-  callback: () => void | undefined
 
   // for display on packet sniffer
   id: number

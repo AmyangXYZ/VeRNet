@@ -1,9 +1,12 @@
-import { ref } from 'vue'
-import { Network, NetworkType, NODE_TYPE } from '../common'
-import type { ScheduleConfig, TSNNodeMeta } from './typedefs'
+import { ref, toRaw } from 'vue'
+import { Network, NetworkType, NODE_TYPE, type Message } from '../common'
+import { MSG_TYPES, type INIT_MSG_PAYLOAD, type ScheduleConfig, type TSNNodeMeta } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
 
 export class TSNNetwork extends Network {
+  InPorts: any
+  OutPorts: any
+
   constructor() {
     super()
     this.Type = NetworkType.TSN
@@ -54,14 +57,15 @@ export class TSNNetwork extends Network {
         w: new Worker(new URL('@/networks/TSN/node.ts', import.meta.url), { type: 'module' })
       }
       // send init msg
-      // n.w!.postMessage(<Message>{
-      //   type: MSG_TYPES.INIT,
-      //   payload: <INIT_MSG_PAYLOAD>{
-      //     id: n.id,
-      //     pos: toRaw(n.pos),
-      //     sch_config: toRaw(this.SchConfig.value)
-      //   }
-      // })
+      n.w!.postMessage(<Message>{
+        type: MSG_TYPES.INIT,
+        payload: <INIT_MSG_PAYLOAD>{
+          id: n.id,
+          pos: toRaw(n.pos),
+          neighbors: [],
+          sch_config: toRaw(this.SchConfig.value)
+        }
+      })
       // handle msg/pkt from nodes
       // n.w!.onmessage = (e: any) => {
       //   if ('ch' in e.data == false) {
