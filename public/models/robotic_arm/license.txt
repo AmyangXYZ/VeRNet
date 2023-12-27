@@ -1,11 +1,11 @@
 Model Information:
-* title:	ROBOTIC ARM
-* source:	https://sketchfab.com/3d-models/robotic-arm-bd6a77c81eb943fb891f17af6ef01223
-* author:	Stefan_Spasevski_Art (https://sketchfab.com/Stefan_Spasevski)
+* title:	Robotic Arm - Brazo Robotico
+* source:	https://sketchfab.com/3d-models/robotic-arm-brazo-robotico-e10b8ba5105b4d5c9ff5ba3de5e649c3
+* author:	pcorralr (https://sketchfab.com/pcorralr)
 
 Model License:
-* license type:	CC-BY-ND-4.0 (http://creativecommons.org/licenses/by-nd/4.0/)
-* requirements:	Author must be credited. Modified versions can not be distributed. Commercial use is allowed.
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
 
 If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
-This work is based on "ROBOTIC ARM" (https://sketchfab.com/3d-models/robotic-arm-bd6a77c81eb943fb891f17af6ef01223) by Stefan_Spasevski_Art (https://sketchfab.com/Stefan_Spasevski) licensed under CC-BY-ND-4.0 (http://creativecommons.org/licenses/by-nd/4.0/)
+This work is based on "Robotic Arm - Brazo Robotico" (https://sketchfab.com/3d-models/robotic-arm-brazo-robotico-e10b8ba5105b4d5c9ff5ba3de5e649c3) by pcorralr (https://sketchfab.com/pcorralr) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
