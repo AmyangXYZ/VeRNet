@@ -5,6 +5,7 @@ export class Network {
   ID: number
   Type: number
   Nodes: any
+  Links = ref<LinkMeta[]>([])
   EndSystems: any
   TopoConfig: Ref<TopologyConfig>
   SchConfig: any
@@ -17,14 +18,14 @@ export class Network {
   SignalReset = ref(0)
   SlotDone = ref(true)
   Running = ref(false)
-  SlotDuration = ref(1000)
+  SlotDuration = ref(750)
 
   constructor() {
     this.ID = 1
     this.Type = -1
     this.TopoConfig = ref<TopologyConfig>({
       seed: 1,
-      num_nodes: 10,
+      num_nodes: 5,
       num_es: 4,
       grid_size: 80,
       tx_range: 25
@@ -102,6 +103,13 @@ export interface NodeMeta {
   w: Worker | undefined
 }
 
+export interface LinkMeta {
+  // undirected link for visualization
+  uid: number // uid=v1*2+v2*3
+  v1: number
+  v2: number
+}
+
 export enum END_SYSTEM_TYPE {
   Server,
   RoboticArm,
@@ -127,10 +135,6 @@ export interface Packet {
   asn: number
   len: number
   payload: any
-
-  // callback function when the packet is successfully tranmistted
-  // (received ack)
-  callback: () => void | undefined
 
   // for display on packet sniffer
   id: number
