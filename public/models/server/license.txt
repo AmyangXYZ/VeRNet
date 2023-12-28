@@ -1,11 +1,11 @@
 Model Information:
-* title:	Server Rack
-* source:	https://sketchfab.com/3d-models/server-rack-62f6779cb7e448b19aaf58544c3c7218
-* author:	Spellkaze (https://sketchfab.com/Spellkaze)
+* title:	Server
+* source:	https://sketchfab.com/3d-models/server-edd71ecb45a5447daf4807eabe4c75b5
+* author:	头戴胖次 (https://sketchfab.com/2251387929a)
 
 Model License:
 * license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
 * requirements:	Author must be credited. Commercial use is allowed.
 
 If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
-This work is based on "Server Rack" (https://sketchfab.com/3d-models/server-rack-62f6779cb7e448b19aaf58544c3c7218) by Spellkaze (https://sketchfab.com/Spellkaze) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+This work is based on "Server" (https://sketchfab.com/3d-models/server-edd71ecb45a5447daf4807eabe4c75b5) by 头戴胖次 (https://sketchfab.com/2251387929a) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

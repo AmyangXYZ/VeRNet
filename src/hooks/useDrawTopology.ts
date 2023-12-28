@@ -466,7 +466,7 @@ export function useDrawTopology(dom: HTMLElement) {
     };
   
     // Load and place models
-    loadAndPlaceModel('/models/server/scene.gltf', [3, 3, 3], -Math.PI / 2, 3, 7, 0);
+    loadAndPlaceModel('/models/server/scene.gltf', [.1, .1, .1], -Math.PI / 2, 2.25, 7, 0);
     loadAndPlaceModel('/models/robotic_arm/scene.gltf', [0.004, 0.004, 0.004], -Math.PI / 2, 0, 7, 1);
     loadAndPlaceModel('/models/sensor/scene.gltf', [2, 2, 2], -Math.PI / 2, 0, 5, 2);
   };
