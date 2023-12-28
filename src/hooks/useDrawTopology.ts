@@ -435,7 +435,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
   let drawnLinks: { [uid: number]: any } = {}
   const drawLinks = () => {
-    for (const l of Network.Links.value) {
+    for (const l of Object.values(Network.Links.value)) {
       if (drawnLinks[l.uid] == undefined) {
         drawLink(l.uid, l.v1, l.v2)
       }

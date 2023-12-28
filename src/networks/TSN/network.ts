@@ -2,6 +2,7 @@ import { ref, toRaw } from 'vue'
 import { Network, NETWORK_TYPE, NODE_TYPE, type Message } from '../common'
 import { MSG_TYPES, type INIT_MSG_PAYLOAD, type ScheduleConfig, type TSNNodeMeta } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
+import { KDNode, KDTree } from './kdtree'
 
 export class TSNNetwork extends Network {
   InPorts: any
@@ -41,6 +42,9 @@ export class TSNNetwork extends Network {
       }
     ] // placeholder
 
+    // to find neighbors
+    const tree = new KDTree()
+
     for (let i = 1; i <= this.TopoConfig.value.num_nodes; i++) {
       const n = <TSNNodeMeta>{
         id: i,
@@ -66,60 +70,20 @@ export class TSNNetwork extends Network {
           sch_config: toRaw(this.SchConfig.value)
         }
       })
-      // handle msg/pkt from nodes
-      // n.w!.onmessage = (e: any) => {
-      //   if ('ch' in e.data == false) {
-      //     const msg: Message = e.data
-      //     if (this.msgHandlers[msg.type] != undefined) {
-      //       this.msgHandlers[msg.type](msg)
-      //     } else {
-      //       console.log('!! undefined message type:', msg.type)
-      //     }
-      //   } else {
-      //     const pkt: Packet = e.data
-      //     // check channel interference, only one packet can be transmitted on each channel in a slot
-      //     if (
-      //       this.PacketsCurrent.value.filter((p) => p.ch == pkt.ch).length == 0 ||
-      //       pkt.type == PKT_TYPES.ACK
-      //     ) {
-      //       // must use this format for the detailedView function of el-table-v2
-      //       pkt.id = this.Packets.value.length
-      //       pkt.children = [
-      //         {
-      //           id: `${this.Packets.value.length}-detail-content`,
-      //           detail: JSON.stringify(pkt.payload).replace(/"/g, '')
-      //         }
-      //       ]
 
-      //       this.Packets.value.push(pkt)
-      //       this.PacketsCurrent.value.push(pkt)
-
-      //       if (pkt.dst == ADDR.BROADCAST) {
-      //         for (const nn of this.Nodes.value) {
-      //           // check if in tx_range
-      //           const distance = Math.sqrt(
-      //             Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
-      //           )
-      //           if (nn.id > 0 && nn.id != n.id && distance <= this.TopoConfig.value.tx_range) {
-      //             nn.w!.postMessage(pkt)
-      //           }
-      //         }
-      //       } else {
-      //         const nn = this.Nodes.value[pkt.dst]
-      //         if (nn != undefined) {
-      //           // check if in tx_range
-      //           const distance = Math.sqrt(
-      //             Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
-      //           )
-      //           if (distance <= this.TopoConfig.value.tx_range) {
-      //             nn.w!.postMessage(pkt)
-      //           }
-      //         }
-      //       }
-      //     }
-      //   }
-      // }
       this.Nodes.value.push(n)
+      tree.Insert(new KDNode(i, this.Nodes.value[i].pos))
+    }
+
+    for (let i = 1; i <= this.TopoConfig.value.num_nodes; i++) {
+      this.Nodes.value[i].neighbors = tree.FindKNearest(
+        this.Nodes.value[i].pos,
+        5,
+        this.TopoConfig.value.tx_range
+      )
+      this.Nodes.value[i].neighbors.forEach((n: number) => {
+        super.addLink(i, n)
+      })
     }
   }
 }

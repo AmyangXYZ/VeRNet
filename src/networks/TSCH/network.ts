@@ -10,7 +10,7 @@ import type {
 import { ADDR, MSG_TYPES, PKT_TYPES, CELL_TYPES } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
 import { Network, NETWORK_TYPE, NODE_TYPE } from '../common'
-import type { Packet, Message, MsgHandler, LinkMeta } from '../common'
+import type { Packet, Message, MsgHandler } from '../common'
 
 export class TSCHNetwork extends Network {
   doneCnt = 0
@@ -80,11 +80,7 @@ export class TSCHNetwork extends Network {
       this.Nodes.value[node].parent = payload.parent
       this.Nodes.value[node].neighbors.push(payload.parent)
       this.Nodes.value[payload.parent].neighbors.push(node)
-      this.Links.value.push(<LinkMeta>{
-        uid: node * 2 + payload.parent * 3,
-        v1: node,
-        v2: payload.parent
-      })
+      super.addLink(node, payload.parent)
     }
 
     this.Nodes.value[node].queueLen = payload.queue.length

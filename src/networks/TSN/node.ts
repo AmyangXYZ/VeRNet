@@ -21,7 +21,7 @@ class TSNNode {
         if (this.msgHandlers[msg.type] != undefined) {
           this.msgHandlers[msg.type](msg)
         } else {
-          console.log('!! undefined message type:', msg.type)
+          // console.log('!! undefined message type:', msg.type)
         }
       } else {
         const pkt: Packet = e.data
@@ -29,7 +29,7 @@ class TSNNode {
         if (this.pktHandlers[pkt.type] != undefined) {
           this.pktHandlers[pkt.type](pkt)
         } else {
-          console.log('!! undefined packet type:', pkt.type)
+          // console.log('!! undefined packet type:', pkt.type)
         }
       }
     }
