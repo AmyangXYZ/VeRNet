@@ -3,6 +3,7 @@ import * as echarts from 'echarts'
 
 import { Network } from './useStates'
 import { MiniMapMode } from './useStates'
+import { LINK_TYPE } from '@/networks/common'
 export function useDrawMiniMap(chartDom: HTMLElement) {
   const chart = echarts.init(chartDom, { useDirtyRect: true })
 
@@ -98,23 +99,44 @@ export function useDrawMiniMap(chartDom: HTMLElement) {
         name: n.id,
         value: n.pos
       })
-      for (const nn of n.neighbors) {
-        const linkName = n.id < nn ? `${n.id}-${nn}` : `${nn}-${n.id}`
-        if (drawnLinks[linkName] == undefined) {
-          drawnLinks[linkName] = true
-          option.series[0].markLine.data.push([
-            {
-              name: linkName,
-              label: {
-                show: false
-              },
-              coord: n.pos
-            },
-            {
-              coord: Network.Nodes.value[nn].pos
-            }
-          ])
+    }
+    for (const e of Network.EndSystems.value) {
+      option.series[0].data.push({
+        name: e.id,
+        value: e.pos,
+        itemStyle: { color: 'green' }
+      })
+    }
+    for (const l of Object.values(Network.Links.value)) {
+      if (drawnLinks[l.uid] == undefined) {
+        drawnLinks[l.uid] = true
+        let coord1: [number, number], coord2: [number, number]
+        if (l.v1 <= Network.TopoConfig.value.num_nodes) {
+          coord1 = Network.Nodes.value[l.v1].pos
+        } else {
+          coord1 = Network.EndSystems.value[l.v1 - Network.TopoConfig.value.num_nodes - 1].pos
         }
+        if (l.v2 <= Network.TopoConfig.value.num_nodes) {
+          coord2 = Network.Nodes.value[l.v2].pos
+        } else {
+          coord2 = Network.EndSystems.value[l.v2 - Network.TopoConfig.value.num_nodes - 1].pos
+        }
+
+        option.series[0].markLine.data.push([
+          {
+            name: l.uid,
+            label: {
+              show: false
+            },
+            lineStyle: {
+              type: l.type == LINK_TYPE.WIRELESS ? 'dashed' : 'solid'
+            },
+            coord: coord1
+          },
+          {
+            coord: coord2
+          }
+        ])
       }
     }
   }
@@ -141,6 +163,15 @@ export function useDrawMiniMap(chartDom: HTMLElement) {
 
   watch(
     Network.Nodes,
+    () => {
+      drawMinimapScatter()
+      drawMinimapTree()
+      chart.setOption(option)
+    },
+    { deep: true }
+  )
+  watch(
+    Network.EndSystems,
     () => {
       drawMinimapScatter()
       drawMinimapTree()

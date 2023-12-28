@@ -8,9 +8,9 @@ import type {
   ASSOC_RSP_PKT_PAYLOAD
 } from './typedefs'
 import { ADDR, MSG_TYPES, PKT_TYPES, CELL_TYPES } from './typedefs'
-import { SeededRandom } from '@/hooks/useSeed'
 import { LINK_TYPE, Network, NETWORK_TYPE, NODE_TYPE } from '../common'
 import type { Packet, Message, MsgHandler } from '../common'
+import { KDNode } from '../TSN/kdtree'
 
 export class TSCHNetwork extends Network {
   doneCnt = 0
@@ -35,6 +35,7 @@ export class TSCHNetwork extends Network {
     this.registerMsgHandler(MSG_TYPES.ASSOC_REQ, this.assocReqMsgHandler)
 
     this.createNodes()
+    super.createEndSystems()
     this.createSchedule()
 
     watch(this.ASN, () => {
@@ -117,7 +118,6 @@ export class TSCHNetwork extends Network {
 
   createNodes = () => {
     this.Nodes = ref<TSCHNodeMeta[]>([])
-    const rand = new SeededRandom(this.TopoConfig.value.seed)
 
     // clear old nodes
     if (this.Nodes.value.length > 1) {
@@ -148,9 +148,9 @@ export class TSCHNetwork extends Network {
         id: i,
         type: NODE_TYPE.TSCH,
         pos: [
-          Math.floor(rand.next() * this.TopoConfig.value.grid_size) -
+          Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
             this.TopoConfig.value.grid_size / 2,
-          Math.floor(rand.next() * this.TopoConfig.value.grid_size) -
+          Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
             this.TopoConfig.value.grid_size / 2
         ],
         joined: i == ADDR.ROOT,
@@ -162,6 +162,8 @@ export class TSCHNetwork extends Network {
         rank: 0,
         w: new Worker(new URL('@/networks/TSCH/node.ts', import.meta.url), { type: 'module' })
       }
+      this.KDTree.Insert(new KDNode(i, n.pos))
+
       // send init msg
       n.w!.postMessage(<Message>{
         type: MSG_TYPES.INIT,

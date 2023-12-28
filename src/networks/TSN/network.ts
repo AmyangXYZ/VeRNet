@@ -1,8 +1,7 @@
 import { ref, toRaw } from 'vue'
 import { Network, NETWORK_TYPE, NODE_TYPE, type Message, LINK_TYPE } from '../common'
 import { MSG_TYPES, type INIT_MSG_PAYLOAD, type ScheduleConfig, type TSNNodeMeta } from './typedefs'
-import { SeededRandom } from '@/hooks/useSeed'
-import { KDNode, KDTree } from './kdtree'
+import { KDNode } from './kdtree'
 
 export class TSNNetwork extends Network {
   InPorts: any
@@ -16,10 +15,10 @@ export class TSNNetwork extends Network {
       num_slots: 40
     })
     this.createNodes()
+    super.createEndSystems()
   }
   createNodes = () => {
     this.Nodes = ref<TSNNodeMeta[]>([])
-    const rand = new SeededRandom(this.TopoConfig.value.seed)
 
     // clear old nodes and webworkers
     if (this.Nodes.value.length > 1) {
@@ -42,17 +41,14 @@ export class TSNNetwork extends Network {
       }
     ] // placeholder
 
-    // to find neighbors
-    const tree = new KDTree()
-
     for (let i = 1; i <= this.TopoConfig.value.num_nodes; i++) {
       const n = <TSNNodeMeta>{
         id: i,
         type: NODE_TYPE.TSN,
         pos: [
-          Math.floor(rand.next() * this.TopoConfig.value.grid_size) -
+          Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
             this.TopoConfig.value.grid_size / 2,
-          Math.floor(rand.next() * this.TopoConfig.value.grid_size) -
+          Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
             this.TopoConfig.value.grid_size / 2
         ],
         neighbors: [],
@@ -72,11 +68,11 @@ export class TSNNetwork extends Network {
       })
 
       this.Nodes.value.push(n)
-      tree.Insert(new KDNode(i, this.Nodes.value[i].pos))
+      this.KDTree.Insert(new KDNode(i, n.pos))
     }
 
     for (let i = 1; i <= this.TopoConfig.value.num_nodes; i++) {
-      this.Nodes.value[i].neighbors = tree.FindKNearest(
+      this.Nodes.value[i].neighbors = this.KDTree.FindKNearest(
         this.Nodes.value[i].pos,
         3,
         this.TopoConfig.value.tx_range

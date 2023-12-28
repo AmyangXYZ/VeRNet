@@ -8,7 +8,14 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
-import { NODE_TYPE, NETWORK_TYPE, type Packet, type LinkMeta, LINK_TYPE } from '@/networks/common'
+import {
+  NODE_TYPE,
+  NETWORK_TYPE,
+  type Packet,
+  type LinkMeta,
+  LINK_TYPE,
+  END_SYSTEM_TYPE
+} from '@/networks/common'
 
 export function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
@@ -303,7 +310,7 @@ export function useDrawTopology(dom: HTMLElement) {
       })
 
       for (const node of Network.Nodes.value) {
-        if (node.id == 0 || node.type != NODE_TYPE.FiveGUE) continue
+        if (node.id == 0 || node.type != NODE_TYPE.FIVE_G_UE) continue
         let modelGroup: any = {}
 
         const model = modelTemplate.clone()
@@ -374,19 +381,19 @@ export function useDrawTopology(dom: HTMLElement) {
         model.position.set(es.pos[0], positionY, es.pos[1])
         model.traverse((object: any) => {
           if (object.isMesh) {
-            object.userData.type = NODE_TYPE[4] // EndSystem
+            object.userData.type = END_SYSTEM_TYPE[es.type]
             object.userData.node_id = es.id
           }
         })
         scene.add(model)
 
-        const label = createLabel(`${NODE_TYPE[4]}-${es.id}`)
+        const label = createLabel(`${END_SYSTEM_TYPE[es.type]}-${es.id}`)
         label.position.set(model.position.x, labelY, model.position.z)
         scene.add(label)
 
         const { dragBox, dragBoxHelper } = createDragBox(es, model)
 
-        drawnNodes[`${NODE_TYPE[4]}-${es.id}`] = {
+        drawnNodes[`${END_SYSTEM_TYPE[es.type]}-${es.id}`] = {
           model,
           label,
           modelGroup: model,
@@ -442,16 +449,37 @@ export function useDrawTopology(dom: HTMLElement) {
     }
   }
   const drawLink = (l: LinkMeta) => {
-    const p1 = new THREE.Vector3(
-      Network.Nodes.value[l.v1].pos[0],
-      1.6,
-      Network.Nodes.value[l.v1].pos[1]
-    )
-    const p3 = new THREE.Vector3(
-      Network.Nodes.value[l.v2].pos[0],
-      1.6,
-      Network.Nodes.value[l.v2].pos[1]
-    )
+    let p1: THREE.Vector3
+    if (l.v1 <= Network.TopoConfig.value.num_nodes) {
+      p1 = new THREE.Vector3(
+        Network.Nodes.value[l.v1].pos[0],
+        1.6,
+        Network.Nodes.value[l.v1].pos[1]
+      )
+    } else {
+      // is an end system
+      p1 = new THREE.Vector3(
+        Network.EndSystems.value[l.v1 - Network.TopoConfig.value.num_nodes - 1].pos[0],
+        1.6,
+        Network.EndSystems.value[l.v1 - Network.TopoConfig.value.num_nodes - 1].pos[1]
+      )
+    }
+
+    let p3: THREE.Vector3
+    if (l.v2 <= Network.TopoConfig.value.num_nodes) {
+      p3 = new THREE.Vector3(
+        Network.Nodes.value[l.v2].pos[0],
+        1.6,
+        Network.Nodes.value[l.v2].pos[1]
+      )
+    } else {
+      // is an end system
+      p3 = new THREE.Vector3(
+        Network.EndSystems.value[l.v2 - Network.TopoConfig.value.num_nodes - 1].pos[0],
+        1.6,
+        Network.EndSystems.value[l.v2 - Network.TopoConfig.value.num_nodes - 1].pos[1]
+      )
+    }
 
     const x2 = (p1.x + p3.x) / 2
     const z2 = (p1.z + p3.z) / 2
@@ -468,7 +496,7 @@ export function useDrawTopology(dom: HTMLElement) {
           color: 'white',
           scale: 2,
           dashSize: 1,
-          gapSize: 1,
+          gapSize: 1
         })
       )
       mesh.computeLineDistances()
@@ -761,7 +789,7 @@ export function useDrawTopology(dom: HTMLElement) {
   let relatedBeaconPacket: any = undefined
   dragControls.deactivate()
   dragControls.addEventListener('dragstart', function (event) {
-    if (event.object.userData.type == 'TSCH') {
+    if (NODE_TYPE[event.object.userData.type] != undefined) {
       const node = event.object.userData.node_id
       for (const l of Object.values(drawnLinks)) {
         if (l.link.v1 == node || l.link.v2 == node) {
@@ -793,10 +821,17 @@ export function useDrawTopology(dom: HTMLElement) {
     event.object.position.y = 0
 
     if (NODE_TYPE[event.object.userData.type] != undefined) {
-      Network.Nodes.value[event.object.userData.node_id].pos = [
-        event.object.position.x,
-        event.object.position.z
-      ]
+      if (event.object.userData.node_id <= Network.TopoConfig.value.num_nodes) {
+        Network.Nodes.value[event.object.userData.node_id].pos = [
+          event.object.position.x,
+          event.object.position.z
+        ]
+      } else {
+        // is an end system
+        Network.EndSystems.value[
+          event.object.userData.node_id - Network.TopoConfig.value.num_nodes - 1
+        ].pos = [event.object.position.x, event.object.position.z]
+      }
 
       for (const l of relatedLinks) {
         clearLink(l.link.uid)
