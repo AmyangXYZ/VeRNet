@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { Network, NETWORK_TYPE, NODE_TYPE } from '../common'
+import { LINK_TYPE, Network, NETWORK_TYPE, NODE_TYPE } from '../common'
 import type { ScheduleConfig, FiveGNodeMeta } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
 
@@ -54,7 +54,7 @@ export class FiveGNetwork extends Network {
         w: new Worker(new URL('@/networks/5G/node.ts', import.meta.url), { type: 'module' })
       }
       // add links
-      super.addLink(0, i)
+      super.addLink(0, i, LINK_TYPE.WIRELESS)
 
       // send init msg
       // n.w!.postMessage(<Message>{

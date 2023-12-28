@@ -1,5 +1,5 @@
 import { ref, toRaw } from 'vue'
-import { Network, NETWORK_TYPE, NODE_TYPE, type Message } from '../common'
+import { Network, NETWORK_TYPE, NODE_TYPE, type Message, LINK_TYPE } from '../common'
 import { MSG_TYPES, type INIT_MSG_PAYLOAD, type ScheduleConfig, type TSNNodeMeta } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
 import { KDNode, KDTree } from './kdtree'
@@ -78,11 +78,11 @@ export class TSNNetwork extends Network {
     for (let i = 1; i <= this.TopoConfig.value.num_nodes; i++) {
       this.Nodes.value[i].neighbors = tree.FindKNearest(
         this.Nodes.value[i].pos,
-        5,
+        3,
         this.TopoConfig.value.tx_range
       )
       this.Nodes.value[i].neighbors.forEach((n: number) => {
-        super.addLink(i, n)
+        super.addLink(i, n, LINK_TYPE.WIRED)
       })
     }
   }

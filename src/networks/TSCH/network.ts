@@ -9,7 +9,7 @@ import type {
 } from './typedefs'
 import { ADDR, MSG_TYPES, PKT_TYPES, CELL_TYPES } from './typedefs'
 import { SeededRandom } from '@/hooks/useSeed'
-import { Network, NETWORK_TYPE, NODE_TYPE } from '../common'
+import { LINK_TYPE, Network, NETWORK_TYPE, NODE_TYPE } from '../common'
 import type { Packet, Message, MsgHandler } from '../common'
 
 export class TSCHNetwork extends Network {
@@ -80,7 +80,7 @@ export class TSCHNetwork extends Network {
       this.Nodes.value[node].parent = payload.parent
       this.Nodes.value[node].neighbors.push(payload.parent)
       this.Nodes.value[payload.parent].neighbors.push(node)
-      super.addLink(node, payload.parent)
+      super.addLink(node, payload.parent, LINK_TYPE.WIRELESS)
     }
 
     this.Nodes.value[node].queueLen = payload.queue.length

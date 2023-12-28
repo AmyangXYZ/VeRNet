@@ -30,6 +30,12 @@ export interface LinkMeta {
   uid: number
   v1: number
   v2: number
+  type: number
+}
+
+export enum LINK_TYPE {
+  WIRED,
+  WIRELESS
 }
 
 export enum END_SYSTEM_TYPE {
@@ -138,14 +144,14 @@ export class Network {
       this.EndSystems.value.push(es)
     }
   }
-  addLink(v1: number, v2: number) {
+  addLink(v1: number, v2: number, type: number) {
     if (v1 > v2) {
       ;[v1, v2] = [v2, v1]
     }
     // Cantor pairing
     const uid = 0.5 * (v1 + v2) * (v1 + v2 + 1) + v2
     if (this.Links.value[uid] == undefined) {
-      this.Links.value[uid] = <LinkMeta>{ uid, v1, v2 }
+      this.Links.value[uid] = <LinkMeta>{ uid, v1, v2, type }
     }
   }
 

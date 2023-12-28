@@ -8,7 +8,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
-import { NODE_TYPE, NETWORK_TYPE, type Packet } from '@/networks/common'
+import { NODE_TYPE, NETWORK_TYPE, type Packet, type LinkMeta, LINK_TYPE } from '@/networks/common'
 
 export function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
@@ -433,24 +433,24 @@ export function useDrawTopology(dom: HTMLElement) {
     return { dragBox, dragBoxHelper }
   }
 
-  let drawnLinks: { [uid: number]: any } = {}
+  let drawnLinks: { [uid: number]: { mesh: any; link: LinkMeta } } = {}
   const drawLinks = () => {
     for (const l of Object.values(Network.Links.value)) {
       if (drawnLinks[l.uid] == undefined) {
-        drawLink(l.uid, l.v1, l.v2)
+        drawLink(l)
       }
     }
   }
-  const drawLink = (uid: number, v1: number, v2: number) => {
+  const drawLink = (l: LinkMeta) => {
     const p1 = new THREE.Vector3(
-      Network.Nodes.value[v1].pos[0],
+      Network.Nodes.value[l.v1].pos[0],
       1.6,
-      Network.Nodes.value[v1].pos[1]
+      Network.Nodes.value[l.v1].pos[1]
     )
     const p3 = new THREE.Vector3(
-      Network.Nodes.value[v2].pos[0],
+      Network.Nodes.value[l.v2].pos[0],
       1.6,
-      Network.Nodes.value[v2].pos[1]
+      Network.Nodes.value[l.v2].pos[1]
     )
 
     const x2 = (p1.x + p3.x) / 2
@@ -460,18 +460,34 @@ export function useDrawTopology(dom: HTMLElement) {
 
     const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
     const points = curve.getPoints(64)
-    const mesh = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(points),
-      new THREE.LineBasicMaterial({ color: 'white' })
-    )
+    let mesh: any
+    if (l.type == LINK_TYPE.WIRELESS) {
+      mesh = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(points),
+        new THREE.LineDashedMaterial({
+          color: 'white',
+          scale: 2,
+          dashSize: 1,
+          gapSize: 1,
+        })
+      )
+      mesh.computeLineDistances()
+    } else {
+      mesh = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(points),
+        new THREE.LineBasicMaterial({
+          color: 'white'
+        })
+      )
+    }
     scene.add(mesh)
-    drawnLinks[uid] = { mesh, uid, v1, v2 }
+    drawnLinks[l.uid] = { mesh, link: l }
   }
   const clearLink = (uid: number) => {
     scene.remove(drawnLinks[uid].mesh)
     drawnLinks[uid].mesh.geometry.dispose()
     drawnLinks[uid].mesh.material.dispose()
-    drawnLinks[uid] = undefined
+    delete drawnLinks[uid]
   }
   const clearLinks = () => {
     for (const l of Object.values(drawnLinks)) {
@@ -748,7 +764,7 @@ export function useDrawTopology(dom: HTMLElement) {
     if (event.object.userData.type == 'TSCH') {
       const node = event.object.userData.node_id
       for (const l of Object.values(drawnLinks)) {
-        if (l.v1 == node || l.v2 == node) {
+        if (l.link.v1 == node || l.link.v2 == node) {
           relatedLinks.push(l)
         }
       }
@@ -782,9 +798,9 @@ export function useDrawTopology(dom: HTMLElement) {
         event.object.position.z
       ]
 
-      for (const link of relatedLinks) {
-        clearLink(link.uid)
-        drawLink(link.uid, link.v1, link.v2)
+      for (const l of relatedLinks) {
+        clearLink(l.link.uid)
+        drawLink(l.link)
       }
       for (const pkt of relatedUnicastPackets) {
         clearPacket(pkt.uid)
