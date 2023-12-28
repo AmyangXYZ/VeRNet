@@ -1,12 +1,12 @@
 import { ref } from 'vue'
-import { Network, NetworkType, NODE_TYPE } from '../common'
+import { LINK_TYPE, Network, NETWORK_TYPE, NODE_TYPE } from '../common'
 import type { ScheduleConfig, FiveGNodeMeta } from './typedefs'
-import { SeededRandom } from '@/hooks/useSeed'
+import { KDNode } from '../TSN/kdtree'
 
 export class FiveGNetwork extends Network {
   constructor() {
     super()
-    this.Type = NetworkType.FiveG
+    this.Type = NETWORK_TYPE.FiveG
     // this.Schedule = ref<Cell[][]>([])
     this.SchConfig = ref<ScheduleConfig>({
       num_slots: 40
@@ -15,7 +15,6 @@ export class FiveGNetwork extends Network {
   }
   createNodes = () => {
     this.Nodes = ref<FiveGNodeMeta[]>([])
-    const rand = new SeededRandom(this.TopoConfig.value.seed)
 
     // clear old nodes and webworkers
     if (this.Nodes.value.length > 1) {
@@ -28,7 +27,7 @@ export class FiveGNetwork extends Network {
     this.Nodes.value = [
       <FiveGNodeMeta>{
         id: 0,
-        type: NODE_TYPE.FiveGBS,
+        type: NODE_TYPE.FIVE_G_BS,
         pos: [0, 0],
         neighbors: [],
         queueLen: 0,
@@ -41,11 +40,11 @@ export class FiveGNetwork extends Network {
     for (let i = 1; i <= this.TopoConfig.value.num_nodes; i++) {
       const n = <FiveGNodeMeta>{
         id: i,
-        type: NODE_TYPE.FiveGUE,
+        type: NODE_TYPE.FIVE_G_UE,
         pos: [
-          Math.floor(rand.next() * this.TopoConfig.value.grid_size) -
+          Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
             this.TopoConfig.value.grid_size / 2,
-          Math.floor(rand.next() * this.TopoConfig.value.grid_size) -
+          Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
             this.TopoConfig.value.grid_size / 2
         ],
         neighbors: [],
@@ -53,6 +52,11 @@ export class FiveGNetwork extends Network {
         rx_cnt: 0,
         w: new Worker(new URL('@/networks/5G/node.ts', import.meta.url), { type: 'module' })
       }
+      this.KDTree.Insert(new KDNode(i, n.pos))
+
+      // add links
+      super.addLink(0, i, LINK_TYPE.WIRELESS)
+
       // send init msg
       // n.w!.postMessage(<Message>{
       //   type: MSG_TYPES.INIT,
