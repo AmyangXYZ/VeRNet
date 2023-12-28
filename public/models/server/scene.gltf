@@ -3,112 +3,168 @@
     {
       "bufferView": 2,
       "componentType": 5126,
-      "count": 816,
+      "count": 552,
       "max": [
-        0.3235290050506592,
-        1.0,
-        0.323529988527298
+        22.114004135131836,
+        35.83527755737305,
+        13.928451538085938
       ],
       "min": [
-        -0.3235290050506592,
-        -1.0,
-        -0.323529988527298
+        -23.63852882385254,
+        -46.59675598144531,
+        -22.400592803955078
       ],
       "type": "VEC3"
     },
     {
       "bufferView": 2,
-      "byteOffset": 9792,
+      "byteOffset": 6624,
       "componentType": 5126,
-      "count": 816,
+      "count": 552,
       "max": [
-        0.9238797426223755,
-        0.8755810260772705,
-        0.9238797426223755
+        1.0,
+        1.0,
+        1.0
       ],
       "min": [
-        -0.9238797426223755,
-        -0.8755802512168884,
-        -0.9238797426223755
+        -1.0,
+        -0.008326002396643162,
+        -1.0
       ],
       "type": "VEC3"
     },
     {
-      "bufferView": 3,
-      "componentType": 5126,
-      "count": 816,
-      "max": [
-        0.9534627795219421,
-        0.9534627795219421,
-        0.9398505687713623,
-        1.0
-      ],
-      "min": [
-        -0.9534627795219421,
-        -0.9534627199172974,
-        -0.9398506283760071,
-        1.0
-      ],
-      "type": "VEC4"
-    },
-    {
       "bufferView": 1,
       "componentType": 5126,
-      "count": 816,
+      "count": 552,
       "max": [
-        0.9955019950866699,
-        0.995402991771698
+        0.0,
+        0.0
       ],
       "min": [
-        0.004497520159929991,
-        0.004596559796482325
+        0.0,
+        0.0
       ],
       "type": "VEC2"
     },
     {
       "bufferView": 0,
       "componentType": 5125,
-      "count": 2232,
+      "count": 1020,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 13248,
+      "componentType": 5126,
+      "count": 9268,
+      "max": [
+        23.66182518005371,
+        37.65950012207031,
+        14.393922805786133
+      ],
+      "min": [
+        -25.15790557861328,
+        -48.536407470703125,
+        -22.81342315673828
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 124464,
+      "componentType": 5126,
+      "count": 9268,
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 9268,
+      "max": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 4416,
+      "componentType": 5126,
+      "count": 9268,
+      "max": [
+        0.9929850101470947,
+        0.9953820109367371
+      ],
+      "min": [
+        0.006432000081986189,
+        0.005160000175237656
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 4080,
+      "componentType": 5125,
+      "count": 27330,
       "type": "SCALAR"
     }
   ],
   "asset": {
     "extras": {
-      "author": "Spellkaze (https://sketchfab.com/Spellkaze)",
+      "author": "头戴胖次 (https://sketchfab.com/2251387929a)",
       "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
-      "source": "https://sketchfab.com/3d-models/server-rack-62f6779cb7e448b19aaf58544c3c7218",
-      "title": "Server Rack"
+      "source": "https://sketchfab.com/3d-models/server-edd71ecb45a5447daf4807eabe4c75b5",
+      "title": "Server"
     },
-    "generator": "Sketchfab-12.66.0",
+    "generator": "Sketchfab-13.88.0",
     "version": "2.0"
   },
   "bufferViews": [
     {
       "buffer": 0,
-      "byteLength": 8928,
+      "byteLength": 113400,
       "name": "floatBufferViews",
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteLength": 6528,
-      "byteOffset": 8928,
+      "byteLength": 78560,
+      "byteOffset": 113400,
       "byteStride": 8,
       "name": "floatBufferViews",
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 19584,
-      "byteOffset": 15456,
+      "byteLength": 235680,
+      "byteOffset": 191960,
       "byteStride": 12,
       "name": "floatBufferViews",
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 13056,
-      "byteOffset": 35040,
+      "byteLength": 148288,
+      "byteOffset": 427640,
       "byteStride": 16,
       "name": "floatBufferViews",
       "target": 34962
@@ -116,41 +172,29 @@
   ],
   "buffers": [
     {
-      "byteLength": 48096,
+      "byteLength": 575928,
       "uri": "scene.bin"
     }
   ],
   "images": [
     {
-      "uri": "textures/ServerMaterial_baseColor.jpeg"
+      "uri": "textures/initialShadingGroup_baseColor.png"
     },
     {
-      "uri": "textures/ServerMaterial_metallicRoughness.png"
+      "uri": "textures/initialShadingGroup_metallicRoughness.png"
     },
     {
-      "uri": "textures/ServerMaterial_emissive.jpeg"
-    },
-    {
-      "uri": "textures/ServerMaterial_normal.png"
+      "uri": "textures/initialShadingGroup_normal.png"
     }
   ],
   "materials": [
     {
+      "alphaCutoff": 0.35,
+      "alphaMode": "MASK",
       "doubleSided": true,
-      "emissiveFactor": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "emissiveTexture": {
-        "index": 2
-      },
-      "name": "ServerMaterial",
+      "name": "initialShadingGroup",
       "normalTexture": {
-        "index": 3
-      },
-      "occlusionTexture": {
-        "index": 1
+        "index": 2
       },
       "pbrMetallicRoughness": {
         "baseColorTexture": {
@@ -164,16 +208,31 @@
   ],
   "meshes": [
     {
-      "name": "defaultMaterial",
+      "name": "Object_0",
       "primitives": [
         {
           "attributes": {
             "NORMAL": 1,
             "POSITION": 0,
-            "TANGENT": 2,
-            "TEXCOORD_0": 3
+            "TEXCOORD_0": 2
           },
-          "indices": 4,
+          "indices": 3,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "Object_1",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 5,
+            "POSITION": 4,
+            "TANGENT": 6,
+            "TEXCOORD_0": 7
+          },
+          "indices": 8,
           "material": 0,
           "mode": 4
         }
@@ -207,37 +266,18 @@
     },
     {
       "children": [
-        2
-      ],
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        -4.371139006309477e-08,
-        0.999999999999999,
-        0.0,
-        0.0,
-        -0.999999999999999,
-        -4.371139006309477e-08,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ],
-      "name": "Collada visual scene group"
-    },
-    {
-      "children": [
+        2,
         3
       ],
-      "name": "Server_lp"
+      "name": "low.obj.cleaner.materialmerger.gles"
     },
     {
       "mesh": 0,
-      "name": "defaultMaterial"
+      "name": "Object_2"
+    },
+    {
+      "mesh": 1,
+      "name": "Object_3"
     }
   ],
   "samplers": [
@@ -269,10 +309,6 @@
     {
       "sampler": 0,
       "source": 2
-    },
-    {
-      "sampler": 0,
-      "source": 3
     }
   ]
 }

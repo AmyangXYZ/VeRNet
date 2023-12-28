@@ -404,7 +404,7 @@ export function useDrawTopology(dom: HTMLElement) {
     }
 
     // Load and place models
-    loadAndPlaceModel('/models/server/scene.gltf', [3, 3, 3], -Math.PI / 2, 0, 7, 0)
+    loadAndPlaceModel('/models/server/scene.gltf', [.08, .08, .08], -Math.PI / 2, 1.9, 7, 0)
     loadAndPlaceModel(
       '/models/robotic_arm/scene.gltf',
       [0.004, 0.004, 0.004],
