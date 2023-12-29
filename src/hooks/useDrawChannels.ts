@@ -10,7 +10,7 @@ export function useDrawChannels(chartDom: HTMLElement) {
   const option: any = {
     grid: {
       top: '34px',
-      bottom: '27px',
+      bottom: '20px',
       left: '32px',
       right: '1%'
     },
@@ -19,7 +19,7 @@ export function useDrawChannels(chartDom: HTMLElement) {
         type: 'slider',
         throttle: 0,
         bottom: 0,
-        height: 20
+        height: 13
       }
     ],
     xAxis: {

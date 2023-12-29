@@ -1,21 +1,6 @@
 <script setup lang="tsx">
-import ChannelChart from '@/components/ChannelChart.vue'
-
 import { ref, watch, nextTick } from 'vue'
 import { Network } from '@/hooks/useStates'
-import { NETWORK_TYPE, type Packet } from '@/networks/common'
-import { TSCH_PKT_TYPE } from '@/networks/TSCH/typedefs'
-import { TSN_PKT_TYPE } from '@/networks/TSN/typedefs'
-import { FIVE_G_PKT_TYPE } from '@/networks/5G/typedefs'
-
-import { Filter } from '@element-plus/icons-vue'
-
-const filterRules = ref()
-
-function filterFunc(pkt: Packet) {
-  if (filterRules.value == undefined) return true
-  return eval(filterRules.value)
-}
 
 const columns: any = [
   {
@@ -68,11 +53,7 @@ const columns: any = [
     dataKey: 'type',
     width: 80,
     align: 'center',
-    cellRenderer: ({ cellData: type }: any) => {
-      if (Network.Type == NETWORK_TYPE.TSCH) return TSCH_PKT_TYPE[type]
-      if (Network.Type == NETWORK_TYPE.TSN) return TSN_PKT_TYPE[type]
-      if (Network.Type == NETWORK_TYPE.FIVE_G) return FIVE_G_PKT_TYPE[type]
-    }
+    cellRenderer: ({ cellData: type }: any) => {}
   },
   // {
   //   key: 'seq',
@@ -113,22 +94,14 @@ Row.inheritAttrs = false
 <template>
   <el-card class="card">
     <template #header>
-      <div class="card-header">
-        Packets
-        <el-input
-          v-model="filterRules"
-          class="filter-input"
-          placeholder="pkt.src == 1 && pkt.type != ACK"
-          :suffix-icon="Filter"
-        />
-      </div>
+      <div class="card-header">Flows</div>
     </template>
 
     <el-table-v2
       ref="tableRef"
       class="table"
       :columns="columns"
-      :data="Network.Packets.value.filter(filterFunc)"
+      :data="Network.Packets.value"
       :width="360"
       :height="180"
       :expand-column-key="columns[7].key"
@@ -139,7 +112,6 @@ Row.inheritAttrs = false
         <Row v-bind="props" />
       </template>
     </el-table-v2>
-    <ChannelChart />
   </el-card>
 </template>
 
@@ -148,11 +120,6 @@ Row.inheritAttrs = false
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-.filter-input {
-  width: 240px;
-  height: 24px;
-  font-size: 0.7rem;
 }
 .table {
   font-size: 0.65rem;

@@ -8,6 +8,7 @@ import NodeStats from '@/components/NodeStats.vue'
 import MiniMap from '@/components/MiniMap.vue'
 import SettingsPanel from '@/components/SettingsPanel.vue'
 import ScenariosPanel from '@/components/ScenariosPanel.vue'
+import FlowsPanelVue from '@/components/FlowsPanel.vue'
 </script>
 
 <template>
@@ -30,6 +31,9 @@ import ScenariosPanel from '@/components/ScenariosPanel.vue'
   />
   <Topology style="position: absolute; z-index: 10" />
   <MiniMap style="position: absolute; bottom: 16px; left: 16px; z-index: 999" />
+  <FlowsPanelVue
+    style="position: absolute; bottom: 480px; right: 16px; width: 380px; z-index: 999"
+  />
   <PacketSniffer
     style="position: absolute; bottom: 16px; right: 16px; width: 380px; z-index: 999"
   />
