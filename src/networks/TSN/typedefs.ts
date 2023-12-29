@@ -1,4 +1,4 @@
-import type { NodeMeta } from '../common'
+import type { INIT_MSG_PAYLOAD, NodeMeta } from '../common'
 
 export interface ScheduleConfig {
   num_slots: number
@@ -6,20 +6,10 @@ export interface ScheduleConfig {
 
 export interface TSNNodeMeta extends NodeMeta {}
 
-export enum MSG_TYPES {
-  INIT,
-  ASN,
-  DONE, // finished all activities of the current slot
-  STAT
-}
-
-export interface INIT_MSG_PAYLOAD {
-  id: number
-  pos: number[]
-  neighbors: []
-  sch_config: ScheduleConfig
-}
-
-export enum PKT_TYPES {
+export enum TSN_PKT_TYPE {
   DATA
+}
+
+export interface TSN_INIT_MSG_PAYLOAD extends INIT_MSG_PAYLOAD {
+  sch_config: ScheduleConfig
 }

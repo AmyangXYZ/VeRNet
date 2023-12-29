@@ -3,10 +3,13 @@ import ChannelChart from '@/components/ChannelChart.vue'
 
 import { ref, watch, nextTick } from 'vue'
 import { Network } from '@/hooks/useStates'
-import type { Packet } from '@/networks/common'
-import { PKT_TYPES } from '@/networks/TSCH/typedefs'
+import { NETWORK_TYPE, type Packet } from '@/networks/common'
+import { TSCH_PKT_TYPE } from '@/networks/TSCH/typedefs'
+import { TSN_PKT_TYPE } from '@/networks/TSN/typedefs'
+import { FIVE_G_PKT_TYPE } from '@/networks/5G/typedefs'
 
 import { Filter } from '@element-plus/icons-vue'
+
 const filterRules = ref()
 
 function filterFunc(pkt: Packet) {
@@ -65,7 +68,11 @@ const columns: any = [
     dataKey: 'type',
     width: 80,
     align: 'center',
-    cellRenderer: ({ cellData: type }: any) => PKT_TYPES[type]
+    cellRenderer: ({ cellData: type }: any) => {
+      if (Network.Type == NETWORK_TYPE.TSCH) return TSCH_PKT_TYPE[type]
+      if (Network.Type == NETWORK_TYPE.TSN) return TSN_PKT_TYPE[type]
+      if (Network.Type == NETWORK_TYPE.FIVE_G) return FIVE_G_PKT_TYPE[type]
+    }
   },
   // {
   //   key: 'seq',

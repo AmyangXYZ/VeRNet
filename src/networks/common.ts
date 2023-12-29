@@ -1,11 +1,7 @@
-import { ref, type Ref } from 'vue'
-import { SeededRandom } from '@/hooks/useSeed'
-import { KDTree } from './TSN/kdtree'
-
 export enum NETWORK_TYPE {
   TSCH,
   TSN,
-  FiveG
+  FIVE_G
 }
 
 export enum NODE_TYPE {
@@ -70,6 +66,30 @@ export interface Message {
   payload: any
 }
 
+export enum MSG_TYPE {
+  INIT,
+  ASN,
+  DONE, // finished all activities of the current slot
+  FLOW, // install periodic flow
+  STAT,
+  ASSOC_REQ
+}
+
+export interface INIT_MSG_PAYLOAD {
+  id: number
+}
+
+export interface ASN_MSG_PAYLOAD {
+  asn: number
+}
+
+export enum ADDR {
+  CONTROLLER = 0,
+  ROOT = 1,
+  BROADCAST = -1,
+  ANY = -2
+}
+
 export type MsgHandler = (msg: Message) => void
 export type PktHandler = (pkt: Packet) => void
 
@@ -79,104 +99,4 @@ export interface TopologyConfig {
   num_es: number
   grid_size: number
   tx_range: number
-}
-
-export class Network {
-  ID: number
-  Type: number
-  Nodes: any // tsn bridges, tsch node or 5g ue/bs
-  EndSystems: any
-  Links = ref<{ [uid: number]: LinkMeta }>([])
-  TopoConfig: Ref<TopologyConfig>
-  KDTree: KDTree
-  SchConfig: any
-  Schedule: any
-  Packets = ref<Packet[]>([])
-  ASN = ref(0)
-  asnTimer: any
-  PacketsCurrent = ref<Packet[]>([])
-
-  SignalReset = ref(0)
-  SlotDone = ref(true)
-  Running = ref(false)
-  SlotDuration = ref(750)
-
-  Rand: SeededRandom
-
-  constructor() {
-    this.ID = 1
-    this.Type = -1
-    this.TopoConfig = ref<TopologyConfig>({
-      seed: 1,
-      num_nodes: 10,
-      num_es: 4,
-      grid_size: 80,
-      tx_range: 25
-    })
-    this.Rand = new SeededRandom(this.TopoConfig.value.seed)
-    this.KDTree = new KDTree()
-  }
-  // call after create nodes
-  createEndSystems() {
-    // initialize ref array if it does not already exist
-    this.EndSystems = ref<NodeMeta[]>([])
-
-    this.EndSystems.value = [] // clear any old end systems
-
-    for (let i = 1; i <= this.TopoConfig.value.num_es; i++) {
-      const es = <NodeMeta>{
-        id: i + this.TopoConfig.value.num_nodes,
-        type: Math.floor(
-          this.Rand.next() * Object.keys(END_SYSTEM_TYPE).filter((key) => isNaN(Number(key))).length
-        ), // Object.keys(...).filter(...) is used to count # of elements in enum
-        pos: [
-          Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
-            this.TopoConfig.value.grid_size / 2,
-          Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
-            this.TopoConfig.value.grid_size / 2
-        ],
-        tx_cnt: 0,
-        rx_cnt: 0,
-        neighbors: [],
-        w: undefined
-      }
-      es.neighbors = this.KDTree.FindKNearest(es.pos, 1, this.TopoConfig.value.grid_size)
-      if (es.neighbors.length > 0) {
-        this.addLink(es.id, es.neighbors[0], LINK_TYPE.WIRED)
-      }
-      this.EndSystems.value.push(es)
-    }
-  }
-  addLink(v1: number, v2: number, type: number) {
-    if (v1 > v2) {
-      ;[v1, v2] = [v2, v1]
-    }
-    // Cantor pairing
-    const uid = 0.5 * (v1 + v2) * (v1 + v2 + 1) + v2
-    if (this.Links.value[uid] == undefined) {
-      this.Links.value[uid] = <LinkMeta>{ uid, v1, v2, type }
-    }
-  }
-
-  Run = () => {
-    this.Step()
-    this.Running.value = true
-    this.asnTimer = setInterval(() => {
-      this.ASN.value++
-      this.SlotDone.value = false
-    }, this.SlotDuration.value)
-  }
-  Step = () => {
-    this.ASN.value++
-    this.SlotDone.value = false
-  }
-  Pause = () => {
-    this.Running.value = false
-    clearInterval(this.asnTimer)
-  }
-  Reset = () => {
-    this.Running.value = false
-    clearInterval(this.asnTimer)
-    this.SignalReset.value++
-  }
 }

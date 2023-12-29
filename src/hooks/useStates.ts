@@ -2,11 +2,11 @@
 
 import { ref } from 'vue'
 
-import { TSCHNetwork } from '@/networks/TSCH/network'
-export const Network = new TSCHNetwork()
+// import { TSCHNetwork } from '@/networks/TSCH/network'
+// export const Network = new TSCHNetwork()
 
-// import { TSNNetwork } from '@/networks/TSN/network'
-// export const Network = new TSNNetwork()
+import { TSNNetwork } from '@/networks/TSN/network'
+export const Network = new TSNNetwork()
 
 // import { FiveGNetwork } from '@/networks/5G/network'
 // export const Network = new FiveGNetwork()

@@ -1,7 +1,8 @@
 import { ref, toRaw } from 'vue'
-import { Network, NETWORK_TYPE, NODE_TYPE, type Message, LINK_TYPE } from '../common'
-import { MSG_TYPES, type INIT_MSG_PAYLOAD, type ScheduleConfig, type TSNNodeMeta } from './typedefs'
-import { KDNode } from './kdtree'
+import {  NETWORK_TYPE, NODE_TYPE, type Message, LINK_TYPE, MSG_TYPE } from '../common'
+import { type ScheduleConfig, type TSNNodeMeta, type TSN_INIT_MSG_PAYLOAD } from './typedefs'
+import { KDNode } from '../kdtree'
+import { Network } from '../network'
 
 export class TSNNetwork extends Network {
   InPorts: any
@@ -58,8 +59,8 @@ export class TSNNetwork extends Network {
       }
       // send init msg
       n.w!.postMessage(<Message>{
-        type: MSG_TYPES.INIT,
-        payload: <INIT_MSG_PAYLOAD>{
+        type: MSG_TYPE.INIT,
+        payload: <TSN_INIT_MSG_PAYLOAD>{
           id: n.id,
           pos: toRaw(n.pos),
           neighbors: [],

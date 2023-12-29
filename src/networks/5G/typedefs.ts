@@ -5,3 +5,8 @@ export interface ScheduleConfig {
 }
 
 export interface FiveGNodeMeta extends NodeMeta {}
+
+export enum FIVE_G_PKT_TYPE {
+  ACK,
+  DATA
+}

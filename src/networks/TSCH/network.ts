@@ -3,14 +3,14 @@ import type {
   Cell,
   TSCHNodeMeta,
   ScheduleConfig,
-  INIT_MSG_PAYLOAD,
-  ASN_MSG_PAYLOAD,
+  TSCH_INIT_MSG_PAYLOAD,
   ASSOC_RSP_PKT_PAYLOAD
 } from './typedefs'
-import { ADDR, MSG_TYPES, PKT_TYPES, CELL_TYPES } from './typedefs'
-import { LINK_TYPE, Network, NETWORK_TYPE, NODE_TYPE } from '../common'
-import type { Packet, Message, MsgHandler } from '../common'
-import { KDNode } from '../TSN/kdtree'
+import { TSCH_PKT_TYPE, CELL_TYPES } from './typedefs'
+import { ADDR, MSG_TYPE, LINK_TYPE, NETWORK_TYPE, NODE_TYPE } from '../common'
+import type { Packet, Message, ASN_MSG_PAYLOAD, MsgHandler } from '../common'
+import { KDNode } from '../kdtree'
+import { Network } from '../network'
 
 export class TSCHNetwork extends Network {
   doneCnt = 0
@@ -30,9 +30,9 @@ export class TSCHNetwork extends Network {
       num_shared_slots: 8
     })
 
-    this.registerMsgHandler(MSG_TYPES.DONE, this.doneMsgHandler)
-    this.registerMsgHandler(MSG_TYPES.STAT, this.statMsgHandler)
-    this.registerMsgHandler(MSG_TYPES.ASSOC_REQ, this.assocReqMsgHandler)
+    this.registerMsgHandler(MSG_TYPE.DONE, this.doneMsgHandler)
+    this.registerMsgHandler(MSG_TYPE.STAT, this.statMsgHandler)
+    this.registerMsgHandler(MSG_TYPE.ASSOC_REQ, this.assocReqMsgHandler)
 
     this.createNodes()
     super.createEndSystems()
@@ -45,7 +45,7 @@ export class TSCHNetwork extends Network {
         for (const n of this.Nodes.value) {
           if (n.w != undefined) {
             n.w.postMessage(<Packet>{
-              type: MSG_TYPES.ASN,
+              type: MSG_TYPE.ASN,
               dst: n.id,
               payload: <ASN_MSG_PAYLOAD>{ asn: this.ASN.value }
             })
@@ -98,7 +98,7 @@ export class TSCHNetwork extends Network {
 
     if (topo_check) {
       const p = <Packet>{
-        type: PKT_TYPES.ASSOC_RSP,
+        type: TSCH_PKT_TYPE.ASSOC_RSP,
         uid: Math.floor(Math.random() * 0xffff),
         ch: 2,
         src: 0,
@@ -147,7 +147,7 @@ export class TSCHNetwork extends Network {
       const n = <TSCHNodeMeta>{
         id: i,
         type: NODE_TYPE.TSCH,
-        pos: [
+        pos: <[number, number]>[
           Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
             this.TopoConfig.value.grid_size / 2,
           Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
@@ -166,8 +166,8 @@ export class TSCHNetwork extends Network {
 
       // send init msg
       n.w!.postMessage(<Message>{
-        type: MSG_TYPES.INIT,
-        payload: <INIT_MSG_PAYLOAD>{
+        type: MSG_TYPE.INIT,
+        payload: <TSCH_INIT_MSG_PAYLOAD>{
           id: n.id,
           pos: toRaw(n.pos),
           sch_config: toRaw(this.SchConfig.value)
@@ -175,7 +175,7 @@ export class TSCHNetwork extends Network {
       })
       // handle msg/pkt from nodes
       n.w!.onmessage = (e: any) => {
-        if ('ch' in e.data == false) {
+        if ('uid' in e.data == false) {
           const msg: Message = e.data
           if (this.msgHandlers[msg.type] != undefined) {
             this.msgHandlers[msg.type](msg)
@@ -187,7 +187,7 @@ export class TSCHNetwork extends Network {
           // check channel interference, only one packet can be transmitted on each channel in a slot
           if (
             this.PacketsCurrent.value.filter((p) => p.ch == pkt.ch).length == 0 ||
-            pkt.type == PKT_TYPES.ACK
+            pkt.type == TSCH_PKT_TYPE.ACK
           ) {
             // must use this format for the detailedView function of el-table-v2
             pkt.id = this.Packets.value.length

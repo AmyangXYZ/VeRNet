@@ -2,14 +2,21 @@
 import type {
   ScheduleConfig,
   Cell,
-  INIT_MSG_PAYLOAD,
+  TSCH_INIT_MSG_PAYLOAD,
   BEACON_PKT_PAYLOAD,
   ASSOC_REQ_PKT_PAYLOAD,
-  ASN_MSG_PAYLOAD,
   ASSOC_RSP_PKT_PAYLOAD
 } from './typedefs'
-import { MSG_TYPES, ADDR, CELL_TYPES, PKT_TYPES } from './typedefs'
-import type { Packet, Message, MsgHandler, PktHandler } from '../common'
+import { CELL_TYPES, TSCH_PKT_TYPE } from './typedefs'
+import {
+  type Packet,
+  type Message,
+  type MsgHandler,
+  type PktHandler,
+  ADDR,
+  MSG_TYPE,
+  type ASN_MSG_PAYLOAD
+} from '../common'
 
 class TSCHNode {
   id: number = 0
@@ -33,13 +40,13 @@ class TSCHNode {
   constructor() {
     this.joinedNeighbors[ADDR.BROADCAST] = true
 
-    this.registerMsgHandler(MSG_TYPES.ASN, this.asnMsgHandler)
-    this.registerMsgHandler(MSG_TYPES.INIT, this.initMsgHandler)
+    this.registerMsgHandler(MSG_TYPE.ASN, this.asnMsgHandler)
+    this.registerMsgHandler(MSG_TYPE.INIT, this.initMsgHandler)
 
-    this.registerPktHandler(PKT_TYPES.ACK, this.ackPktHandler)
-    this.registerPktHandler(PKT_TYPES.BEACON, this.beaconPktHandler)
-    this.registerPktHandler(PKT_TYPES.ASSOC_REQ, this.assocReqPktHandler)
-    this.registerPktHandler(PKT_TYPES.ASSOC_RSP, this.assocRspPktHandler)
+    this.registerPktHandler(TSCH_PKT_TYPE.ACK, this.ackPktHandler)
+    this.registerPktHandler(TSCH_PKT_TYPE.BEACON, this.beaconPktHandler)
+    this.registerPktHandler(TSCH_PKT_TYPE.ASSOC_REQ, this.assocReqPktHandler)
+    this.registerPktHandler(TSCH_PKT_TYPE.ASSOC_RSP, this.assocRspPktHandler)
   }
 
   registerMsgHandler(type: number, handler: MsgHandler) {
@@ -77,9 +84,9 @@ class TSCHNode {
   }
 
   respondAck(pkt: Packet) {
-    if (pkt.dst != ADDR.BROADCAST && pkt.src != ADDR.CONTROLLER && pkt.type != PKT_TYPES.ACK) {
+    if (pkt.dst != ADDR.BROADCAST && pkt.src != ADDR.CONTROLLER && pkt.type != TSCH_PKT_TYPE.ACK) {
       const ack: Packet = { ...pkt }
-      ack.type = PKT_TYPES.ACK
+      ack.type = TSCH_PKT_TYPE.ACK
       ack.src = this.id
       ack.dst = pkt.src
       ack.len = 0
@@ -124,7 +131,7 @@ class TSCHNode {
     }
   }
   checkSchRx(pkt: Packet): boolean {
-    if (!this.joined || pkt.type == PKT_TYPES.ACK || pkt.src == ADDR.CONTROLLER) {
+    if (!this.joined || pkt.type == TSCH_PKT_TYPE.ACK || pkt.src == ADDR.CONTROLLER) {
       return true
     }
     const slot = this.ASN % this.sch_config.num_slots || this.sch_config.num_slots
@@ -149,7 +156,7 @@ class TSCHNode {
     ) {
       this.queue.push(<Packet>{
         uid: Math.floor(Math.random() * 0xffff),
-        type: PKT_TYPES.BEACON,
+        type: TSCH_PKT_TYPE.BEACON,
         src: this.id,
         dst: -1,
         seq: ++this.pkt_seq,
@@ -161,17 +168,17 @@ class TSCHNode {
 
     // done
     postMessage(<Message>{
-      type: MSG_TYPES.DONE
+      type: MSG_TYPE.DONE
     })
     postMessage(<Message>{
-      type: MSG_TYPES.STAT,
+      type: MSG_TYPE.STAT,
       src: this.id,
       dst: ADDR.CONTROLLER,
       payload: JSON.parse(JSON.stringify(this))
     })
   }
   initMsgHandler = (msg: Message) => {
-    const payload: INIT_MSG_PAYLOAD = msg.payload
+    const payload: TSCH_INIT_MSG_PAYLOAD = msg.payload
     this.id = payload.id
     this.joined = this.id == ADDR.ROOT
     this.sch_config = payload.sch_config
@@ -203,7 +210,7 @@ class TSCHNode {
   ackPktHandler = (ack: Packet) => {
     if (this.queue[0] != undefined && this.queue[0].uid == ack.uid) {
       if (
-        this.queue[0].type == PKT_TYPES.ASSOC_RSP &&
+        this.queue[0].type == TSCH_PKT_TYPE.ASSOC_RSP &&
         this.queue[0].payload.parent == this.id &&
         this.queue[0].payload.permit
       ) {
@@ -219,7 +226,7 @@ class TSCHNode {
       this.rank = payload.rank + 1
       const assoc_req = <Packet>{
         uid: Math.floor(Math.random() * 0xffff),
-        type: PKT_TYPES.ASSOC_REQ,
+        type: TSCH_PKT_TYPE.ASSOC_REQ,
         src: this.id,
         dst: pkt.src,
         seq: ++this.pkt_seq,
@@ -243,7 +250,7 @@ class TSCHNode {
     } else {
       // send to controller
       postMessage(<Message>{
-        type: MSG_TYPES.ASSOC_REQ,
+        type: MSG_TYPE.ASSOC_REQ,
         src: this.id,
         dst: ADDR.CONTROLLER,
         payload: pkt.payload
@@ -265,7 +272,7 @@ class TSCHNode {
         }
 
         postMessage(<Message>{
-          type: MSG_TYPES.STAT,
+          type: MSG_TYPE.STAT,
           src: this.id,
           dst: ADDR.CONTROLLER,
           payload: JSON.parse(JSON.stringify(this))
@@ -273,7 +280,7 @@ class TSCHNode {
 
         this.queue.push(<Packet>{
           uid: Math.floor(Math.random() * 0xffff),
-          type: PKT_TYPES.BEACON,
+          type: TSCH_PKT_TYPE.BEACON,
           src: this.id,
           dst: -1,
           seq: ++this.pkt_seq,

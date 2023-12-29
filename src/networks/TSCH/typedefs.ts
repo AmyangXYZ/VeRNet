@@ -1,6 +1,6 @@
 // all types and enums here
 
-import type { NodeMeta } from '../common'
+import type { INIT_MSG_PAYLOAD, NodeMeta } from '../common'
 
 export interface TSCHNodeMeta extends NodeMeta {
   joined: boolean
@@ -33,33 +33,11 @@ export enum CELL_TYPES {
   DATA
 }
 
-export enum MSG_TYPES {
-  INIT,
-  ASN,
-  DONE, // finished all activities of the current slot
-  SEND,
-  STAT,
-  ASSOC_REQ
-}
-
-export interface ASN_MSG_PAYLOAD {
-  asn: number
-}
-
-export interface INIT_MSG_PAYLOAD {
-  id: number
-  pos: number[]
+export interface TSCH_INIT_MSG_PAYLOAD extends INIT_MSG_PAYLOAD {
   sch_config: ScheduleConfig
 }
 
-export enum ADDR {
-  CONTROLLER = 0,
-  ROOT = 1,
-  BROADCAST = -1,
-  ANY = -2
-}
-
-export enum PKT_TYPES {
+export enum TSCH_PKT_TYPE {
   ACK,
   BEACON,
   ASSOC_REQ,

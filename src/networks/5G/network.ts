@@ -1,12 +1,13 @@
 import { ref } from 'vue'
-import { LINK_TYPE, Network, NETWORK_TYPE, NODE_TYPE } from '../common'
+import { LINK_TYPE,  NETWORK_TYPE, NODE_TYPE } from '../common'
 import type { ScheduleConfig, FiveGNodeMeta } from './typedefs'
-import { KDNode } from '../TSN/kdtree'
+import { KDNode } from '../kdtree'
+import { Network } from '../network'
 
 export class FiveGNetwork extends Network {
   constructor() {
     super()
-    this.Type = NETWORK_TYPE.FiveG
+    this.Type = NETWORK_TYPE.FIVE_G
     // this.Schedule = ref<Cell[][]>([])
     this.SchConfig = ref<ScheduleConfig>({
       num_slots: 40
@@ -59,7 +60,7 @@ export class FiveGNetwork extends Network {
 
       // send init msg
       // n.w!.postMessage(<Message>{
-      //   type: MSG_TYPES.INIT,
+      //   type: MSG_TYPE.INIT,
       //   payload: <INIT_MSG_PAYLOAD>{
       //     id: n.id,
       //     pos: toRaw(n.pos),
@@ -68,7 +69,7 @@ export class FiveGNetwork extends Network {
       // })
       // handle msg/pkt from nodes
       // n.w!.onmessage = (e: any) => {
-      //   if ('ch' in e.data == false) {
+      //   if ('uid' in e.data == false) {
       //     const msg: Message = e.data
       //     if (this.msgHandlers[msg.type] != undefined) {
       //       this.msgHandlers[msg.type](msg)
@@ -80,7 +81,7 @@ export class FiveGNetwork extends Network {
       //     // check channel interference, only one packet can be transmitted on each channel in a slot
       //     if (
       //       this.PacketsCurrent.value.filter((p) => p.ch == pkt.ch).length == 0 ||
-      //       pkt.type == PKT_TYPES.ACK
+      //       pkt.type == PKT_TYPE.ACK
       //     ) {
       //       // must use this format for the detailedView function of el-table-v2
       //       pkt.id = this.Packets.value.length

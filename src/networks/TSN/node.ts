@@ -1,12 +1,27 @@
-import type { INIT_MSG_PAYLOAD } from '../TSCH/typedefs'
-import type { Packet, Message, MsgHandler, PktHandler } from '../common'
+import {
+  type Packet,
+  type Message,
+  type MsgHandler,
+  type PktHandler,
+  ADDR,
+  MSG_TYPE,
+  type ASN_MSG_PAYLOAD
+} from '../common'
+import { TSN_PKT_TYPE, type TSN_INIT_MSG_PAYLOAD } from './typedefs'
 
 class TSNNode {
   id: number = 0
+  ASN: number = 0
   ports: { [p: number]: number } = {}
   msgHandlers: { [type: number]: MsgHandler } = {}
   pktHandlers: { [type: number]: PktHandler } = {}
-  constructor() {}
+
+  constructor() {
+    this.registerMsgHandler(MSG_TYPE.ASN, this.asnMsgHandler)
+    this.registerMsgHandler(MSG_TYPE.INIT, this.initMsgHandler)
+
+    this.registerPktHandler(TSN_PKT_TYPE.DATA, this.dataPktHandler)
+  }
   registerMsgHandler(type: number, handler: MsgHandler) {
     this.msgHandlers[type] = handler
   }
@@ -36,12 +51,28 @@ class TSNNode {
   }
 
   initMsgHandler = (msg: Message) => {
-    const payload: INIT_MSG_PAYLOAD = msg.payload
+    const payload: TSN_INIT_MSG_PAYLOAD = msg.payload
     this.id = payload.id
-    console.log(this.id)
+  }
+  asnMsgHandler = (msg: Message) => {
+    const payload: ASN_MSG_PAYLOAD = msg.payload
+    this.ASN = payload.asn
+
+    // this.checkSchTx()
+
+    // done
+    postMessage(<Message>{
+      type: MSG_TYPE.DONE
+    })
+    postMessage(<Message>{
+      type: MSG_TYPE.STAT,
+      src: this.id,
+      dst: ADDR.CONTROLLER,
+      payload: JSON.parse(JSON.stringify(this))
+    })
   }
   dataPktHandler = (pkt: Packet) => {
-    console.log(pkt)
+    console.log('tsn', pkt)
   }
 }
 
