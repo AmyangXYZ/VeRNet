@@ -2,72 +2,119 @@
 import { ref, watch, nextTick } from 'vue'
 import { Network } from '@/hooks/useStates'
 
+// const columns: any = [
+//   {
+//     key: 'id',
+//     title: 'No.',
+//     dataKey: 'id',
+//     width: 40,
+//     align: 'center',
+//     cellRenderer: ({ rowIndex }: any) => rowIndex + 1
+//   },
+//   {
+//     key: 'asn',
+//     title: 'ASN',
+//     dataKey: 'asn',
+//     width: 40,
+//     align: 'center'
+//   },
+//   {
+//     key: 'ch',
+//     title: 'CH',
+//     dataKey: 'ch',
+//     width: 30,
+//     align: 'center'
+//   },
+//   {
+//     key: 'src',
+//     title: 'SRC',
+//     dataKey: 'src',
+//     width: 30,
+//     align: 'center'
+//   },
+//   {
+//     key: 'dst',
+//     title: 'DST',
+//     dataKey: 'dst',
+//     width: 30,
+//     align: 'center'
+//   },
+//   {
+//     key: 'uid',
+//     title: 'UID',
+//     dataKey: 'uid',
+//     width: 60,
+//     align: 'center',
+//     cellRenderer: ({ cellData: uid }: any) => '0x' + uid.toString(16).toUpperCase().padStart(4, '0')
+//   },
+//   {
+//     key: 'type',
+//     title: 'TYPE',
+//     dataKey: 'type',
+//     width: 80,
+//     align: 'center',
+//     cellRenderer: ({ cellData: type }: any) => {}
+//   },
+//   // {
+//   //   key: 'seq',
+//   //   title: 'SEQ',
+//   //   dataKey: 'seq',
+//   //   width: 40,
+//   //   align: 'center'
+//   // },
+//   {
+//     key: 'len',
+//     title: 'LEN',
+//     dataKey: 'len',
+//     width: 60,
+//     align: 'center'
+//   }
+// ]
+
 const columns: any = [
   {
-    key: 'id',
-    title: 'No.',
-    dataKey: 'id',
-    width: 40,
+    key: 'flow_id',
+    title: 'Flow ID',
+    dataKey: 'flow_id',
+    width: 60,
     align: 'center',
     cellRenderer: ({ rowIndex }: any) => rowIndex + 1
   },
   {
-    key: 'asn',
-    title: 'ASN',
-    dataKey: 'asn',
+    key: 'src',
+    title: 'Source',
+    dataKey: 'src',
     width: 40,
     align: 'center'
   },
   {
-    key: 'ch',
-    title: 'CH',
-    dataKey: 'ch',
-    width: 30,
-    align: 'center'
-  },
-  {
-    key: 'src',
-    title: 'SRC',
-    dataKey: 'src',
-    width: 30,
-    align: 'center'
-  },
-  {
     key: 'dst',
-    title: 'DST',
+    title: 'Dest',
     dataKey: 'dst',
-    width: 30,
+    width: 40,
     align: 'center'
   },
   {
-    key: 'uid',
-    title: 'UID',
-    dataKey: 'uid',
-    width: 60,
-    align: 'center',
-    cellRenderer: ({ cellData: uid }: any) => '0x' + uid.toString(16).toUpperCase().padStart(4, '0')
+    key: 'deadline',
+    title: 'Deadline',
+    dataKey: 'deadline',
+    width: 50,
+    align: 'center'
   },
   {
-    key: 'type',
-    title: 'TYPE',
-    dataKey: 'type',
-    width: 80,
-    align: 'center',
-    cellRenderer: ({ cellData: type }: any) => {}
-  },
-  // {
-  //   key: 'seq',
-  //   title: 'SEQ',
-  //   dataKey: 'seq',
-  //   width: 40,
-  //   align: 'center'
-  // },
-  {
-    key: 'len',
-    title: 'LEN',
-    dataKey: 'len',
+    key: 'period',
+    title: 'Period',
+    dataKey: 'period',
     width: 60,
     align: 'center'
+  },
+  {
+    key: 'payload_size',
+    title: 'Payload Size',
+    dataKey: 'payload_size',
+    width: 100,
+    align: 'center',
+    cellRenderer: ({ cellData: payload_size }: any) => payload_size.toString()
   }
 ]
 
@@ -104,7 +151,7 @@ Row.inheritAttrs = false
       :data="Network.Packets.value"
       :width="360"
       :height="180"
-      :expand-column-key="columns[7].key"
+      :expand-column-key="columns[5].key"
       :estimated-row-height="16"
       :header-height="18"
     >
