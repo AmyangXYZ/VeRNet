@@ -3,7 +3,7 @@ import { watch } from 'vue'
 import { Network, SignalShowSettings } from '@/hooks/useStates'
 
 watch(
-  [Network.TopoConfig, Network.SchConfig],
+  [Network.Config],
   () => {
     Network.Reset()
   },
@@ -13,13 +13,13 @@ watch(
 
 <template>
   <el-card class="card" v-show="SignalShowSettings">
-    <el-row class="form-row">
+    <!-- <el-row class="form-row">
       <el-col :span="12" class="label-col">
         <img src="../assets/settings-toporand.png" class="icon" />
         <span class="label">Topo Rand Seed</span>
       </el-col>
       <el-col :span="12">
-        <el-input-number v-model="Network.TopoConfig.value.seed" class="input-number" />
+        <el-input-number v-model="Network.Config.value.seed" class="input-number" />
       </el-col>
     </el-row>
 
@@ -30,7 +30,7 @@ watch(
       </el-col>
       <el-col :span="12">
         <el-input-number
-          v-model="Network.TopoConfig.value.num_nodes"
+          v-model="Network.Config.value.num_nodes"
           :min="1"
           :max="200"
           class="input-number"
@@ -45,7 +45,7 @@ watch(
       </el-col>
       <el-col :span="12">
         <el-input-number
-          v-model="Network.TopoConfig.value.tx_range"
+          v-model="Network.Config.value.tx_range"
           :min="1"
           :max="40"
           class="input-number"
@@ -81,7 +81,7 @@ watch(
           class="input-number"
         />
       </el-col>
-    </el-row>
+    </el-row> -->
   </el-card>
 </template>
 

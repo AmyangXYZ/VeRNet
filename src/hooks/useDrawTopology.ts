@@ -1,6 +1,5 @@
 import { watch } from 'vue'
 import { Network, SelectedNode, SignalEditTopology, SignalResetCamera } from './useStates'
-import { TSCH_PKT_TYPE } from '@/networks/TSCH/typedefs'
 
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
@@ -8,14 +7,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
-import {
-  NODE_TYPE,
-  NETWORK_TYPE,
-  ADDR,
-  type Packet,
-  type LinkMeta,
-  LINK_TYPE
-} from '@/networks/common'
+import { NODE_TYPE, ADDR, type Packet, type Link, LINK_TYPE } from '@/core/typedefs'
 
 export function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
@@ -56,8 +48,8 @@ export function useDrawTopology(dom: HTMLElement) {
 
   const drawGround = () => {
     const geometry = new THREE.PlaneGeometry(
-      Network.TopoConfig.value.grid_size + 50,
-      Network.TopoConfig.value.grid_size + 50,
+      Network.Config.value.grid_size + 50,
+      Network.Config.value.grid_size + 50,
       64,
       64
     )
@@ -117,18 +109,12 @@ export function useDrawTopology(dom: HTMLElement) {
 
   let drawnNodes: { [name: string]: any } = {}
   const drawNodes = () => {
-    switch (Network.Type) {
-      case NETWORK_TYPE.TSCH:
-        drawTSCHDevices()
-        break
-      case NETWORK_TYPE.TSN:
-        drawTSNDevices()
-        break
-      case NETWORK_TYPE.FIVE_G:
-        drawFiveGBS()
-        drawFiveGUE()
-        break
-    }
+    drawTSCHDevices()
+
+    drawTSNDevices()
+
+    drawFiveGBS()
+    drawFiveGUE()
 
     drawEndSystems()
   }
@@ -251,47 +237,49 @@ export function useDrawTopology(dom: HTMLElement) {
     if (Network.Nodes.value.length == 0) {
       return
     }
-    const node = Network.Nodes.value[0]
-    // GLTF Loader
-    const loader = new GLTFLoader()
-    loader.load('/models/5_five_g_tower/scene.gltf', function (gltf: any) {
-      let modelGroup: any = {}
-      const model = gltf.scene
-      model.scale.set(6, 6, 6)
-      model.traverse(function (object: any) {
-        if (object instanceof THREE.Group) {
-          modelGroup = object
-        }
-        if (object.isMesh) {
-          object.castShadow = true // enable shadow casting
-          object.receiveShadow = true
-          object.material.color = new THREE.Color('#666')
-          object.userData.type = NODE_TYPE[node.type]
-          object.userData.node_id = 0
+    for (const node of Network.Nodes.value) {
+      if (node.type != NODE_TYPE.FIVE_G_BS) continue
+      // GLTF Loader
+      const loader = new GLTFLoader()
+      loader.load('/models/5_five_g_tower/scene.gltf', function (gltf: any) {
+        let modelGroup: any = {}
+        const model = gltf.scene
+        model.scale.set(6, 6, 6)
+        model.traverse(function (object: any) {
+          if (object instanceof THREE.Group) {
+            modelGroup = object
+          }
+          if (object.isMesh) {
+            object.castShadow = true // enable shadow casting
+            object.receiveShadow = true
+            object.material.color = new THREE.Color('#666')
+            object.userData.type = NODE_TYPE[node.type]
+            object.userData.node_id = 0
+          }
+        })
+        model.position.x = node.pos[0]
+        model.position.z = node.pos[1]
+        scene.add(model)
+
+        const box = new THREE.Box3().setFromObject(model)
+        const size = new THREE.Vector3()
+        box.getSize(size)
+
+        const label = createLabel(`${NODE_TYPE[node.type]}-${node.id}`)
+        label.position.set(model.position.x, size.y + 1, model.position.z) // Adjust the position as needed
+        scene.add(label)
+
+        const { dragBox, dragBoxHelper } = createDragBox(node, model)
+
+        drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
+          model,
+          label,
+          modelGroup,
+          dragBox,
+          dragBoxHelper
         }
       })
-      model.position.x = node.pos[0]
-      model.position.z = node.pos[1]
-      scene.add(model)
-
-      const box = new THREE.Box3().setFromObject(model)
-      const size = new THREE.Vector3()
-      box.getSize(size)
-
-      const label = createLabel(`5G-BS-1`)
-      label.position.set(model.position.x, size.y + 1, model.position.z) // Adjust the position as needed
-      scene.add(label)
-
-      const { dragBox, dragBoxHelper } = createDragBox(node, model)
-
-      drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
-        model,
-        label,
-        modelGroup,
-        dragBox,
-        dragBoxHelper
-      }
-    })
+    }
   }
   const drawFiveGUE = () => {
     // GLTF Loader
@@ -404,23 +392,23 @@ export function useDrawTopology(dom: HTMLElement) {
     }
 
     // Load and place models
-    loadAndPlaceModel(
-      '/models/server/scene.gltf',
-      [0.08, 0.08, 0.08],
-      -Math.PI / 2,
-      1.9,
-      7,
-      NODE_TYPE.SERVER
-    )
+    // loadAndPlaceModel(
+    //   '/models/server/scene.gltf',
+    //   [0.08, 0.08, 0.08],
+    //   -Math.PI / 2,
+    //   1.9,
+    //   7,
+    //   NODE_TYPE.END_SYSTEM
+    // )
     loadAndPlaceModel(
       '/models/robotic_arm/scene.gltf',
       [0.004, 0.004, 0.004],
       -Math.PI / 2,
       0,
       7,
-      NODE_TYPE.ROBOT
+      NODE_TYPE.END_SYSTEM
     )
-    loadAndPlaceModel('/models/sensor/scene.gltf', [2, 2, 2], -Math.PI / 2, 0, 5, NODE_TYPE.SENSOR)
+    // loadAndPlaceModel('/models/sensor/scene.gltf', [2, 2, 2], -Math.PI / 2, 0, 5, NODE_TYPE.END_SYSTEM)
   }
 
   const createDragBox = (node: any, model: any): any => {
@@ -447,7 +435,7 @@ export function useDrawTopology(dom: HTMLElement) {
     return { dragBox, dragBoxHelper }
   }
 
-  let drawnLinks: { [uid: number]: { mesh: any; link: LinkMeta } } = {}
+  let drawnLinks: { [uid: number]: { mesh: any; link: Link } } = {}
   const drawLinks = () => {
     for (const l of Object.values(Network.Links.value)) {
       if (drawnLinks[l.uid] == undefined) {
@@ -455,7 +443,7 @@ export function useDrawTopology(dom: HTMLElement) {
       }
     }
   }
-  const drawLink = (l: LinkMeta) => {
+  const drawLink = (l: Link) => {
     const p1 = new THREE.Vector3(
       Network.Nodes.value[l.v1].pos[0],
       1.6,
@@ -517,11 +505,12 @@ export function useDrawTopology(dom: HTMLElement) {
   let drawnBeaconPackets: { [uid: number]: any } = {}
   const drawPackets = () => {
     time = 0 // reset animation timer
+    console.log(Network.PacketsCurrent.value)
     for (const pkt of Network.PacketsCurrent.value) {
-      if (Network.Type == NETWORK_TYPE.TSCH && pkt.type == TSCH_PKT_TYPE.ACK) continue
       if (pkt.mac_dst != ADDR.BROADCAST) {
         drawUnicastPacket(pkt)
-      } else if (Network.Type == NETWORK_TYPE.TSCH && pkt.type == TSCH_PKT_TYPE.BEACON) {
+      } else {
+        //if (Network.Type == NETWORK_TYPE.TSCH && pkt.type == TSCH_PKT_TYPE.BEACON) {
         drawBeaconPacket(pkt)
       }
     }
@@ -587,7 +576,8 @@ export function useDrawTopology(dom: HTMLElement) {
   }
   const drawBeaconPacket = (pkt: Packet) => {
     const geometry = new THREE.SphereGeometry(
-      Network.TopoConfig.value.tx_range,
+      // Network.Config.value.tx_range,
+      10,
       32,
       32,
       0,
@@ -815,17 +805,10 @@ export function useDrawTopology(dom: HTMLElement) {
     event.object.position.y = 0
 
     if (NODE_TYPE[event.object.userData.type] != undefined) {
-      if (event.object.userData.node_id <= Network.TopoConfig.value.num_nodes) {
-        Network.Nodes.value[event.object.userData.node_id].pos = [
-          event.object.position.x,
-          event.object.position.z
-        ]
-      } else {
-        // is an end system
-        Network.EndSystems.value[
-          event.object.userData.node_id - Network.TopoConfig.value.num_nodes - 1
-        ].pos = [event.object.position.x, event.object.position.z]
-      }
+      Network.Nodes.value[event.object.userData.node_id].pos = [
+        event.object.position.x,
+        event.object.position.z
+      ]
 
       for (const l of relatedLinks) {
         clearLink(l.link.uid)

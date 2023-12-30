@@ -3,10 +3,7 @@ import ChannelChart from '@/components/ChannelChart.vue'
 
 import { ref, watch, nextTick } from 'vue'
 import { Network } from '@/hooks/useStates'
-import { NETWORK_TYPE, type Packet } from '@/networks/common'
-import { TSCH_PKT_TYPE } from '@/networks/TSCH/typedefs'
-import { TSN_PKT_TYPE } from '@/networks/TSN/typedefs'
-import { FIVE_G_PKT_TYPE } from '@/networks/5G/typedefs'
+import { type Packet } from '@/core/typedefs'
 
 import { Filter } from '@element-plus/icons-vue'
 
@@ -41,16 +38,16 @@ const columns: any = [
     align: 'center'
   },
   {
-    key: 'src',
+    key: 'mac_src',
     title: 'SRC',
-    dataKey: 'src',
+    dataKey: 'mac_src',
     width: 30,
     align: 'center'
   },
   {
-    key: 'dst',
+    key: 'mac_dst',
     title: 'DST',
-    dataKey: 'dst',
+    dataKey: 'mac_dst',
     width: 30,
     align: 'center'
   },
@@ -69,9 +66,7 @@ const columns: any = [
     width: 80,
     align: 'center',
     cellRenderer: ({ cellData: type }: any) => {
-      if (Network.Type == NETWORK_TYPE.TSCH) return TSCH_PKT_TYPE[type]
-      if (Network.Type == NETWORK_TYPE.TSN) return TSN_PKT_TYPE[type]
-      if (Network.Type == NETWORK_TYPE.FIVE_G) return FIVE_G_PKT_TYPE[type]
+      type
     }
   },
   // {
@@ -130,7 +125,7 @@ Row.inheritAttrs = false
       :columns="columns"
       :data="Network.Packets.value.filter(filterFunc)"
       :width="360"
-      :height="180"
+      :height="370"
       :expand-column-key="columns[7].key"
       :estimated-row-height="16"
       :header-height="18"
@@ -139,7 +134,7 @@ Row.inheritAttrs = false
         <Row v-bind="props" />
       </template>
     </el-table-v2>
-    <ChannelChart />
+    <!-- <ChannelChart /> -->
   </el-card>
 </template>
 
