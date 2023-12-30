@@ -467,7 +467,7 @@ export function useDrawTopology(dom: HTMLElement) {
       1.6,
       Network.Nodes.value[l.v2].pos[1]
     )
-      
+
     const x2 = (p1.x + p3.x) / 2
     const z2 = (p1.z + p3.z) / 2
     const h = 5

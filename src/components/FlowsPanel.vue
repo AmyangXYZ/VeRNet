@@ -2,11 +2,10 @@
 import { ref, watch, nextTick } from 'vue'
 import { Network } from '@/hooks/useStates'
 
-
 const columns: any = [
   {
     key: 'flow_id',
-    title: 'Flow ID',
+    title: 'ID',
     dataKey: 'flow_id',
     width: 60,
     align: 'center',

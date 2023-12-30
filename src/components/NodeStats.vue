@@ -16,8 +16,8 @@ import { Network, SelectedNode } from '@/hooks/useStates'
         - {{ SelectedNode == 1 ? 'Raspberry Pi 4B' : 'CC2650 SensorTag' }} <br />
         - TX: {{ Network.Nodes.value[SelectedNode].tx_cnt }} , RX:
         {{ Network.Nodes.value[SelectedNode].rx_cnt }}<br />
-        - Queue length: {{ Network.Nodes.value[SelectedNode].queueLen }}<br />
-        - Rank in topology: {{ Network.Nodes.value[SelectedNode].rank }}
+        <!-- - Queue length: {{ (Network.Nodes.value[SelectedNode].queueLen }}<br />
+        - Rank in topology: {{ Network.Nodes.value[SelectedNode].rank }} -->
       </el-col>
     </el-row>
   </el-card>

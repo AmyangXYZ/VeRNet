@@ -1,5 +1,5 @@
 import { ref, toRaw } from 'vue'
-import {  NETWORK_TYPE, NODE_TYPE, type Message, LINK_TYPE, MSG_TYPE } from '../common'
+import { NETWORK_TYPE, NODE_TYPE, type Message, LINK_TYPE, MSG_TYPE } from '../common'
 import { type ScheduleConfig, type TSNNodeMeta, type TSN_INIT_MSG_PAYLOAD } from './typedefs'
 import { KDNode } from '../kdtree'
 import { Network } from '../network'

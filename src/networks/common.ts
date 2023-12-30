@@ -37,7 +37,6 @@ export enum LINK_TYPE {
   WIRELESS
 }
 
-
 export interface FlowMeta {
   id: number
   src: number

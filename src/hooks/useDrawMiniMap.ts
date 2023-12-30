@@ -3,7 +3,8 @@ import * as echarts from 'echarts'
 
 import { Network } from './useStates'
 import { MiniMapMode } from './useStates'
-import { LINK_TYPE } from '@/networks/common'
+import { LINK_TYPE, NETWORK_TYPE } from '@/networks/common'
+import type { TSCHNodeMeta } from '@/networks/TSCH/typedefs'
 export function useDrawMiniMap(chartDom: HTMLElement) {
   const chart = echarts.init(chartDom, { useDirtyRect: true })
 
@@ -110,17 +111,8 @@ export function useDrawMiniMap(chartDom: HTMLElement) {
     for (const l of Object.values(Network.Links.value)) {
       if (drawnLinks[l.uid] == undefined) {
         drawnLinks[l.uid] = true
-        let coord1: [number, number], coord2: [number, number]
-        if (l.v1 <= Network.TopoConfig.value.num_nodes) {
-          coord1 = Network.Nodes.value[l.v1].pos
-        } else {
-          coord1 = Network.EndSystems.value[l.v1 - Network.TopoConfig.value.num_nodes - 1].pos
-        }
-        if (l.v2 <= Network.TopoConfig.value.num_nodes) {
-          coord2 = Network.Nodes.value[l.v2].pos
-        } else {
-          coord2 = Network.EndSystems.value[l.v2 - Network.TopoConfig.value.num_nodes - 1].pos
-        }
+        const coord1 = Network.Nodes.value[l.v1].pos
+        const coord2 = Network.Nodes.value[l.v2].pos
 
         option.series[0].markLine.data.push([
           {
@@ -142,13 +134,13 @@ export function useDrawMiniMap(chartDom: HTMLElement) {
   }
   function drawMinimapTree() {
     for (const n of Network.Nodes.value) {
-      if (n.joined && n.parent != 0) {
+      if (n.type==NETWORK_TYPE.TSCH && (<TSCHNodeMeta>n).joined && (<TSCHNodeMeta>n).parent != 0) {
         if (treeNodes[n.id] == undefined) {
           treeNodes[n.id] = { name: n.id, children: [] }
-          if (treeNodes[n.parent] != undefined) {
-            treeNodes[n.parent].children.push(treeNodes[n.id])
+          if (treeNodes[(<TSCHNodeMeta>n).parent] != undefined) {
+            treeNodes[(<TSCHNodeMeta>n).parent].children.push(treeNodes[n.id])
           } else {
-            treeNodes[n.parent] = { name: n.id, children: [treeNodes[n.id]] }
+            treeNodes[(<TSCHNodeMeta>n).parent] = { name: n.id, children: [treeNodes[n.id]] }
           }
         }
       }

@@ -84,7 +84,11 @@ class TSCHNode {
   }
 
   respondAck(pkt: Packet) {
-    if (pkt.mac_dst != ADDR.BROADCAST && pkt.mac_src != ADDR.CONTROLLER && pkt.type != TSCH_PKT_TYPE.ACK) {
+    if (
+      pkt.mac_dst != ADDR.BROADCAST &&
+      pkt.mac_src != ADDR.CONTROLLER &&
+      pkt.type != TSCH_PKT_TYPE.ACK
+    ) {
       const ack: Packet = { ...pkt }
       ack.type = TSCH_PKT_TYPE.ACK
       ack.mac_src = this.id
@@ -138,7 +142,9 @@ class TSCHNode {
     for (const cell of this.schedule[slot]) {
       if (
         cell != undefined &&
-        (cell.mac_src == pkt.mac_src || pkt.mac_dst == ADDR.BROADCAST || cell.type == CELL_TYPES.SHARED)
+        (cell.mac_src == pkt.mac_src ||
+          pkt.mac_dst == ADDR.BROADCAST ||
+          cell.type == CELL_TYPES.SHARED)
       ) {
         this.rx_cnt++
         return true

@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { LINK_TYPE,  NETWORK_TYPE, NODE_TYPE } from '../common'
+import { LINK_TYPE, NETWORK_TYPE, NODE_TYPE } from '../common'
 import type { ScheduleConfig, FiveGNodeMeta } from './typedefs'
 import { KDNode } from '../kdtree'
 import { Network } from '../network'
