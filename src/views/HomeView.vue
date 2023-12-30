@@ -4,11 +4,13 @@ import ControlPanel from '@/components/ControlPanel.vue'
 import Topology from '@/components/NetworkTopology.vue'
 import PacketSniffer from '@/components/PacketSniffer.vue'
 // import ScheduleTable from '@/components/ScheduleTable.vue'
-import NodeStats from '@/components/NodeStats.vue'
+// import NodeStats from '@/components/NodeStats.vue'
 import MiniMap from '@/components/MiniMap.vue'
 import SettingsPanel from '@/components/SettingsPanel.vue'
 import ScenariosPanel from '@/components/ScenariosPanel.vue'
 import FlowsPanelVue from '@/components/FlowsPanel.vue'
+import TopoEditToolbox from '@/components/TopoEditToolbox.vue'
+import { SignalEditTopology } from '@/hooks/useStates'
 </script>
 
 <template>
@@ -23,12 +25,16 @@ import FlowsPanelVue from '@/components/FlowsPanel.vue'
     />
   </transition>
   <MenuBar style="position: absolute; top: 16px; left: 16px; width: 150px; z-index: 999" />
+  <TopoEditToolbox
+    v-show="SignalEditTopology"
+    style="position: absolute; top: 48px; left: 16px; width: 240px; z-index: 999"
+  />
   <ControlPanel
     style="position: absolute; top: 16px; left: 40%; min-width: 336px; width: 20%; z-index: 999"
   />
-  <NodeStats
+  <!-- <NodeStats
     style="position: absolute; bottom: 16px; left: 38%; width: 26%; min-width: 400px; z-index: 999"
-  />
+  /> -->
   <Topology style="position: absolute; z-index: 10" />
   <MiniMap style="position: absolute; bottom: 16px; left: 16px; z-index: 999" />
   <FlowsPanelVue

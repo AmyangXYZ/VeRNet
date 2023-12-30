@@ -49,7 +49,7 @@ export class KDTree {
     if (current == undefined) return
 
     const d = this._distanceSquared(current.pos, pos)
-    if (current.pos != pos && d <= range) {
+    if (current.pos[0] != pos[0] && current.pos[1] != pos[1] && d <= range) {
       if (nearestNodes.length < k) {
         nearestNodes.push(current)
       } else if (d < this._distanceSquared(pos, nearestNodes[k - 1].pos)) {

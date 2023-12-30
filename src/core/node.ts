@@ -2,6 +2,7 @@ import { type Message, type MsgHandler, type Packet, type PktHandler } from './t
 
 export class Node {
   id: number = 0
+  neighbors: number[] = []
   pkt_seq: number = 0
   tx_cnt: number = 0
   rx_cnt: number = 0

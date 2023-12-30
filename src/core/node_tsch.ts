@@ -1,10 +1,18 @@
 import { Node } from './node'
-import { PKT_TYPE, type Message, type Packet, MSG_TYPE, type ASNMsgPayload } from './typedefs'
+import {
+  PKT_TYPE,
+  type Message,
+  type Packet,
+  MSG_TYPE,
+  type ASNMsgPayload,
+  type InitMsgPayload
+} from './typedefs'
 
 class TSCHNode extends Node {
   constructor() {
     super()
     this.registerMsgHandler(MSG_TYPE.ASN, this.asnMsgHandler)
+    this.registerMsgHandler(MSG_TYPE.INIT, this.initMsgHandler)
     this.registerPktHandler(PKT_TYPE.DATA, this.dataPktHandler)
   }
   asnMsgHandler = (msg: Message) => {
@@ -16,6 +24,11 @@ class TSCHNode extends Node {
     postMessage(<Message>{
       type: MSG_TYPE.DONE
     })
+  }
+  initMsgHandler = (msg: Message) => {
+    const payload: InitMsgPayload = msg.payload
+    this.id = payload.id
+    this.neighbors = payload.neighbors
   }
   dataPktHandler = (pkt: Packet) => {
     // console.log('tsn', pkt)

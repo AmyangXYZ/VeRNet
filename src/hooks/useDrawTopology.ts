@@ -1,5 +1,11 @@
 import { watch } from 'vue'
-import { Network, SelectedNode, SignalEditTopology, SignalResetCamera } from './useStates'
+import {
+  Network,
+  SelectedNode,
+  SignalEditTopology,
+  SignalResetCamera,
+  SignalUpdateTopology
+} from './useStates'
 
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
@@ -107,14 +113,14 @@ export function useDrawTopology(dom: HTMLElement) {
     return sprite
   }
 
-  let drawnNodes: { [name: string]: any } = {}
+  let drawnNodes: { [id: number]: any } = {}
   const drawNodes = () => {
     drawTSCHDevices()
 
-    drawTSNDevices()
+    // drawTSNDevices()
 
-    drawFiveGBS()
-    drawFiveGUE()
+    // drawFiveGBS()
+    // drawFiveGUE()
 
     drawEndSystems()
   }
@@ -148,7 +154,8 @@ export function useDrawTopology(dom: HTMLElement) {
       box.getSize(size)
 
       for (const node of Network.Nodes.value) {
-        if (node.id == 0 || node.type != NODE_TYPE.TSCH) continue
+        if (node.id == 0 || node.type != NODE_TYPE.TSCH || drawnNodes[node.id] != undefined)
+          continue
         let modelGroup: any = {}
 
         const model = modelTemplate.clone()
@@ -170,7 +177,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
         const { dragBox, dragBoxHelper } = createDragBox(node, model)
 
-        drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
+        drawnNodes[node.id] = {
           model,
           label,
           modelGroup,
@@ -223,7 +230,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
         const { dragBox, dragBoxHelper } = createDragBox(node, model)
 
-        drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
+        drawnNodes[node.id] = {
           model,
           label,
           modelGroup,
@@ -271,7 +278,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
         const { dragBox, dragBoxHelper } = createDragBox(node, model)
 
-        drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
+        drawnNodes[node.id] = {
           model,
           label,
           modelGroup,
@@ -320,7 +327,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
         const { dragBox, dragBoxHelper } = createDragBox(node, model)
 
-        drawnNodes[`${NODE_TYPE[node.type]}-${node.id}`] = {
+        drawnNodes[node.id] = {
           model,
           label,
           modelGroup,
@@ -363,7 +370,7 @@ export function useDrawTopology(dom: HTMLElement) {
       box.getSize(size)
 
       for (const es of Network.Nodes.value) {
-        if (es.type !== typeVal) continue
+        if (es.type !== typeVal || drawnNodes[es.id] != undefined) continue
 
         const model = modelTemplate.clone()
         model.position.set(es.pos[0], positionY, es.pos[1])
@@ -381,7 +388,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
         const { dragBox, dragBoxHelper } = createDragBox(es, model)
 
-        drawnNodes[`${NODE_TYPE[es.type]}-${es.id}`] = {
+        drawnNodes[es.id] = {
           model,
           label,
           modelGroup: model,
@@ -429,8 +436,8 @@ export function useDrawTopology(dom: HTMLElement) {
     objectsToDrag.push(dragBox)
 
     const dragBoxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
-    dragBoxHelper.visible = false
     dragBoxHelper.castShadow = false
+    dragBoxHelper.visible = SignalEditTopology.value
     scene.add(dragBoxHelper)
     return { dragBox, dragBoxHelper }
   }
@@ -711,6 +718,12 @@ export function useDrawTopology(dom: HTMLElement) {
   drawNodes()
   drawLinks()
   animate()
+
+  watch(SignalUpdateTopology, () => {
+    drawNodes()
+    clearLinks()
+    drawLinks()
+  })
 
   watch(Network.SlotDone, () => {
     if (Network.SlotDone.value) {

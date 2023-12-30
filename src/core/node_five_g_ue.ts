@@ -11,12 +11,6 @@ class FiveGUE extends Node {
     this.ASN = payload.asn
 
     // do something
-    postMessage(<Packet>{
-      uid: 11,
-      type: PKT_TYPE.DATA,
-      mac_src: 12,
-      mac_dst: 2
-    })
 
     postMessage(<Message>{
       type: MSG_TYPE.DONE

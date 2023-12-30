@@ -7,6 +7,7 @@ class FiveGBS extends Node {
     this.registerMsgHandler(MSG_TYPE.ASN, this.asnMsgHandler)
     this.registerPktHandler(PKT_TYPE.DATA, this.dataPktHandler)
   }
+  
   asnMsgHandler = (msg: Message) => {
     const payload: ASNMsgPayload = msg.payload
     this.ASN = payload.asn
