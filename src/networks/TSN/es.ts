@@ -1,4 +1,5 @@
-import { MSG_TYPE, type Message, type MsgHandler, type Packet, type PktHandler } from './common'
+import { TSN_PKT_TYPE } from './typedefs'
+import { MSG_TYPE, type Message, type MsgHandler, type Packet, type PktHandler } from '../common'
 
 // end system, run as a webworker
 class EndSystem {
@@ -10,6 +11,9 @@ class EndSystem {
 
   constructor() {
     this.registerMsgHandler(MSG_TYPE.INIT, this.initMsgHandler)
+    this.registerMsgHandler(MSG_TYPE.FLOW, this.flowMsgHandler)
+
+    this.registerPktHandler(TSN_PKT_TYPE.DATA, this.dataPktHandler)
   }
 
   registerMsgHandler(type: number, handler: MsgHandler) {
@@ -46,7 +50,8 @@ class EndSystem {
     }
   }
   initMsgHandler = () => {}
-  dataMsgHandler = () => {}
+  flowMsgHandler = () => {}
+  dataPktHandler = () => {}
 }
 
 new EndSystem().run()

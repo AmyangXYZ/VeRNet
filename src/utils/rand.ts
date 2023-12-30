@@ -1,4 +1,3 @@
-// ai generated code :)
 export class SeededRandom {
   private m_w: number
   private m_z: number

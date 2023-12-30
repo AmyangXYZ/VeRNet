@@ -7,10 +7,9 @@ import type {
   ASSOC_RSP_PKT_PAYLOAD
 } from './typedefs'
 import { TSCH_PKT_TYPE, CELL_TYPES } from './typedefs'
-import { ADDR, MSG_TYPE, LINK_TYPE, NETWORK_TYPE, NODE_TYPE } from '../common'
+import { Network, ADDR, MSG_TYPE, LINK_TYPE, NETWORK_TYPE, NODE_TYPE } from '../common'
 import type { Packet, Message, ASN_MSG_PAYLOAD, MsgHandler } from '../common'
-import { KDNode } from '../kdtree'
-import { Network } from '../network'
+import { KDNode } from '../../utils/kdtree'
 
 export class TSCHNetwork extends Network {
   doneCnt = 0
@@ -35,7 +34,6 @@ export class TSCHNetwork extends Network {
     this.registerMsgHandler(MSG_TYPE.ASSOC_REQ, this.assocReqMsgHandler)
 
     this.createNodes()
-    super.createEndSystems()
     this.createSchedule()
 
     watch(this.ASN, () => {
@@ -117,8 +115,8 @@ export class TSCHNetwork extends Network {
   }
 
   createNodes = () => {
-    this.NetworkDevices = ref<TSCHNodeMeta[]>([])
-
+    this.NetworkDevices = ref<TSCHNodeMeta[]>([<TSCHNodeMeta>{}])
+    console.log(this.NetworkDevices.value[0].id == undefined)
     // clear old nodes
     if (this.NetworkDevices.value.length > 1) {
       for (const n of this.NetworkDevices.value) {
@@ -127,21 +125,6 @@ export class TSCHNetwork extends Network {
         }
       }
     }
-    this.NetworkDevices.value = [
-      <TSCHNodeMeta>{
-        id: 0,
-        type: NODE_TYPE.TSCH,
-        pos: [0, 0],
-        joined: false,
-        parent: 0,
-        neighbors: [],
-        queueLen: 0,
-        tx_cnt: 0,
-        rx_cnt: 0,
-        rank: 0,
-        w: undefined
-      }
-    ] // placeholder
 
     for (let i = 1; i <= this.TopoConfig.value.num_nodes; i++) {
       const n = <TSCHNodeMeta>{
@@ -163,6 +146,9 @@ export class TSCHNetwork extends Network {
         w: new Worker(new URL('@/networks/TSCH/node.ts', import.meta.url), { type: 'module' })
       }
       this.KDTree.Insert(new KDNode(i, n.pos))
+
+      this.Nodes.value.push(n)
+      this.NetworkDevices.value.push(n)
 
       // send init msg
       n.w!.postMessage(<Message>{
@@ -203,6 +189,7 @@ export class TSCHNetwork extends Network {
 
             if (pkt.mac_dst == ADDR.BROADCAST) {
               for (const nn of this.NetworkDevices.value) {
+                if (nn.id == undefined) continue
                 // check if in tx_range
                 const distance = Math.sqrt(
                   Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
@@ -226,8 +213,6 @@ export class TSCHNetwork extends Network {
           }
         }
       }
-      this.Nodes.value.push(n)
-      this.NetworkDevices.value.push(n)
     }
   }
 

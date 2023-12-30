@@ -1,3 +1,7 @@
+import { ref, type Ref } from 'vue'
+import { SeededRandom } from '@/utils/rand'
+import { KDTree } from '@/utils/kdtree'
+
 export enum NETWORK_TYPE {
   TSCH,
   TSN,
@@ -39,8 +43,11 @@ export enum LINK_TYPE {
 
 export interface FlowMeta {
   id: number
-  src: number
-  dst: number
+  e2e_src: number
+  e2e_dst: number
+  deadline: number
+  period: number
+  workload: number
 }
 
 // Packet is transfered among nodes, at data-link layer
@@ -102,4 +109,77 @@ export interface TopologyConfig {
   num_es: number
   grid_size: number
   tx_range: number
+}
+
+export class Network {
+  ID: number
+  Type: number
+  Nodes = ref<NodeMeta[]>([]) // nodes and endsystems, for visualization
+  NetworkDevices: any // tsn bridges, tsch relay or 5g ue/bs
+  EndSystems = ref<NodeMeta[]>([])
+  Links = ref<{ [uid: number]: LinkMeta }>([])
+  Flows = ref<FlowMeta[]>([])
+  TopoConfig: Ref<TopologyConfig>
+  KDTree: KDTree
+  SchConfig: any
+  Schedule: any
+  Packets = ref<Packet[]>([])
+  ASN = ref(0)
+  asnTimer: any
+  PacketsCurrent = ref<Packet[]>([])
+
+  SignalReset = ref(0)
+  SlotDone = ref(false)
+  Running = ref(false)
+  SlotDuration = ref(750)
+
+  Rand: SeededRandom
+
+  constructor() {
+    this.ID = 1
+    this.Type = -1
+    this.TopoConfig = ref<TopologyConfig>({
+      seed: 1,
+      num_nodes: 10,
+      num_es: 1,
+      grid_size: 80,
+      tx_range: 25
+    })
+    this.Rand = new SeededRandom(this.TopoConfig.value.seed)
+    this.Nodes.value.push(<NodeMeta>{}) // placeholder
+    this.KDTree = new KDTree()
+  }
+
+  addLink(v1: number, v2: number, type: number) {
+    if (v1 > v2) {
+      ;[v1, v2] = [v2, v1]
+    }
+    // Cantor pairing
+    const uid = 0.5 * (v1 + v2) * (v1 + v2 + 1) + v2
+    if (this.Links.value[uid] == undefined) {
+      this.Links.value[uid] = <LinkMeta>{ uid, v1, v2, type }
+    }
+  }
+
+  Run = () => {
+    this.Step()
+    this.Running.value = true
+    this.asnTimer = setInterval(() => {
+      this.ASN.value++
+      this.SlotDone.value = false
+    }, this.SlotDuration.value)
+  }
+  Step = () => {
+    this.ASN.value++
+    this.SlotDone.value = false
+  }
+  Pause = () => {
+    this.Running.value = false
+    clearInterval(this.asnTimer)
+  }
+  Reset = () => {
+    this.Running.value = false
+    clearInterval(this.asnTimer)
+    this.SignalReset.value++
+  }
 }

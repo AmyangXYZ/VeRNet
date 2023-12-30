@@ -1,8 +1,7 @@
 import { ref } from 'vue'
-import { LINK_TYPE, NETWORK_TYPE, NODE_TYPE } from '../common'
+import { Network, LINK_TYPE, NETWORK_TYPE, NODE_TYPE } from '../common'
 import type { ScheduleConfig, FiveGNodeMeta } from './typedefs'
-import { KDNode } from '../kdtree'
-import { Network } from '../network'
+import { KDNode } from '../../utils/kdtree'
 
 export class FiveGNetwork extends Network {
   constructor() {
@@ -25,18 +24,18 @@ export class FiveGNetwork extends Network {
         }
       }
     }
-    this.Nodes.value = [
-      <FiveGNodeMeta>{
-        id: 0,
-        type: NODE_TYPE.FIVE_G_BS,
-        pos: [0, 0],
-        neighbors: [],
-        queueLen: 0,
-        tx_cnt: 0,
-        rx_cnt: 0,
-        w: undefined
-      }
-    ]
+    const bs = <FiveGNodeMeta>{
+      id: 0,
+      type: NODE_TYPE.FIVE_G_BS,
+      pos: [0, 0],
+      neighbors: [],
+      queueLen: 0,
+      tx_cnt: 0,
+      rx_cnt: 0,
+      w: undefined
+    }
+    this.NetworkDevices.value.push(bs)
+    this.Nodes.value.push(bs)
 
     for (let i = 1; i <= this.TopoConfig.value.num_nodes; i++) {
       const n = <FiveGNodeMeta>{
@@ -121,6 +120,7 @@ export class FiveGNetwork extends Network {
       //   }
       // }
       this.Nodes.value.push(n)
+      this.NetworkDevices.value.push(n)
     }
   }
 }

@@ -134,7 +134,11 @@ export function useDrawMiniMap(chartDom: HTMLElement) {
   }
   function drawMinimapTree() {
     for (const n of Network.Nodes.value) {
-      if (n.type==NETWORK_TYPE.TSCH && (<TSCHNodeMeta>n).joined && (<TSCHNodeMeta>n).parent != 0) {
+      if (
+        n.type == NETWORK_TYPE.TSCH &&
+        (<TSCHNodeMeta>n).joined &&
+        (<TSCHNodeMeta>n).parent != 0
+      ) {
         if (treeNodes[n.id] == undefined) {
           treeNodes[n.id] = { name: n.id, children: [] }
           if (treeNodes[(<TSCHNodeMeta>n).parent] != undefined) {

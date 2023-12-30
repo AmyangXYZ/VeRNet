@@ -1,8 +1,17 @@
 import { ref, toRaw } from 'vue'
-import { NETWORK_TYPE, NODE_TYPE, type Message, LINK_TYPE, MSG_TYPE } from '../common'
+import {
+  Network,
+  NETWORK_TYPE,
+  NODE_TYPE,
+  type Message,
+  LINK_TYPE,
+  MSG_TYPE,
+  type NodeMeta,
+  type INIT_MSG_PAYLOAD,
+  type Packet
+} from '../common'
 import { type ScheduleConfig, type TSNNodeMeta, type TSN_INIT_MSG_PAYLOAD } from './typedefs'
-import { KDNode } from '../kdtree'
-import { Network } from '../network'
+import { KDNode } from '../../utils/kdtree'
 
 export class TSNNetwork extends Network {
   InPorts: any
@@ -16,7 +25,7 @@ export class TSNNetwork extends Network {
       num_slots: 40
     })
     this.createNodes()
-    super.createEndSystems()
+    this.createEndSystems()
   }
   createNodes = () => {
     this.NetworkDevices = ref<TSNNodeMeta[]>([])
@@ -82,6 +91,60 @@ export class TSNNetwork extends Network {
       this.Nodes.value[i].neighbors.forEach((n: number) => {
         super.addLink(i, n, LINK_TYPE.WIRED)
       })
+    }
+  }
+  createEndSystems = () => {
+    // initialize ref array if it does not already exist
+    this.EndSystems = ref<NodeMeta[]>([])
+
+    for (
+      let i = 1 + this.TopoConfig.value.num_nodes;
+      i <= this.TopoConfig.value.num_es + this.TopoConfig.value.num_nodes;
+      i++
+    ) {
+      const es = <NodeMeta>{
+        id: i,
+        type: Math.floor(4 + this.Rand.next() * 3),
+        pos: [
+          Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
+            this.TopoConfig.value.grid_size / 2,
+          Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
+            this.TopoConfig.value.grid_size / 2
+        ],
+        tx_cnt: 0,
+        rx_cnt: 0,
+        neighbors: [],
+        w: new Worker(new URL('@/networks/es.ts', import.meta.url), { type: 'module' })
+      }
+      console.log(i)
+      es.neighbors = this.KDTree.FindKNearest(es.pos, 1, this.TopoConfig.value.grid_size)
+      if (es.neighbors.length > 0) {
+        this.addLink(es.id, es.neighbors[0], LINK_TYPE.WIRED)
+      }
+
+      es.w!.postMessage(<Message>{
+        type: MSG_TYPE.INIT,
+        payload: <INIT_MSG_PAYLOAD>{
+          id: es.id,
+          pos: toRaw(es.pos)
+        }
+      })
+      // handle msg/pkt from end systems
+      es.w!.onmessage = (e: any) => {
+        if ('uid' in e.data == false) {
+          const msg: Message = e.data
+          console.log(msg)
+        } else {
+          const pkt: Packet = e.data
+          this.Nodes.value[pkt.mac_dst].w!.postMessage(pkt)
+          this.Packets.value.push(pkt)
+          this.PacketsCurrent.value.push(pkt)
+          this.SlotDone.value = true
+        }
+      }
+
+      this.EndSystems.value.push(es)
+      this.Nodes.value.push(es)
     }
   }
 }

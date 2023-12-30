@@ -11,5 +11,6 @@ export enum TSN_PKT_TYPE {
 }
 
 export interface TSN_INIT_MSG_PAYLOAD extends INIT_MSG_PAYLOAD {
+  neighbors: number[]
   sch_config: ScheduleConfig
 }
