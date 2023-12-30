@@ -8,14 +8,10 @@ export enum NODE_TYPE {
   TSCH,
   TSN,
   FIVE_G_BS,
-  FIVE_G_UE
-}
-
-export enum END_SYSTEM_TYPE {
-  Server,
-  RoboticArm,
-  Sensor
-  // add more and find the corresponding 3D models
+  FIVE_G_UE,
+  SERVER,
+  ROBOT,
+  SENSOR
 }
 
 export interface NodeMeta {
@@ -41,13 +37,22 @@ export enum LINK_TYPE {
   WIRELESS
 }
 
+
+export interface FlowMeta {
+  id: number
+  src: number
+  dst: number
+}
+
 // Packet is transfered among nodes, at data-link layer
 export interface Packet {
   uid: number
   type: number
   ch: number
-  src: number
-  dst: number
+  e2e_src: number
+  e2e_dst: number
+  mac_src: number
+  mac_dst: number
   seq: number
   asn: number
   len: number
@@ -61,8 +66,7 @@ export interface Packet {
 // Message is used for direct communication (debug, cmd, stats) between nodes and controller
 export interface Message {
   type: number
-  src: number
-  dst: number
+  id: number // node id
   payload: any
 }
 

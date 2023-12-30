@@ -28,8 +28,8 @@ class EndSystem {
           postMessage(<Packet>{
             uid: 11,
             type: 0,
-            src: 11,
-            dst: 3
+            mac_src: 11,
+            mac_dst: 3
           })
         } else {
           // console.log('!! undefined message type:', msg.type)

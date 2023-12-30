@@ -19,7 +19,7 @@ export class TSNNetwork extends Network {
     super.createEndSystems()
   }
   createNodes = () => {
-    this.Nodes = ref<TSNNodeMeta[]>([])
+    this.NetworkDevices = ref<TSNNodeMeta[]>([])
 
     // clear old nodes and webworkers
     if (this.Nodes.value.length > 1) {
@@ -68,6 +68,7 @@ export class TSNNetwork extends Network {
         }
       })
 
+      this.NetworkDevices.value.push(n)
       this.Nodes.value.push(n)
       this.KDTree.Insert(new KDNode(i, n.pos))
     }

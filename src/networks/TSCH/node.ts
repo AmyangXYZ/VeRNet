@@ -29,7 +29,7 @@ class TSCHNode {
   schedule: Cell[][] = []
   queue: Packet[] = []
   joinedNeighbors: { [id: number]: boolean } = {}
-  routingTable: { [dst: number]: number } = {}
+  routingTable: { [mac_dst: number]: number } = {}
   pkt_seq: number = 0
   tx_cnt: number = 0
   rx_cnt: number = 0
@@ -71,7 +71,7 @@ class TSCHNode {
           this.respondAck(pkt)
 
           // update routing table
-          this.routingTable[pkt.src] = pkt.src
+          this.routingTable[pkt.mac_src] = pkt.mac_src
 
           if (this.pktHandlers[pkt.type] != undefined) {
             this.pktHandlers[pkt.type](pkt)
@@ -84,11 +84,11 @@ class TSCHNode {
   }
 
   respondAck(pkt: Packet) {
-    if (pkt.dst != ADDR.BROADCAST && pkt.src != ADDR.CONTROLLER && pkt.type != TSCH_PKT_TYPE.ACK) {
+    if (pkt.mac_dst != ADDR.BROADCAST && pkt.mac_src != ADDR.CONTROLLER && pkt.type != TSCH_PKT_TYPE.ACK) {
       const ack: Packet = { ...pkt }
       ack.type = TSCH_PKT_TYPE.ACK
-      ack.src = this.id
-      ack.dst = pkt.src
+      ack.mac_src = this.id
+      ack.mac_dst = pkt.mac_src
       ack.len = 0
       ack.payload = {}
       // send immediately, in the same time slot
@@ -99,11 +99,11 @@ class TSCHNode {
     const slot = this.ASN % this.sch_config.num_slots || this.sch_config.num_slots
     if (this.queue.length > 0) {
       const pkt = this.queue[0]
-      if (this.joined && this.joinedNeighbors[pkt.dst]) {
+      if (this.joined && this.joinedNeighbors[pkt.mac_dst]) {
         // use dedicate cells
         for (let ch = 1; ch <= this.schedule[slot].length; ch++) {
           const cell = this.schedule[slot][ch]
-          if (cell != undefined && cell.dst == pkt.dst) {
+          if (cell != undefined && cell.mac_dst == pkt.mac_dst) {
             pkt.ch = ch
             pkt.asn = this.ASN
             pkt.len = JSON.stringify(pkt.payload).length
@@ -111,7 +111,7 @@ class TSCHNode {
             this.tx_cnt++
 
             // no need of ack, transmission has finished
-            if (pkt.dst == ADDR.BROADCAST) {
+            if (pkt.mac_dst == ADDR.BROADCAST) {
               this.queue.shift()
             }
             break
@@ -131,14 +131,14 @@ class TSCHNode {
     }
   }
   checkSchRx(pkt: Packet): boolean {
-    if (!this.joined || pkt.type == TSCH_PKT_TYPE.ACK || pkt.src == ADDR.CONTROLLER) {
+    if (!this.joined || pkt.type == TSCH_PKT_TYPE.ACK || pkt.mac_src == ADDR.CONTROLLER) {
       return true
     }
     const slot = this.ASN % this.sch_config.num_slots || this.sch_config.num_slots
     for (const cell of this.schedule[slot]) {
       if (
         cell != undefined &&
-        (cell.src == pkt.src || pkt.dst == ADDR.BROADCAST || cell.type == CELL_TYPES.SHARED)
+        (cell.mac_src == pkt.mac_src || pkt.mac_dst == ADDR.BROADCAST || cell.type == CELL_TYPES.SHARED)
       ) {
         this.rx_cnt++
         return true
@@ -157,8 +157,8 @@ class TSCHNode {
       this.queue.push(<Packet>{
         uid: Math.floor(Math.random() * 0xffff),
         type: TSCH_PKT_TYPE.BEACON,
-        src: this.id,
-        dst: -1,
+        mac_src: this.id,
+        mac_dst: -1,
         seq: ++this.pkt_seq,
         len: 1,
         payload: <BEACON_PKT_PAYLOAD>{ pan_id: 1, rank: this.rank }
@@ -172,8 +172,7 @@ class TSCHNode {
     })
     postMessage(<Message>{
       type: MSG_TYPE.STAT,
-      src: this.id,
-      dst: ADDR.CONTROLLER,
+      id: this.id,
       payload: JSON.parse(JSON.stringify(this))
     })
   }
@@ -191,8 +190,8 @@ class TSCHNode {
       this.schedule[1][this.sch_config.beacon_channel] = <Cell>{
         slot: 1,
         ch: this.sch_config.beacon_channel,
-        src: this.id,
-        dst: ADDR.BROADCAST
+        mac_src: this.id,
+        mac_dst: ADDR.BROADCAST
       }
     }
     // shared slots
@@ -201,8 +200,8 @@ class TSCHNode {
         type: CELL_TYPES.SHARED,
         slot: s,
         ch: this.sch_config.shared_channel,
-        src: this.id,
-        dst: ADDR.ANY
+        mac_src: this.id,
+        mac_dst: ADDR.ANY
       }
     }
   }
@@ -227,10 +226,10 @@ class TSCHNode {
       const assoc_req = <Packet>{
         uid: Math.floor(Math.random() * 0xffff),
         type: TSCH_PKT_TYPE.ASSOC_REQ,
-        src: this.id,
-        dst: pkt.src,
+        mac_src: this.id,
+        mac_dst: pkt.mac_src,
         seq: ++this.pkt_seq,
-        payload: <ASSOC_REQ_PKT_PAYLOAD>{ id: this.id, parent: pkt.src }
+        payload: <ASSOC_REQ_PKT_PAYLOAD>{ id: this.id, parent: pkt.mac_src }
       }
       this.queue.push(assoc_req)
     }
@@ -239,20 +238,19 @@ class TSCHNode {
     const payload: ASSOC_REQ_PKT_PAYLOAD = pkt.payload
     // update routing table
     if (this.routingTable[payload.id] == undefined) {
-      this.routingTable[payload.id] = pkt.src
+      this.routingTable[payload.id] = pkt.mac_src
     }
     if (this.id != ADDR.ROOT) {
       // forward to parent
-      pkt.src = this.id
-      pkt.dst = this.parent
+      pkt.mac_src = this.id
+      pkt.mac_dst = this.parent
       pkt.seq = ++this.pkt_seq
       this.queue.push(pkt)
     } else {
       // send to controller
       postMessage(<Message>{
         type: MSG_TYPE.ASSOC_REQ,
-        src: this.id,
-        dst: ADDR.CONTROLLER,
+        id: this.id,
         payload: pkt.payload
       })
     }
@@ -273,16 +271,15 @@ class TSCHNode {
 
         postMessage(<Message>{
           type: MSG_TYPE.STAT,
-          src: this.id,
-          dst: ADDR.CONTROLLER,
+          id: this.id,
           payload: JSON.parse(JSON.stringify(this))
         })
 
         this.queue.push(<Packet>{
           uid: Math.floor(Math.random() * 0xffff),
           type: TSCH_PKT_TYPE.BEACON,
-          src: this.id,
-          dst: -1,
+          mac_src: this.id,
+          mac_dst: -1,
           seq: ++this.pkt_seq,
           len: 1,
           payload: <BEACON_PKT_PAYLOAD>{ pan_id: 1, rank: this.rank }
@@ -300,15 +297,15 @@ class TSCHNode {
     }
     // need forwarding
     if (payload.id != this.id) {
-      pkt.src = this.id
+      pkt.mac_src = this.id
       if (this.children.indexOf(pkt.payload.id) > -1) {
-        pkt.dst = pkt.payload.id
+        pkt.mac_dst = pkt.payload.id
         pkt.seq = ++this.pkt_seq
         this.queue.push(pkt)
       } else {
         // not related to this
         if (this.routingTable[pkt.payload.id] != undefined) {
-          pkt.dst = this.routingTable[pkt.payload.id]
+          pkt.mac_dst = this.routingTable[pkt.payload.id]
           pkt.seq = ++this.pkt_seq
           this.queue.push(pkt)
         }

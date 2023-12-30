@@ -3,7 +3,6 @@ import {
   type Message,
   type MsgHandler,
   type PktHandler,
-  ADDR,
   MSG_TYPE,
   type ASN_MSG_PAYLOAD
 } from '../common'
@@ -66,13 +65,12 @@ class TSNNode {
     })
     postMessage(<Message>{
       type: MSG_TYPE.STAT,
-      src: this.id,
-      dst: ADDR.CONTROLLER,
+      id: this.id,
       payload: JSON.parse(JSON.stringify(this))
     })
   }
   dataPktHandler = (pkt: Packet) => {
-    console.log('tsn', pkt)
+    console.log(pkt)
   }
 }
 

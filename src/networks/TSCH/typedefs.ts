@@ -23,8 +23,8 @@ export interface Cell {
   type: number
   slot: number
   ch: number
-  src: number
-  dst: number
+  mac_src: number
+  mac_dst: number
 }
 
 export enum CELL_TYPES {

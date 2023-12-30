@@ -1,14 +1,26 @@
 import { ref, toRaw, type Ref } from 'vue'
 import { SeededRandom } from '@/hooks/useSeed'
 import { KDTree } from './kdtree'
-import { END_SYSTEM_TYPE, LINK_TYPE, MSG_TYPE, type LinkMeta, type Message, type NodeMeta, type Packet, type TopologyConfig, type INIT_MSG_PAYLOAD } from './common'
+import {
+  LINK_TYPE,
+  MSG_TYPE,
+  type LinkMeta,
+  type Message,
+  type NodeMeta,
+  type Packet,
+  type TopologyConfig,
+  type INIT_MSG_PAYLOAD,
+  type FlowMeta
+} from './common'
 
 export class Network {
   ID: number
   Type: number
-  Nodes: any // tsn bridges, tsch node or 5g ue/bs
-  EndSystems: any
+  Nodes = ref<NodeMeta[]>([]) // nodes and endsystems, for visualization
+  NetworkDevices: any // tsn bridges, tsch relay or 5g ue/bs
+  EndSystems = ref<NodeMeta[]>([])
   Links = ref<{ [uid: number]: LinkMeta }>([])
+  Flows = ref<FlowMeta[]>([])
   TopoConfig: Ref<TopologyConfig>
   KDTree: KDTree
   SchConfig: any
@@ -36,14 +48,13 @@ export class Network {
       tx_range: 25
     })
     this.Rand = new SeededRandom(this.TopoConfig.value.seed)
+    this.Nodes.value.push(<NodeMeta>{})
     this.KDTree = new KDTree()
   }
   // call after createNodes
   createEndSystems() {
     // initialize ref array if it does not already exist
     this.EndSystems = ref<NodeMeta[]>([])
-
-    this.EndSystems.value = [] // clear any old end systems
 
     for (
       let i = 1 + this.TopoConfig.value.num_nodes;
@@ -52,9 +63,7 @@ export class Network {
     ) {
       const es = <NodeMeta>{
         id: i,
-        type: Math.floor(
-          this.Rand.next() * Object.keys(END_SYSTEM_TYPE).filter((key) => isNaN(Number(key))).length
-        ), // Object.keys(...).filter(...) is used to count # of elements in enum
+        type: Math.floor(4 + this.Rand.next() * 3),
         pos: [
           Math.floor(this.Rand.next() * this.TopoConfig.value.grid_size) -
             this.TopoConfig.value.grid_size / 2,
@@ -66,11 +75,11 @@ export class Network {
         neighbors: [],
         w: new Worker(new URL('@/networks/es.ts', import.meta.url), { type: 'module' })
       }
+      console.log(i)
       es.neighbors = this.KDTree.FindKNearest(es.pos, 1, this.TopoConfig.value.grid_size)
       if (es.neighbors.length > 0) {
         this.addLink(es.id, es.neighbors[0], LINK_TYPE.WIRED)
       }
-      this.EndSystems.value.push(es)
 
       es.w!.postMessage(<Message>{
         type: MSG_TYPE.INIT,
@@ -86,12 +95,15 @@ export class Network {
           console.log(msg)
         } else {
           const pkt: Packet = e.data
-          this.Nodes.value[pkt.dst].w!.postMessage(pkt)
+          this.Nodes.value[pkt.mac_dst].w!.postMessage(pkt)
           this.Packets.value.push(pkt)
           this.PacketsCurrent.value.push(pkt)
           this.SlotDone.value = true
         }
       }
+
+      this.EndSystems.value.push(es)
+      this.Nodes.value.push(es)
     }
   }
   addLink(v1: number, v2: number, type: number) {

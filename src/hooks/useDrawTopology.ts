@@ -14,8 +14,7 @@ import {
   ADDR,
   type Packet,
   type LinkMeta,
-  LINK_TYPE,
-  END_SYSTEM_TYPE
+  LINK_TYPE
 } from '@/networks/common'
 
 export function useDrawTopology(dom: HTMLElement) {
@@ -120,10 +119,10 @@ export function useDrawTopology(dom: HTMLElement) {
   const drawNodes = () => {
     switch (Network.Type) {
       case NETWORK_TYPE.TSCH:
-        drawTSCHNodes()
+        drawTSCHDevices()
         break
       case NETWORK_TYPE.TSN:
-        drawTSNNodes()
+        drawTSNDevices()
         break
       case NETWORK_TYPE.FIVE_G:
         drawFiveGBS()
@@ -142,7 +141,7 @@ export function useDrawTopology(dom: HTMLElement) {
     }
     drawnNodes = {}
   }
-  const drawTSCHNodes = () => {
+  const drawTSCHDevices = () => {
     // GLTF Loader
     const loader = new GLTFLoader()
     loader.load('/models/wi-fi_router/scene.gltf', function (gltf: any) {
@@ -195,7 +194,7 @@ export function useDrawTopology(dom: HTMLElement) {
       }
     })
   }
-  const drawTSNNodes = () => {
+  const drawTSNDevices = () => {
     // GLTF Loader
     const loader = new GLTFLoader()
     loader.load('/models/wi-fi_router/scene.gltf', function (gltf: any) {
@@ -375,26 +374,26 @@ export function useDrawTopology(dom: HTMLElement) {
       const size = new THREE.Vector3()
       box.getSize(size)
 
-      for (const es of Network.EndSystems.value) {
+      for (const es of Network.Nodes.value) {
         if (es.type !== typeVal) continue
 
         const model = modelTemplate.clone()
         model.position.set(es.pos[0], positionY, es.pos[1])
         model.traverse((object: any) => {
           if (object.isMesh) {
-            object.userData.type = END_SYSTEM_TYPE[es.type]
+            object.userData.type = NODE_TYPE[es.type]
             object.userData.node_id = es.id
           }
         })
         scene.add(model)
 
-        const label = createLabel(`${END_SYSTEM_TYPE[es.type]}-${es.id}`)
+        const label = createLabel(`${NODE_TYPE[es.type]}-${es.id}`)
         label.position.set(model.position.x, labelY, model.position.z)
         scene.add(label)
 
         const { dragBox, dragBoxHelper } = createDragBox(es, model)
 
-        drawnNodes[`${END_SYSTEM_TYPE[es.type]}-${es.id}`] = {
+        drawnNodes[`${NODE_TYPE[es.type]}-${es.id}`] = {
           model,
           label,
           modelGroup: model,
@@ -405,16 +404,23 @@ export function useDrawTopology(dom: HTMLElement) {
     }
 
     // Load and place models
-    loadAndPlaceModel('/models/server/scene.gltf', [0.08, 0.08, 0.08], -Math.PI / 2, 1.9, 7, 0)
+    loadAndPlaceModel(
+      '/models/server/scene.gltf',
+      [0.08, 0.08, 0.08],
+      -Math.PI / 2,
+      1.9,
+      7,
+      NODE_TYPE.SERVER
+    )
     loadAndPlaceModel(
       '/models/robotic_arm/scene.gltf',
       [0.004, 0.004, 0.004],
       -Math.PI / 2,
       0,
       7,
-      1
+      NODE_TYPE.ROBOT
     )
-    loadAndPlaceModel('/models/sensor/scene.gltf', [2, 2, 2], -Math.PI / 2, 0, 5, 2)
+    loadAndPlaceModel('/models/sensor/scene.gltf', [2, 2, 2], -Math.PI / 2, 0, 5, NODE_TYPE.SENSOR)
   }
 
   const createDragBox = (node: any, model: any): any => {
@@ -450,37 +456,18 @@ export function useDrawTopology(dom: HTMLElement) {
     }
   }
   const drawLink = (l: LinkMeta) => {
-    let p1: THREE.Vector3, p3: THREE.Vector3
-    if (l.v1 <= Network.TopoConfig.value.num_nodes) {
-      p1 = new THREE.Vector3(
-        Network.Nodes.value[l.v1].pos[0],
-        1.6,
-        Network.Nodes.value[l.v1].pos[1]
-      )
-    } else {
-      // is an end system
-      p1 = new THREE.Vector3(
-        Network.EndSystems.value[l.v1 - Network.TopoConfig.value.num_nodes - 1].pos[0],
-        1.6,
-        Network.EndSystems.value[l.v1 - Network.TopoConfig.value.num_nodes - 1].pos[1]
-      )
-    }
+    const p1 = new THREE.Vector3(
+      Network.Nodes.value[l.v1].pos[0],
+      1.6,
+      Network.Nodes.value[l.v1].pos[1]
+    )
 
-    if (l.v2 <= Network.TopoConfig.value.num_nodes) {
-      p3 = new THREE.Vector3(
-        Network.Nodes.value[l.v2].pos[0],
-        1.6,
-        Network.Nodes.value[l.v2].pos[1]
-      )
-    } else {
-      // is an end system
-      p3 = new THREE.Vector3(
-        Network.EndSystems.value[l.v2 - Network.TopoConfig.value.num_nodes - 1].pos[0],
-        1.6,
-        Network.EndSystems.value[l.v2 - Network.TopoConfig.value.num_nodes - 1].pos[1]
-      )
-    }
-
+    const p3 = new THREE.Vector3(
+      Network.Nodes.value[l.v2].pos[0],
+      1.6,
+      Network.Nodes.value[l.v2].pos[1]
+    )
+      
     const x2 = (p1.x + p3.x) / 2
     const z2 = (p1.z + p3.z) / 2
     const h = 5
@@ -532,7 +519,7 @@ export function useDrawTopology(dom: HTMLElement) {
     time = 0 // reset animation timer
     for (const pkt of Network.PacketsCurrent.value) {
       if (Network.Type == NETWORK_TYPE.TSCH && pkt.type == TSCH_PKT_TYPE.ACK) continue
-      if (pkt.dst != ADDR.BROADCAST) {
+      if (pkt.mac_dst != ADDR.BROADCAST) {
         drawUnicastPacket(pkt)
       } else if (Network.Type == NETWORK_TYPE.TSCH && pkt.type == TSCH_PKT_TYPE.BEACON) {
         drawBeaconPacket(pkt)
@@ -572,37 +559,17 @@ export function useDrawTopology(dom: HTMLElement) {
     const mesh = new THREE.Points(geometry, material)
     scene.add(mesh)
 
-    let p1: THREE.Vector3, p3: THREE.Vector3
+    const p1 = new THREE.Vector3(
+      Network.Nodes.value[pkt.mac_src].pos[0],
+      1.6,
+      Network.Nodes.value[pkt.mac_src].pos[1]
+    )
 
-    if (pkt.src <= Network.TopoConfig.value.num_nodes) {
-      p1 = new THREE.Vector3(
-        Network.Nodes.value[pkt.src].pos[0],
-        1.6,
-        Network.Nodes.value[pkt.src].pos[1]
-      )
-    } else {
-      // is an end system
-      p1 = new THREE.Vector3(
-        Network.EndSystems.value[pkt.src - Network.TopoConfig.value.num_nodes - 1].pos[0],
-        1.6,
-        Network.EndSystems.value[pkt.src - Network.TopoConfig.value.num_nodes - 1].pos[1]
-      )
-    }
-
-    if (pkt.dst <= Network.TopoConfig.value.num_nodes) {
-      p3 = new THREE.Vector3(
-        Network.Nodes.value[pkt.dst].pos[0],
-        1.6,
-        Network.Nodes.value[pkt.dst].pos[1]
-      )
-    } else {
-      // is an end system
-      p3 = new THREE.Vector3(
-        Network.EndSystems.value[pkt.dst - Network.TopoConfig.value.num_nodes - 1].pos[0],
-        1.6,
-        Network.EndSystems.value[pkt.dst - Network.TopoConfig.value.num_nodes - 1].pos[1]
-      )
-    }
+    const p3 = new THREE.Vector3(
+      Network.Nodes.value[pkt.mac_dst].pos[0],
+      1.6,
+      Network.Nodes.value[pkt.mac_dst].pos[1]
+    )
 
     const x2 = (p1.x + p3.x) / 2
     const z2 = (p1.z + p3.z) / 2
@@ -614,8 +581,8 @@ export function useDrawTopology(dom: HTMLElement) {
       curve: new THREE.QuadraticBezierCurve3(p1, p2, p3),
       positions: [],
       uid: pkt.uid,
-      src: pkt.src,
-      dst: pkt.dst
+      src: pkt.mac_src,
+      dst: pkt.mac_dst
     }
   }
   const drawBeaconPacket = (pkt: Packet) => {
@@ -637,9 +604,13 @@ export function useDrawTopology(dom: HTMLElement) {
     })
     const mesh = new THREE.Mesh(geometry, material)
     mesh.rotation.x = Math.PI / 2
-    mesh.position.set(Network.Nodes.value[pkt.src].pos[0], 0.5, Network.Nodes.value[pkt.src].pos[1])
+    mesh.position.set(
+      Network.Nodes.value[pkt.mac_src].pos[0],
+      0.5,
+      Network.Nodes.value[pkt.mac_src].pos[1]
+    )
     scene.add(mesh)
-    drawnBeaconPackets[pkt.uid] = { mesh, uid: pkt.uid, src: pkt.src, dst: pkt.dst }
+    drawnBeaconPackets[pkt.uid] = { mesh, uid: pkt.uid, src: pkt.mac_dst, dst: pkt.mac_dst }
   }
   const clearPacket = (uid: number) => {
     if (drawnUnicastPackets[uid] != undefined) {

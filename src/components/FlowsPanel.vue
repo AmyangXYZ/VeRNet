@@ -52,11 +52,11 @@ const columns: any = [
 
 const tableRef = ref()
 watch(
-  Network.Packets,
+  Network.Flows,
   () => {
-    if (Network.Packets.value.length > 0) {
+    if (Network.Flows.value.length > 0) {
       nextTick(() => {
-        tableRef.value?.scrollToRow(Network.Packets.value.length)
+        tableRef.value?.scrollToRow(Network.Flows.value.length)
       })
     }
   },
@@ -80,7 +80,7 @@ Row.inheritAttrs = false
       ref="tableRef"
       class="table"
       :columns="columns"
-      :data="Network.Packets.value"
+      :data="Network.Flows.value"
       :width="360"
       :height="180"
       :expand-column-key="columns[5].key"

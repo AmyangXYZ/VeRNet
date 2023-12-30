@@ -41,12 +41,12 @@ export class TSCHNetwork extends Network {
     watch(this.ASN, () => {
       this.doneCnt = 0
       this.PacketsCurrent.value = []
-      if (this.Nodes.value.length > 1) {
-        for (const n of this.Nodes.value) {
+      if (this.NetworkDevices.value.length > 1) {
+        for (const n of this.NetworkDevices.value) {
           if (n.w != undefined) {
             n.w.postMessage(<Packet>{
               type: MSG_TYPE.ASN,
-              dst: n.id,
+              id: n.id,
               payload: <ASN_MSG_PAYLOAD>{ asn: this.ASN.value }
             })
           }
@@ -72,37 +72,37 @@ export class TSCHNetwork extends Network {
   }
   statMsgHandler = (msg: Message) => {
     const payload = msg.payload
-    const node = msg.src
+    const node = msg.id
 
-    if (!this.Nodes.value[node].joined && payload.joined) {
+    if (!this.NetworkDevices.value[node].joined && payload.joined) {
       // join succeed
       // console.log(node, 'joined')
-      this.Nodes.value[node].joined = payload.joined
-      this.Nodes.value[node].parent = payload.parent
-      this.Nodes.value[node].neighbors.push(payload.parent)
-      this.Nodes.value[payload.parent].neighbors.push(node)
+      this.NetworkDevices.value[node].joined = payload.joined
+      this.NetworkDevices.value[node].parent = payload.parent
+      this.NetworkDevices.value[node].neighbors.push(payload.parent)
+      this.NetworkDevices.value[payload.parent].neighbors.push(node)
       super.addLink(node, payload.parent, LINK_TYPE.WIRELESS)
     }
 
-    this.Nodes.value[node].queueLen = payload.queue.length
-    this.Nodes.value[node].tx_cnt = payload.tx_cnt
-    this.Nodes.value[node].rx_cnt = payload.rx_cnt
-    this.Nodes.value[node].rank = payload.rank
+    this.NetworkDevices.value[node].queueLen = payload.queue.length
+    this.NetworkDevices.value[node].tx_cnt = payload.tx_cnt
+    this.NetworkDevices.value[node].rx_cnt = payload.rx_cnt
+    this.NetworkDevices.value[node].rank = payload.rank
   }
   assocReqMsgHandler = (msg: Message) => {
     const new_node: number = msg.payload.id
     const parent: number = msg.payload.parent
 
     // to improve
-    const topo_check = !this.Nodes.value[new_node].joined
+    const topo_check = !this.NetworkDevices.value[new_node].joined
 
     if (topo_check) {
       const p = <Packet>{
         type: TSCH_PKT_TYPE.ASSOC_RSP,
         uid: Math.floor(Math.random() * 0xffff),
         ch: 2,
-        src: 0,
-        dst: ADDR.ROOT,
+        mac_src: 0,
+        mac_dst: ADDR.ROOT,
         seq: 0,
         len: 7,
         payload: <ASSOC_RSP_PKT_PAYLOAD>{
@@ -112,22 +112,22 @@ export class TSCHNetwork extends Network {
           cell_list: this.assignMgmtCells(new_node, parent)
         }
       }
-      this.Nodes.value[ADDR.ROOT].w!.postMessage(p)
+      this.NetworkDevices.value[ADDR.ROOT].w!.postMessage(p)
     }
   }
 
   createNodes = () => {
-    this.Nodes = ref<TSCHNodeMeta[]>([])
+    this.NetworkDevices = ref<TSCHNodeMeta[]>([])
 
     // clear old nodes
-    if (this.Nodes.value.length > 1) {
-      for (const n of this.Nodes.value) {
+    if (this.NetworkDevices.value.length > 1) {
+      for (const n of this.NetworkDevices.value) {
         if (n.w != undefined) {
           n.w.terminate()
         }
       }
     }
-    this.Nodes.value = [
+    this.NetworkDevices.value = [
       <TSCHNodeMeta>{
         id: 0,
         type: NODE_TYPE.TSCH,
@@ -201,8 +201,8 @@ export class TSCHNetwork extends Network {
             this.Packets.value.push(pkt)
             this.PacketsCurrent.value.push(pkt)
 
-            if (pkt.dst == ADDR.BROADCAST) {
-              for (const nn of this.Nodes.value) {
+            if (pkt.mac_dst == ADDR.BROADCAST) {
+              for (const nn of this.NetworkDevices.value) {
                 // check if in tx_range
                 const distance = Math.sqrt(
                   Math.pow(n.pos[0] - nn.pos[0], 2) + Math.pow(n.pos[1] - nn.pos[1], 2)
@@ -212,7 +212,7 @@ export class TSCHNetwork extends Network {
                 }
               }
             } else {
-              const nn = this.Nodes.value[pkt.dst]
+              const nn = this.NetworkDevices.value[pkt.mac_dst]
               if (nn != undefined) {
                 // check if in tx_range
                 const distance = Math.sqrt(
@@ -227,6 +227,7 @@ export class TSCHNetwork extends Network {
         }
       }
       this.Nodes.value.push(n)
+      this.NetworkDevices.value.push(n)
     }
   }
 
@@ -241,16 +242,16 @@ export class TSCHNetwork extends Network {
       type: CELL_TYPES.MGMT,
       slot: 1,
       ch: this.SchConfig.value.beacon_channel,
-      src: ADDR.ROOT,
-      dst: ADDR.BROADCAST
+      mac_src: ADDR.ROOT,
+      mac_dst: ADDR.BROADCAST
     }
     for (let slot = 2; slot < 2 + this.SchConfig.value.num_shared_slots; slot++) {
       this.Schedule.value[slot][this.SchConfig.value.shared_channel] = <Cell>{
         type: CELL_TYPES.SHARED,
         slot: slot,
         ch: this.SchConfig.value.shared_channel,
-        src: ADDR.ANY,
-        dst: ADDR.ANY
+        mac_src: ADDR.ANY,
+        mac_dst: ADDR.ANY
       }
     }
   }
@@ -282,8 +283,8 @@ export class TSCHNetwork extends Network {
           (x: any) =>
             x.src == src ||
             x.src == dst ||
-            x.dst == src ||
-            x.dst == dst ||
+            x.mac_dst == src ||
+            x.mac_dst == dst ||
             x.type == CELL_TYPES.SHARED
         ).length > 0
       ) {
@@ -295,8 +296,8 @@ export class TSCHNetwork extends Network {
             type: type,
             slot: slot,
             ch: this.SchConfig.value.beacon_channel,
-            src: src,
-            dst: dst
+            mac_src: src,
+            mac_dst: dst
           }
           this.Schedule.value[slot][this.SchConfig.value.beacon_channel] = cell
           return cell
@@ -308,8 +309,8 @@ export class TSCHNetwork extends Network {
               type: type,
               slot: slot,
               ch: ch,
-              src: src,
-              dst: dst
+              mac_src: src,
+              mac_dst: dst
             }
             this.Schedule.value[slot][ch] = cell
             return cell
