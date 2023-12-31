@@ -4,7 +4,7 @@ import { Network, SignalUpdateTopology } from '@/hooks/useStates'
 import { Plus, Switch } from '@element-plus/icons-vue'
 
 const nodeType = ref(0)
-// must follow NODE_TYPE enmu defined in '@/core/typedefs'
+// must follow NODE_TYPE enum defined in '@/core/typedefs'
 const nodeTypes = [
   {
     label: 'Network devices',
@@ -39,8 +39,8 @@ const connect = () => {
   <el-card class="card">
     <el-row :gutter="30">
       <el-col>
-        Add<el-button @click="addNode" type="primary" :icon="Plus" circle />
-        <el-select v-model="nodeType" placeholder="Select">
+        Add a
+        <el-select class="select" v-model="nodeType" placeholder="Select">
           <el-option-group v-for="group in nodeTypes" :key="group.label" :label="group.label">
             <el-option
               v-for="item in group.types"
@@ -50,8 +50,14 @@ const connect = () => {
             />
           </el-option-group>
         </el-select>
+        <el-button size="small" @click="addNode" type="primary" :icon="Plus" circle />
       </el-col>
-      <el-col>Connect<el-button @click="connect" type="primary" :icon="Switch" circle /></el-col>
+    </el-row>
+    <el-row :gutter="30">
+      <el-col>Connect<el-button size="small" @click="connect" type="success" :icon="Switch" circle /></el-col>
+    </el-row>
+    <el-row :gutter="30">
+      <el-col>Load preset topology:</el-col>
     </el-row>
   </el-card>
 </template>

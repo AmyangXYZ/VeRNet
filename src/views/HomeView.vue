@@ -21,7 +21,7 @@ import { SignalEditTopology } from '@/hooks/useStates'
   <MenuBar style="position: absolute; top: 16px; left: 16px; width: 150px; z-index: 999" />
   <TopoEditToolbox
     v-show="SignalEditTopology"
-    style="position: absolute; top: 48px; left: 16px; width: 240px; z-index: 999"
+    style="position: absolute; top: 48px; left: 16px; width: 320px; z-index: 999"
   />
   <ControlPanel
     style="position: absolute; top: 16px; left: 40%; min-width: 336px; width: 20%; z-index: 999"
