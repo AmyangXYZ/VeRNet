@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useDrawChannels } from '@/hooks/useDrawChannels'
+// import { useDrawChannels } from '@/hooks/useDrawChannels'
 
 const chartDom = ref()
 onMounted(() => {
-  useDrawChannels(chartDom.value)
+  // useDrawChannels(chartDom.value)
 })
 </script>
 
@@ -19,4 +19,3 @@ onMounted(() => {
   margin-top: 5px;
 }
 </style>
-@/hooks/useDrawChannels
