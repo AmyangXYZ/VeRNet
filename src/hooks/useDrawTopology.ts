@@ -13,7 +13,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
-import { NODE_TYPE, ADDR, type Packet, type Link, LINK_TYPE } from '@/core/typedefs'
+import { type Node, NODE_TYPE, ADDR, type Packet, type Link, LINK_TYPE } from '@/core/typedefs'
 
 export function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
@@ -113,248 +113,20 @@ export function useDrawTopology(dom: HTMLElement) {
     return sprite
   }
 
-  let drawnNodes: { [id: number]: any } = {}
-  const drawNodes = () => {
-    drawTSCHDevices()
-
-    // drawTSNDevices()
-
-    // drawFiveGBS()
-    // drawFiveGUE()
-
-    drawEndSystems()
-  }
-  const clearNodes = () => {
-    for (const node of Object.values(drawnNodes)) {
-      scene.remove(node.model)
-      scene.remove(node.label)
-      scene.remove(node.dragBox)
-      scene.remove(node.dragBoxHelper)
-    }
-    drawnNodes = {}
-  }
-  const drawTSCHDevices = () => {
-    // GLTF Loader
+  const modelTemplates: { [type: number]: any } = {}
+  const loadGLTFModels = async () => {
     const loader = new GLTFLoader()
-    loader.load('/models/wi-fi_router/scene.gltf', function (gltf: any) {
-      const modelTemplate = gltf.scene
-
-      modelTemplate.scale.set(1.6, 1.6, 1.6)
-      modelTemplate.rotation.y = -Math.PI / 2
-      modelTemplate.traverse(function (object: any) {
-        if (object.isMesh) {
-          object.castShadow = true // enable shadow casting
-          object.receiveShadow = true
-          object.material.color = new THREE.Color('#999')
-        }
-      })
-
-      const box = new THREE.Box3().setFromObject(modelTemplate)
-      const size = new THREE.Vector3()
-      box.getSize(size)
-
-      for (const node of Network.Nodes.value) {
-        if (node.id == 0 || node.type != NODE_TYPE.TSCH || drawnNodes[node.id] != undefined)
-          continue
-        let modelGroup: any = {}
-
-        const model = modelTemplate.clone()
-        model.position.x = node.pos[0]
-        model.position.z = node.pos[1]
-        model.position.y = 0
-        modelGroup = model
-        model.traverse(function (object: any) {
-          if (object.isMesh) {
-            object.userData.type = NODE_TYPE[node.type]
-            object.userData.node_id = node.id
-          }
-        })
-        scene.add(model)
-
-        const label = createLabel(`${NODE_TYPE[node.type]}-${node.id}`)
-        label.position.set(model.position.x, 3.5, model.position.z) // Adjust the position as needed
-        scene.add(label)
-
-        const { dragBox, dragBoxHelper } = createDragBox(node, model)
-
-        drawnNodes[node.id] = {
-          model,
-          label,
-          modelGroup,
-          dragBox,
-          dragBoxHelper
-        }
-      }
-    })
-  }
-  const drawTSNDevices = () => {
-    // GLTF Loader
-    const loader = new GLTFLoader()
-    loader.load('/models/wi-fi_router/scene.gltf', function (gltf: any) {
-      const modelTemplate = gltf.scene
-
-      modelTemplate.scale.set(1.6, 1.6, 1.6)
-      modelTemplate.rotation.y = -Math.PI / 2
-      modelTemplate.traverse(function (object: any) {
-        if (object.isMesh) {
-          object.castShadow = true // enable shadow casting
-          object.receiveShadow = true
-          object.material.color = new THREE.Color('#999')
-        }
-      })
-
-      const box = new THREE.Box3().setFromObject(modelTemplate)
-      const size = new THREE.Vector3()
-      box.getSize(size)
-
-      for (const node of Network.Nodes.value) {
-        if (node.id == 0 || node.type != NODE_TYPE.TSN) continue
-        let modelGroup: any = {}
-
-        const model = modelTemplate.clone()
-        model.position.x = node.pos[0]
-        model.position.z = node.pos[1]
-        model.position.y = 0
-        modelGroup = model
-        model.traverse(function (object: any) {
-          if (object.isMesh) {
-            object.userData.type = NODE_TYPE[node.type]
-            object.userData.node_id = node.id
-          }
-        })
-        scene.add(model)
-
-        const label = createLabel(`${NODE_TYPE[node.type]}-${node.id}`)
-        label.position.set(model.position.x, 3.5, model.position.z) // Adjust the position as needed
-        scene.add(label)
-
-        const { dragBox, dragBoxHelper } = createDragBox(node, model)
-
-        drawnNodes[node.id] = {
-          model,
-          label,
-          modelGroup,
-          dragBox,
-          dragBoxHelper
-        }
-      }
-    })
-  }
-  const drawFiveGBS = () => {
-    if (Network.Nodes.value.length == 0) {
-      return
-    }
-    for (const node of Network.Nodes.value) {
-      if (node.type != NODE_TYPE.FIVE_G_BS) continue
-      // GLTF Loader
-      const loader = new GLTFLoader()
-      loader.load('/models/5_five_g_tower/scene.gltf', function (gltf: any) {
-        let modelGroup: any = {}
-        const model = gltf.scene
-        model.scale.set(6, 6, 6)
-        model.traverse(function (object: any) {
-          if (object instanceof THREE.Group) {
-            modelGroup = object
-          }
-          if (object.isMesh) {
-            object.castShadow = true // enable shadow casting
-            object.receiveShadow = true
-            object.material.color = new THREE.Color('#666')
-            object.userData.type = NODE_TYPE[node.type]
-            object.userData.node_id = 0
-          }
-        })
-        model.position.x = node.pos[0]
-        model.position.z = node.pos[1]
-        scene.add(model)
-
-        const box = new THREE.Box3().setFromObject(model)
-        const size = new THREE.Vector3()
-        box.getSize(size)
-
-        const label = createLabel(`${NODE_TYPE[node.type]}-${node.id}`)
-        label.position.set(model.position.x, size.y + 1, model.position.z) // Adjust the position as needed
-        scene.add(label)
-
-        const { dragBox, dragBoxHelper } = createDragBox(node, model)
-
-        drawnNodes[node.id] = {
-          model,
-          label,
-          modelGroup,
-          dragBox,
-          dragBoxHelper
-        }
-      })
-    }
-  }
-  const drawFiveGUE = () => {
-    // GLTF Loader
-    const loader = new GLTFLoader()
-    loader.load('/models/wi-fi_router/scene.gltf', function (gltf: any) {
-      const modelTemplate = gltf.scene
-
-      modelTemplate.scale.set(1.6, 1.6, 1.6)
-      modelTemplate.rotation.y = -Math.PI / 2
-      modelTemplate.traverse(function (object: any) {
-        if (object.isMesh) {
-          object.castShadow = true // enable shadow casting
-          object.receiveShadow = true
-          object.material.color = new THREE.Color('#999')
-        }
-      })
-
-      for (const node of Network.Nodes.value) {
-        if (node.id == 0 || node.type != NODE_TYPE.FIVE_G_UE) continue
-        let modelGroup: any = {}
-
-        const model = modelTemplate.clone()
-        model.position.x = node.pos[0]
-        model.position.z = node.pos[1]
-        model.position.y = 0
-        modelGroup = model
-        model.traverse(function (object: any) {
-          if (object.isMesh) {
-            object.userData.type = NODE_TYPE[node.type]
-            object.userData.node_id = node.id
-          }
-        })
-        scene.add(model)
-
-        const label = createLabel(`UE-${node.id}`)
-        label.position.set(model.position.x, 3.5, model.position.z) // Adjust the position as needed
-        scene.add(label)
-
-        const { dragBox, dragBoxHelper } = createDragBox(node, model)
-
-        drawnNodes[node.id] = {
-          model,
-          label,
-          modelGroup,
-          dragBox,
-          dragBoxHelper
-        }
-      }
-    })
-  }
-
-  const drawEndSystems = () => {
-    const loader = new GLTFLoader()
-
-    const loadAndPlaceModel = async (
-      modelPath: any,
-      scale: any,
-      rotationY: any,
-      positionY: any,
-      labelY: any,
-      typeVal: any
+    const loadModel = async (
+      type: number,
+      modelPath: string,
+      scale: [number, number, number],
+      rotationY: number
     ) => {
       const gltf: any = await new Promise((resolve) => {
         loader.load(modelPath, (gltf: any) => resolve(gltf))
       })
 
       const modelTemplate = gltf.scene
-
       modelTemplate.scale.set(...scale)
       modelTemplate.rotation.y = rotationY
       modelTemplate.traverse((object: any) => {
@@ -364,64 +136,78 @@ export function useDrawTopology(dom: HTMLElement) {
           object.material.color = new THREE.Color('#999')
         }
       })
-
-      const box = new THREE.Box3().setFromObject(modelTemplate)
-      const size = new THREE.Vector3()
-      box.getSize(size)
-
-      for (const es of Network.Nodes.value) {
-        if (es.type !== typeVal || drawnNodes[es.id] != undefined) continue
-
-        const model = modelTemplate.clone()
-        model.position.set(es.pos[0], positionY, es.pos[1])
-        model.traverse((object: any) => {
-          if (object.isMesh) {
-            object.userData.type = NODE_TYPE[es.type]
-            object.userData.node_id = es.id
-          }
-        })
-        scene.add(model)
-
-        const label = createLabel(`${NODE_TYPE[es.type]}-${es.id}`)
-        label.position.set(model.position.x, labelY, model.position.z)
-        scene.add(label)
-
-        const { dragBox, dragBoxHelper } = createDragBox(es, model)
-
-        drawnNodes[es.id] = {
-          model,
-          label,
-          modelGroup: model,
-          dragBox,
-          dragBoxHelper
-        }
-      }
+      modelTemplates[type] = modelTemplate
     }
 
-    // Load and place models
-    // loadAndPlaceModel(
-    //   '/models/server/scene.gltf',
-    //   [0.08, 0.08, 0.08],
-    //   -Math.PI / 2,
-    //   1.9,
-    //   7,
-    //   NODE_TYPE.END_SYSTEM
-    // )
-    loadAndPlaceModel(
+    await loadModel(
+      NODE_TYPE.TSCH,
+      '/models/wi-fi_router/scene.gltf',
+      [1.6, 1.6, 1.6],
+      -Math.PI / 2
+    )
+    await loadModel(NODE_TYPE.TSN, '/models/wi-fi_router/scene.gltf', [1.6, 1.6, 1.6], -Math.PI / 2)
+    await loadModel(NODE_TYPE.FIVE_G_BS, '/models/5_five_g_tower/scene.gltf', [6, 6, 6], 0)
+    await loadModel(
+      NODE_TYPE.FIVE_G_UE,
+      '/models/wi-fi_router/scene.gltf',
+      [1.6, 1.6, 1.6],
+      -Math.PI / 2
+    )
+    await loadModel(
+      NODE_TYPE.END_SYSTEM_SERVER,
+      '/models/server/scene.gltf',
+      [0.08, 0.08, 0.08],
+      -Math.PI / 2
+    )
+    await loadModel(
+      NODE_TYPE.END_SYSTEM_SENSOR,
+      '/models/sensor/scene.gltf',
+      [2, 2, 2],
+      -Math.PI / 2
+    )
+    await loadModel(
+      NODE_TYPE.END_SYSTEM_ROBOTIC_ARM,
       '/models/robotic_arm/scene.gltf',
       [0.004, 0.004, 0.004],
-      -Math.PI / 2,
-      0,
-      7,
-      NODE_TYPE.END_SYSTEM
+      -Math.PI / 2
     )
-    // loadAndPlaceModel('/models/sensor/scene.gltf', [2, 2, 2], -Math.PI / 2, 0, 5, NODE_TYPE.END_SYSTEM)
   }
 
-  const createDragBox = (node: any, model: any): any => {
+  let drawnNodes: { [id: number]: any } = {}
+  const drawNodes = async () => {
+    if (Object.values(modelTemplates).length == 0) {
+      await loadGLTFModels()
+    }
+    for (const node of Network.Nodes.value) {
+      if (node.id == 0 || drawnNodes[node.id] != undefined) continue
+      drawNode(node)
+    }
+  }
+  const drawNode = (node: Node) => {
+    const modelTemplate = modelTemplates[node.type]
+    const model = modelTemplate.clone()
+
+    model.position.x = node.pos[0]
+    model.position.z = node.pos[1]
+    model.position.y = 0
+    model.traverse(function (object: any) {
+      if (object.isMesh) {
+        object.userData.type = NODE_TYPE[node.type]
+        object.userData.node_id = node.id
+      }
+    })
+    scene.add(model)
+
     const box = new THREE.Box3().setFromObject(model)
     const size = new THREE.Vector3()
     box.getSize(size)
+
+    const label = createLabel(`${NODE_TYPE[node.type]}-${node.id}`)
+    label.position.set(model.position.x, size.y + 1, model.position.z) // Adjust the position as needed
+    scene.add(label)
+
+    // dragbox and helper
+
     const dragBox = new THREE.Mesh(
       new THREE.BoxGeometry(size.x, size.y, size.z),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
@@ -435,11 +221,26 @@ export function useDrawTopology(dom: HTMLElement) {
     scene.add(dragBox)
     objectsToDrag.push(dragBox)
 
-    const dragBoxHelper = new THREE.BoxHelper(dragBox, 'skyblue')
+    const dragBoxHelper = new THREE.BoxHelper(model, 'skyblue')
     dragBoxHelper.castShadow = false
     dragBoxHelper.visible = SignalEditTopology.value
     scene.add(dragBoxHelper)
-    return { dragBox, dragBoxHelper }
+
+    drawnNodes[node.id] = {
+      model,
+      label,
+      dragBox,
+      dragBoxHelper
+    }
+  }
+  const clearNodes = () => {
+    for (const node of Object.values(drawnNodes)) {
+      scene.remove(node.model)
+      scene.remove(node.label)
+      scene.remove(node.dragBox)
+      scene.remove(node.dragBoxHelper)
+    }
+    drawnNodes = {}
   }
 
   let drawnLinks: { [uid: number]: { mesh: any; link: Link } } = {}
@@ -512,7 +313,6 @@ export function useDrawTopology(dom: HTMLElement) {
   let drawnBeaconPackets: { [uid: number]: any } = {}
   const drawPackets = () => {
     time = 0 // reset animation timer
-    console.log(Network.PacketsCurrent.value)
     for (const pkt of Network.PacketsCurrent.value) {
       if (pkt.mac_dst != ADDR.BROADCAST) {
         drawUnicastPacket(pkt)
@@ -554,7 +354,6 @@ export function useDrawTopology(dom: HTMLElement) {
 
     const mesh = new THREE.Points(geometry, material)
     scene.add(mesh)
-
     const p1 = new THREE.Vector3(
       Network.Nodes.value[pkt.mac_src].pos[0],
       1.6,
@@ -577,14 +376,13 @@ export function useDrawTopology(dom: HTMLElement) {
       curve: new THREE.QuadraticBezierCurve3(p1, p2, p3),
       positions: [],
       uid: pkt.uid,
-      src: pkt.mac_src,
-      dst: pkt.mac_dst
+      mac_src: pkt.mac_src,
+      mac_dst: pkt.mac_dst
     }
   }
   const drawBeaconPacket = (pkt: Packet) => {
     const geometry = new THREE.SphereGeometry(
-      // Network.Config.value.tx_range,
-      10,
+      Network.Config.value.tx_range,
       32,
       32,
       0,
@@ -607,7 +405,7 @@ export function useDrawTopology(dom: HTMLElement) {
       Network.Nodes.value[pkt.mac_src].pos[1]
     )
     scene.add(mesh)
-    drawnBeaconPackets[pkt.uid] = { mesh, uid: pkt.uid, src: pkt.mac_dst, dst: pkt.mac_dst }
+    drawnBeaconPackets[pkt.uid] = { mesh, uid: pkt.uid, mac_src: pkt.mac_dst, mac_dst: pkt.mac_dst }
   }
   const clearPacket = (uid: number) => {
     if (drawnUnicastPackets[uid] != undefined) {
@@ -727,7 +525,6 @@ export function useDrawTopology(dom: HTMLElement) {
 
   watch(Network.SlotDone, () => {
     if (Network.SlotDone.value) {
-      drawLinks()
       drawPackets()
     } else {
       clearPackets()
@@ -794,12 +591,12 @@ export function useDrawTopology(dom: HTMLElement) {
         }
       }
       for (const u of Object.values(drawnUnicastPackets)) {
-        if (u.src == node || u.dst == node) {
+        if (u.mac_src == node || u.mac_dst == node) {
           relatedUnicastPackets.push(u)
         }
       }
       for (const b of Object.values(drawnBeaconPackets)) {
-        if (b.src == node) {
+        if (b.mac_src == node) {
           relatedBeaconPacket = b
           break
         }
@@ -839,7 +636,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
     // update dragbox and model
     for (const node of Object.values(drawnNodes)) {
-      node.modelGroup.position.copy(node.dragBox.position)
+      node.model.position.copy(node.dragBox.position)
       node.dragBoxHelper.update()
       if (node.label != undefined) {
         node.label.position.set(

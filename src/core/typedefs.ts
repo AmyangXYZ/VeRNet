@@ -4,6 +4,7 @@ export interface Config {
   seed: number
   num_nodes: number
   grid_size: number
+  tx_range: number
 }
 
 export enum NODE_TYPE {
@@ -11,7 +12,9 @@ export enum NODE_TYPE {
   TSN,
   FIVE_G_BS,
   FIVE_G_UE,
-  END_SYSTEM
+  END_SYSTEM_SERVER = 11,
+  END_SYSTEM_SENSOR,
+  END_SYSTEM_ROBOTIC_ARM
 }
 
 export interface Node {

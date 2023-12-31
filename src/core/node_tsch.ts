@@ -31,7 +31,7 @@ class TSCHNode extends Node {
     this.neighbors = payload.neighbors
   }
   dataPktHandler = (pkt: Packet) => {
-    // console.log('tsn', pkt)
+    // console.log(this.id, 'tsch', pkt)
   }
 }
 

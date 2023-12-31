@@ -40,7 +40,7 @@ export class NetworkHub {
     this.kdTree = new KDTree()
 
     // this.createNodes()
-    this.AddNode(1, NODE_TYPE.END_SYSTEM)
+    this.AddNode(NODE_TYPE.FIVE_G_BS)
     watch(this.ASN, () => {
       this.doneCnt = 0
       this.PacketsCurrent.value = []
@@ -59,9 +59,9 @@ export class NetworkHub {
     })
   }
 
-  AddNode(id: number, type: number) {
+  AddNode(type: number) {
     const n = <Node>{
-      id: id,
+      id: this.Nodes.value.length,
       type: type,
       pos: [
         Math.floor(this.Rand.next() * this.Config.value.grid_size) -
@@ -73,21 +73,19 @@ export class NetworkHub {
       rx_cnt: 0,
       w: undefined
     }
-    const worker_path = `./node_${NODE_TYPE[n.type].toLowerCase()}.ts`
-    n.w = new Worker(new URL(worker_path, import.meta.url), { type: 'module' })
     this.Nodes.value.push(n)
   }
 
-  FindNeighbors() {
+  ConstructTopology() {
     this.kdTree = new KDTree()
     this.Links.value = []
     for (const n of this.Nodes.value) {
-      if (n.id == 0 || n.w == undefined || n.type == NODE_TYPE.END_SYSTEM) continue
+      if (n.id == 0 || n.type > 10) continue
       this.kdTree.Insert(new KDNode(n.id, n.pos))
     }
 
     for (const n of this.Nodes.value) {
-      if (n.id == 0 || n.w == undefined) continue
+      if (n.id == 0) continue
 
       if (n.type == NODE_TYPE.TSN || n.type == NODE_TYPE.TSCH) {
         n.neighbors = this.kdTree.FindKNearest(n.pos, 4, 20)
@@ -95,43 +93,31 @@ export class NetworkHub {
         n.neighbors = this.kdTree.FindKNearest(n.pos, 1, this.Config.value.grid_size)
       }
 
+      n.neighbors.forEach((nn: number) => {
+        this.AddLink(n.id, nn)
+      })
+    }
+    this.StartWorkers()
+  }
+
+  StartWorkers() {
+    for (const n of this.Nodes.value) {
+      if (n.id == 0) continue
+      if (n.w != undefined) {
+        n.w.terminate()
+      }
+
+      let worker_path: string = ''
+      if (n.type < 10) worker_path = `./node_${NODE_TYPE[n.type].toLowerCase()}.ts`
+      else worker_path = './node_end_system.ts'
+
+      n.w = new Worker(new URL(worker_path, import.meta.url), { type: 'module' })
+
       n.w.postMessage(<Message>{
         type: MSG_TYPE.INIT,
         id: n.id,
         payload: <InitMsgPayload>{ id: n.id, neighbors: toRaw(n.neighbors) }
       })
-
-      n.neighbors.forEach((nn: number) => {
-        this.AddLink(n.id, nn)
-      })
-    }
-  }
-
-  private createNodes() {
-    for (let i = 1; i <= this.Config.value.num_nodes; i++) {
-      const n = <Node>{
-        id: i,
-        // type: Math.floor((this.Rand.next() * Object.values(NODE_TYPE).length) / 2),
-        type: [NODE_TYPE.TSN, NODE_TYPE.END_SYSTEM][Math.floor(this.Rand.next() * 2)],
-        pos: [
-          Math.floor(this.Rand.next() * this.Config.value.grid_size) -
-            this.Config.value.grid_size / 2,
-          Math.floor(this.Rand.next() * this.Config.value.grid_size) -
-            this.Config.value.grid_size / 2
-        ],
-        neighbors: [],
-        tx_cnt: 0,
-        rx_cnt: 0,
-        // w: new Worker(new URL('@/networks/TSN/node.ts', import.meta.url), { type: 'module' })
-        w: undefined
-      }
-
-      if (n.type != NODE_TYPE.END_SYSTEM) {
-        this.kdTree.Insert(new KDNode(n.id, n.pos))
-      }
-
-      const worker_path = `./node_${NODE_TYPE[n.type].toLowerCase()}.ts`
-      n.w = new Worker(new URL(worker_path, import.meta.url), { type: 'module' })
 
       n.w.onmessage = (e: any) => {
         if ('uid' in e.data) {
@@ -140,27 +126,6 @@ export class NetworkHub {
           this.handleMsg(e.data)
         }
       }
-      this.Nodes.value.push(n)
-    }
-
-    for (const n of this.Nodes.value) {
-      if (n.id == 0 || n.w == undefined) continue
-
-      if (n.type == NODE_TYPE.TSN || n.type == NODE_TYPE.TSCH) {
-        n.neighbors = this.kdTree.FindKNearest(n.pos, 4, 20)
-      } else {
-        n.neighbors = this.kdTree.FindKNearest(n.pos, 1, this.Config.value.grid_size)
-      }
-
-      n.w.postMessage(<Message>{
-        type: MSG_TYPE.INIT,
-        id: n.id,
-        payload: <InitMsgPayload>{ id: n.id, neighbors: toRaw(n.neighbors) }
-      })
-
-      n.neighbors.forEach((nn: number) => {
-        this.AddLink(n.id, nn)
-      })
     }
   }
 
@@ -168,7 +133,7 @@ export class NetworkHub {
   handleMsg = (msg: Message) => {
     switch (msg.type) {
       case MSG_TYPE.DONE:
-        if (++this.doneCnt == this.Config.value.num_nodes) {
+        if (++this.doneCnt == this.Nodes.value.length - 1) {
           this.SlotDone.value = true
         }
         break
@@ -194,9 +159,9 @@ export class NetworkHub {
     let type: number = LINK_TYPE.WIRELESS
     if (
       this.Nodes.value[v1].type == NODE_TYPE.TSN ||
-      this.Nodes.value[v1].type == NODE_TYPE.END_SYSTEM ||
+      this.Nodes.value[v1].type >= 4 || // is a end system
       this.Nodes.value[v2].type == NODE_TYPE.TSN ||
-      this.Nodes.value[v2].type == NODE_TYPE.END_SYSTEM
+      this.Nodes.value[v2].type >= 4
     ) {
       type = LINK_TYPE.WIRED
     }
@@ -207,6 +172,7 @@ export class NetworkHub {
   }
 
   Run = () => {
+    // this.StartWorkers()
     this.Step()
     this.Running.value = true
     this.asnTimer = setInterval(() => {
