@@ -97,10 +97,9 @@ export class NetworkHub {
         this.AddLink(n.id, nn)
       })
     }
-    this.StartWorkers()
   }
 
-  StartWorkers() {
+  StartWebWorkers() {
     for (const n of this.Nodes.value) {
       if (n.id == 0) continue
       if (n.w != undefined) {
@@ -186,7 +185,6 @@ export class NetworkHub {
   }
 
   Run = () => {
-    // this.StartWorkers()
     this.Step()
     this.Running.value = true
     this.asnTimer = setInterval(() => {

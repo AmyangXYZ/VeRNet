@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Network, SignalUpdateTopology } from '@/hooks/useStates'
-import { Plus, Switch } from '@element-plus/icons-vue'
+import { Network, SignalEditTopology, SignalUpdateTopology } from '@/hooks/useStates'
+import { Check, Plus, Switch } from '@element-plus/icons-vue'
 
 const nodeType = ref(0)
 // must follow NODE_TYPE enum defined in '@/core/typedefs'
@@ -33,16 +33,24 @@ const connect = () => {
   Network.ConstructTopology()
   SignalUpdateTopology.value++
 }
+const finishEdit = () => {
+  Network.StartWebWorkers()
+  SignalEditTopology.value = !SignalEditTopology.value
+}
 </script>
 
 <template>
   <el-card class="card">
     <el-row :gutter="30">
+      <el-col>Load preset topology:</el-col>
+    </el-row>
+    <el-row :gutter="30">
       <el-col>
         Add a
-        <el-select class="select" v-model="nodeType" placeholder="Select">
+        <el-select size="20px" v-model="nodeType">
           <el-option-group v-for="group in nodeTypes" :key="group.label" :label="group.label">
             <el-option
+              class="item"
               v-for="item in group.types"
               :key="item.value"
               :label="item.label"
@@ -54,10 +62,15 @@ const connect = () => {
       </el-col>
     </el-row>
     <el-row :gutter="30">
-      <el-col>Connect<el-button size="small" @click="connect" type="success" :icon="Switch" circle /></el-col>
+      <el-col>
+        Connect<el-button size="small" @click="connect" type="info" :icon="Switch" circle />
+      </el-col>
     </el-row>
+
     <el-row :gutter="30">
-      <el-col>Load preset topology:</el-col>
+      <el-col>
+        Finish<el-button size="small" @click="finishEdit" type="danger" :icon="Check" circle />
+      </el-col>
     </el-row>
   </el-card>
 </template>
@@ -68,6 +81,9 @@ const connect = () => {
   height: 120px;
   /* background-color:white; */
   /* width: 380px; */
+  font-size: 0.87rem;
+}
+.item {
   font-size: 0.82rem;
 }
 </style>
