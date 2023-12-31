@@ -107,11 +107,25 @@ export class NetworkHub {
         n.w.terminate()
       }
 
-      let worker_path: string = ''
-      if (n.type < 10) worker_path = `./node_${NODE_TYPE[n.type].toLowerCase()}.ts`
-      else worker_path = './node_end_system.ts'
-
-      n.w = new Worker(new URL(worker_path, import.meta.url), { type: 'module' })
+      switch (n.type) {
+        case NODE_TYPE.TSCH:
+          n.w = new Worker(new URL('@/core/node_tsch.ts', import.meta.url), { type: 'module' })
+          break
+        case NODE_TYPE.TSN:
+          n.w = new Worker(new URL('@/core/node_tsn.ts', import.meta.url), { type: 'module' })
+          break
+        case NODE_TYPE.FIVE_G_BS:
+          n.w = new Worker(new URL('@/core/node_five_g_bs.ts', import.meta.url), { type: 'module' })
+          break
+        case NODE_TYPE.FIVE_G_UE:
+          n.w = new Worker(new URL('@/core/node_five_g_ue.ts', import.meta.url), { type: 'module' })
+          break
+        default:
+          n.w = new Worker(new URL('@/core/node_end_system.ts', import.meta.url), {
+            type: 'module'
+          })
+          break
+      }
 
       n.w.postMessage(<Message>{
         type: MSG_TYPE.INIT,
