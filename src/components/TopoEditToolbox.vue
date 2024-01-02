@@ -25,6 +25,8 @@ const nodeTypes = [
   }
 ]
 
+const presetTopos:any = []
+
 const addNode = () => {
   Network.AddNode(nodeType.value)
   SignalUpdateTopology.value++
@@ -42,7 +44,16 @@ const finishEdit = () => {
 <template>
   <el-card class="card">
     <el-row :gutter="30">
-      <el-col>Load preset topology:</el-col>
+      <el-col
+        >Load preset topology:<el-select size="20px">
+          <el-option
+            class="item"
+            v-for="item in presetTopos"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          /> </el-select
+      ></el-col>
     </el-row>
     <el-row :gutter="30">
       <el-col>
@@ -78,7 +89,7 @@ const finishEdit = () => {
 <style scoped>
 .card {
   /* margin-top: 2px; */
-  height: 120px;
+  height: 150px;
   /* background-color:white; */
   /* width: 380px; */
   font-size: 0.87rem;

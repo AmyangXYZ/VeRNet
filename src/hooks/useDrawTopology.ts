@@ -49,27 +49,6 @@ export function useDrawTopology(dom: HTMLElement) {
     spotLight.shadow.mapSize.height = 4096
     spotLight.castShadow = true
     scene.add(spotLight)
-
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.1)
-    dirLight.color.setHSL(0.1, 1, 0.95)
-    dirLight.position.set(-1, 1.75, 1)
-    dirLight.position.multiplyScalar(30)
-    scene.add(dirLight)
-
-    dirLight.castShadow = true
-
-    dirLight.shadow.mapSize.width = 2048
-    dirLight.shadow.mapSize.height = 2048
-
-    const d = 50
-
-    dirLight.shadow.camera.left = -d
-    dirLight.shadow.camera.right = d
-    dirLight.shadow.camera.top = d
-    dirLight.shadow.camera.bottom = -d
-
-    dirLight.shadow.camera.far = 3500
-    dirLight.shadow.bias = -0.0001
   }
 
   const drawGround = () => {
@@ -154,7 +133,6 @@ export function useDrawTopology(dom: HTMLElement) {
           object.castShadow = true
           object.receiveShadow = true
           object.material.color = new THREE.Color('#999')
-          object.material.side = THREE.DoubleSide
         }
       })
       modelTemplates[type] = modelTemplate
@@ -177,7 +155,7 @@ export function useDrawTopology(dom: HTMLElement) {
     )
     await loadModel(
       NODE_TYPE.END_SYSTEM_SENSOR,
-      '/models/sensor/scene.gltf',
+      '/models/sensor/scene.glb',
       [2, 2, 2],
       -Math.PI / 3
     )
