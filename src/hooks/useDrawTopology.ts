@@ -23,7 +23,6 @@ export function useDrawTopology(dom: HTMLElement) {
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.shadowMap.enabled = true
   renderer.setPixelRatio(window.devicePixelRatio)
-
   dom.appendChild(renderer.domElement)
   const objectsToDrag: any = []
 
@@ -50,6 +49,27 @@ export function useDrawTopology(dom: HTMLElement) {
     spotLight.shadow.mapSize.height = 4096
     spotLight.castShadow = true
     scene.add(spotLight)
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.1)
+    dirLight.color.setHSL(0.1, 1, 0.95)
+    dirLight.position.set(-1, 1.75, 1)
+    dirLight.position.multiplyScalar(30)
+    scene.add(dirLight)
+
+    dirLight.castShadow = true
+
+    dirLight.shadow.mapSize.width = 2048
+    dirLight.shadow.mapSize.height = 2048
+
+    const d = 50
+
+    dirLight.shadow.camera.left = -d
+    dirLight.shadow.camera.right = d
+    dirLight.shadow.camera.top = d
+    dirLight.shadow.camera.bottom = -d
+
+    dirLight.shadow.camera.far = 3500
+    dirLight.shadow.bias = -0.0001
   }
 
   const drawGround = () => {
@@ -134,6 +154,7 @@ export function useDrawTopology(dom: HTMLElement) {
           object.castShadow = true
           object.receiveShadow = true
           object.material.color = new THREE.Color('#999')
+          object.material.side = THREE.DoubleSide
         }
       })
       modelTemplates[type] = modelTemplate
@@ -145,25 +166,20 @@ export function useDrawTopology(dom: HTMLElement) {
       [1.6, 1.6, 1.6],
       -Math.PI / 2
     )
-    await loadModel(NODE_TYPE.TSN, '/models/wi-fi_router/scene.gltf', [1.6, 1.6, 1.6], -Math.PI / 2)
-    await loadModel(NODE_TYPE.FIVE_G_BS, '/models/5_five_g_tower/scene.gltf', [6, 6, 6], 0)
-    await loadModel(
-      NODE_TYPE.FIVE_G_UE,
-      '/models/wi-fi_router/scene.gltf',
-      [1.6, 1.6, 1.6],
-      -Math.PI / 2
-    )
+    await loadModel(NODE_TYPE.TSN, '/models/switch/scene.gltf', [7, 7, 7], 0)
+    await loadModel(NODE_TYPE.FIVE_G_BS, '/models/5g_tower/scene.gltf', [6, 6, 6], 0)
+    await loadModel(NODE_TYPE.FIVE_G_UE, '/models/5g_ue/scene.gltf', [0.5, 0.5, 0.5], -Math.PI / 2)
     await loadModel(
       NODE_TYPE.END_SYSTEM_SERVER,
       '/models/server/scene.gltf',
-      [0.08, 0.08, 0.08],
-      -Math.PI / 2
+      [1.5, 1.5, 1.5],
+      Math.PI / 2
     )
     await loadModel(
       NODE_TYPE.END_SYSTEM_SENSOR,
       '/models/sensor/scene.gltf',
       [2, 2, 2],
-      -Math.PI / 2
+      -Math.PI / 3
     )
     await loadModel(
       NODE_TYPE.END_SYSTEM_ROBOTIC_ARM,
@@ -207,7 +223,6 @@ export function useDrawTopology(dom: HTMLElement) {
     scene.add(label)
 
     // dragbox and helper
-
     const dragBox = new THREE.Mesh(
       new THREE.BoxGeometry(size.x, size.y, size.z),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
