@@ -40,7 +40,14 @@ export class NetworkHub {
     this.kdTree = new KDTree()
 
     // this.createNodes()
+    this.AddNode(NODE_TYPE.TSCH)
+    this.AddNode(NODE_TYPE.TSN)
     this.AddNode(NODE_TYPE.FIVE_G_BS)
+    this.AddNode(NODE_TYPE.FIVE_G_UE)
+    this.AddNode(NODE_TYPE.END_SYSTEM_ROBOTIC_ARM)
+    this.AddNode(NODE_TYPE.END_SYSTEM_SENSOR)
+    this.AddNode(NODE_TYPE.END_SYSTEM_SERVER)
+
     watch(this.ASN, () => {
       this.doneCnt = 0
       this.PacketsCurrent.value = []
