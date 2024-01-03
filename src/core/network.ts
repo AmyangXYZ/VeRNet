@@ -94,11 +94,36 @@ export class NetworkHub {
     for (const n of this.Nodes.value) {
       if (n.id == 0) continue
 
-      if (n.type == NODE_TYPE.TSN || n.type == NODE_TYPE.TSCH) {
-        n.neighbors = this.kdTree.FindKNearest(n.pos, 4, 20)
-      } else {
-        n.neighbors = this.kdTree.FindKNearest(n.pos, 1, this.Config.value.grid_size)
+      let neighbors: any = []
+
+      switch (n.type) {
+        // 5G UE connects to one 5G tower and wired end systems
+        case NODE_TYPE.FIVE_G_UE:
+          neighbors = this.kdTree.FindKNearest(n.pos, 1, 20)
+          break
+
+        // 5G tower / base station connects one TSN bridge and end systems + multiple 5G UEs
+        case NODE_TYPE.FIVE_G_BS:
+          neighbors = this.kdTree.FindKNearest(n.pos, 1000, 20) // k = 1000, arbitrarily large
+          break
+
+        // TSCH node connects to multiple other TSCH nodes and wired end systems
+        case NODE_TYPE.TSCH:
+          neighbors = this.kdTree.FindKNearest(n.pos, 4, 20)
+          break
+
+        // TSN bridge connects multiple TSN bridges, 5G tower and end systems
+        case NODE_TYPE.TSN:
+          neighbors = this.kdTree.FindKNearest(n.pos, 4, 20)
+          break
+
+        // end system connects to one network node
+        default:
+          neighbors = this.kdTree.FindKNearest(n.pos, 1, 20)
+          break
       }
+
+      n.neighbors = neighbors
 
       n.neighbors.forEach((nn: number) => {
         this.AddLink(n.id, nn)
