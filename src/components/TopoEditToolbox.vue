@@ -47,7 +47,7 @@ const finishEdit = () => {
   
     <div class="flex-container">
       <span class="label-margin">Load preset:</span> 
-      <el-select class="dropdown" style="margin-right:45px;">
+      <el-select class="dropdown" style="margin-right:55px;">
         <el-option 
           v-for="item in presetTopos"
           :key="item.value"
@@ -111,7 +111,7 @@ const finishEdit = () => {
 
 <style scoped>
 .card {
-  padding: 20px;
+  padding: 10px;
 }
 .flex-container {
   display: flex;
@@ -124,6 +124,10 @@ const finishEdit = () => {
 }
 .dropdown {
   width: 120px;
+}
+.el-select-dropdown__item {
+  line-height: 25px;
+  height: 25px; 
 }
 .circular-button {
   border-radius: 50%;
