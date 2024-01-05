@@ -1,5 +1,6 @@
-import { watch } from 'vue'
+import { nextTick, watch } from 'vue'
 import {
+  Logs,
   Network,
   SelectedNode,
   SignalEditTopology,
@@ -18,6 +19,7 @@ import { type Node, NODE_TYPE, ADDR, type Packet, type Link, LINK_TYPE } from '@
 export function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000)
+  camera.layers.enableAll()
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
   const controls = new OrbitControls(camera, renderer.domElement)
   renderer.setSize(window.innerWidth, window.innerHeight)
@@ -75,6 +77,8 @@ export function useDrawTopology(dom: HTMLElement) {
     scene.add(plane)
   }
 
+  const LABEL_LAYER = new THREE.Layers()
+  LABEL_LAYER.set(1)
   const createLabel = (value: string): THREE.Sprite => {
     const canvas = document.createElement('canvas')
     const padding = 10
@@ -108,13 +112,34 @@ export function useDrawTopology(dom: HTMLElement) {
     const sprite = new THREE.Sprite(spriteMaterial)
 
     // Scale down sprite to match your scene
+    sprite.layers.set(1)
     sprite.scale.set(canvas.width / 108, canvas.height / 108, 1)
     return sprite
   }
 
+  const loadingManager = new THREE.LoadingManager()
+  loadingManager.onStart = function (url, itemsLoaded, itemsTotal) {
+    // console.log(
+    //   'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.'
+    // )
+    Logs.value.unshift('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.')
+  }
+
+  loadingManager.onLoad = function () {
+    // console.log('Loading complete!')
+    Logs.value.unshift('Loading complete!')
+  }
+
+  loadingManager.onProgress = function (url, itemsLoaded, itemsTotal) {
+    // console.log(
+    //   'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.'
+    // )
+    // Logs.value.unshift( 'Loading file: '  + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.')
+  }
+
   const modelTemplates: { [type: number]: any } = {}
   const loadGLTFModels = async () => {
-    const loader = new GLTFLoader()
+    const loader = new GLTFLoader(loadingManager)
     const loadModel = async (
       type: number,
       modelPath: string,
@@ -547,6 +572,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
   // onClick
   const raycaster = new THREE.Raycaster()
+  raycaster.layers.set(0)
   const mouse = new THREE.Vector2()
   window.addEventListener(
     'click',
@@ -556,14 +582,12 @@ export function useDrawTopology(dom: HTMLElement) {
 
       raycaster.setFromCamera(mouse, camera)
 
-      const intersects = raycaster.intersectObjects(scene.children, true)
-
-      if (intersects.length > 0) {
-        if (
-          intersects[0].object.userData.node_id != undefined &&
-          intersects[0].object.userData.type == 'TSCH'
-        )
-          SelectedNode.value = intersects[0].object.userData.node_id
+      const intersects = raycaster.intersectObjects(scene.children)
+      for (const o of intersects) {
+        if (o.object.userData.node_id != undefined) {
+          SelectedNode.value = o.object.userData.node_id
+          break
+        }
       }
     },
     false

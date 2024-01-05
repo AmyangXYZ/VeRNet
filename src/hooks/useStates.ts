@@ -2,8 +2,8 @@
 
 import { ref } from 'vue'
 import { type Config } from '@/core/typedefs'
-
 import { NetworkHub } from '@/core/network'
+
 export const Network = new NetworkHub(<Config>{
   seed: 17,
   num_nodes: 15,
@@ -11,6 +11,7 @@ export const Network = new NetworkHub(<Config>{
   tx_range: 20
 })
 
+export const Logs = ref<string[]>([])
 export const SelectedNode = ref(1)
 export const SignalResetCamera = ref(1)
 export const SignalShowSettings = ref(false)

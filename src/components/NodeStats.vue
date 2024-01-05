@@ -2,6 +2,7 @@
 import rpi4 from '@/assets/rpi4.png'
 import sensortag from '@/assets/sensortag.png'
 import { Network, SelectedNode } from '@/hooks/useStates'
+import { NODE_TYPE } from '@/core/typedefs'
 </script>
 
 <template>
@@ -11,13 +12,12 @@ import { Network, SelectedNode } from '@/hooks/useStates'
         <img :src="SelectedNode == 1 ? rpi4 : sensortag" />
       </el-col>
       <el-col :span="13">
-        <span style="font-weight: 600; font-size: 0.9rem">[TSCH-{{ SelectedNode }}]</span>
-        6TiSCH {{ SelectedNode == 1 ? 'gateway' : 'end device' }}<br />
-        - {{ SelectedNode == 1 ? 'Raspberry Pi 4B' : 'CC2650 SensorTag' }} <br />
+        <span style="font-weight: 600; font-size: 0.9rem">
+          {{ NODE_TYPE[Network.Nodes.value[SelectedNode].type] }}-{{ SelectedNode }}
+        </span>
+        <br />
         - TX: {{ Network.Nodes.value[SelectedNode].tx_cnt }} , RX:
         {{ Network.Nodes.value[SelectedNode].rx_cnt }}<br />
-        <!-- - Queue length: {{ (Network.Nodes.value[SelectedNode].queueLen }}<br />
-        - Rank in topology: {{ Network.Nodes.value[SelectedNode].rank }} -->
       </el-col>
     </el-row>
   </el-card>

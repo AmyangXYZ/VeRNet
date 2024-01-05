@@ -45,7 +45,7 @@ const finishEdit = () => {
   <el-card class="card">
     <el-row :gutter="30">
       <el-col
-        >Load preset topology:<el-select size="20px">
+        >Load preset topology:<el-select>
           <el-option
             class="item"
             v-for="item in presetTopos"
@@ -58,7 +58,7 @@ const finishEdit = () => {
     <el-row :gutter="30">
       <el-col>
         Add a
-        <el-select size="20px" v-model="nodeType">
+        <el-select v-model="nodeType">
           <el-option-group v-for="group in nodeTypes" :key="group.label" :label="group.label">
             <el-option
               class="item"
