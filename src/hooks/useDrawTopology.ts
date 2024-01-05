@@ -1,6 +1,5 @@
-import { nextTick, watch } from 'vue'
+import { watch } from 'vue'
 import {
-  Logs,
   Network,
   SelectedNode,
   SignalEditTopology,
@@ -122,12 +121,14 @@ export function useDrawTopology(dom: HTMLElement) {
     // console.log(
     //   'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.'
     // )
-    Logs.value.unshift('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.')
+    Network.Logs.value.unshift(
+      'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.'
+    )
   }
 
   loadingManager.onLoad = function () {
     // console.log('Loading complete!')
-    Logs.value.unshift('Loading complete!')
+    Network.Logs.value.unshift('Loading complete!')
   }
 
   loadingManager.onProgress = function (url, itemsLoaded, itemsTotal) {

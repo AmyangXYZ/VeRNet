@@ -22,6 +22,7 @@ export class NetworkHub {
   Flows = ref<Flow[]>([])
   Packets = ref<Packet[]>([])
   PacketsCurrent = ref<Packet[]>([])
+  Logs = ref<string[]>([])
   ASN = ref<number>(0) // absolute slot number
   Rand: SeededRandom
   kdTree: KDTree // to find nearest neighbors
@@ -81,6 +82,8 @@ export class NetworkHub {
       w: undefined
     }
     this.Nodes.value.push(n)
+
+    this.Logs.value.unshift(`New ${NODE_TYPE[type]} node: ID ${n.id}, position: [${n.pos}]`)
   }
 
   ConstructTopology() {
@@ -104,6 +107,8 @@ export class NetworkHub {
         this.AddLink(n.id, nn)
       })
     }
+
+    this.Logs.value.unshift(`Established ${Object.keys(this.Links.value).length} links`)
   }
 
   StartWebWorkers() {
@@ -147,6 +152,7 @@ export class NetworkHub {
         }
       }
     }
+    this.Logs.value.unshift('WebWorkers started')
   }
 
   // handle control plane msg from each node
