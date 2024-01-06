@@ -10,7 +10,7 @@ export interface Config {
 export enum NODE_TYPE {
   TSCH,
   TSN,
-  FIVE_G_BS,
+  FIVE_G_GNB,
   FIVE_G_UE,
   END_SYSTEM_SERVER = 11,
   END_SYSTEM_SENSOR,
@@ -20,7 +20,7 @@ export enum NODE_TYPE {
 export const NODE_TYPE_DISPLAY_NAME = <{ [name: string]: string }>{
   TSCH: 'TSCH Node',
   TSN: 'TSN Bridge',
-  FIVE_G_BS: '5G gNB',
+  FIVE_G_GNB: '5G gNB',
   FIVE_G_UE: '5G UE',
   END_SYSTEM_SERVER: 'Edge Server',
   END_SYSTEM_SENSOR: 'Sensor',
@@ -62,12 +62,12 @@ export interface Flow {
 // Packet is transfered among nodes, at data-link layer
 export interface Packet {
   uid: number
+  protocol: string
   type: number
   e2e_src: number
   e2e_dst: number
   mac_src: number
   mac_dst: number
-  seq: number
   asn: number
   len: number
   payload: any
@@ -79,6 +79,12 @@ export interface Packet {
 
 export enum PKT_TYPE {
   DATA
+}
+
+export const PROTOCOL_TYPE = <{ [name: string]: string }>{
+  TSCH: '802.15.4',
+  TSN: '802.1',
+  FIVE_G: '5G NR'
 }
 
 export enum ADDR {

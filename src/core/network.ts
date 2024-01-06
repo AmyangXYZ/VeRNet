@@ -11,7 +11,8 @@ import {
   MSG_TYPE,
   type ASNMsgPayload,
   LINK_TYPE,
-  type InitMsgPayload
+  type InitMsgPayload,
+  PROTOCOL_TYPE
 } from './typedefs'
 import { SeededRandom } from '@/utils/rand'
 
@@ -76,6 +77,37 @@ export class NetworkHub {
   // forward physical layer pkt from each node
   handlePkt = (pkt: Packet) => {
     this.Nodes.value[pkt.mac_dst].w!.postMessage(pkt)
+
+    // check protocol type
+    if (
+      this.Nodes.value[pkt.mac_src].type == NODE_TYPE.TSCH ||
+      this.Nodes.value[pkt.mac_dst].type == NODE_TYPE.TSCH
+    ) {
+      pkt.protocol = PROTOCOL_TYPE.TSCH
+    }
+    if (
+      this.Nodes.value[pkt.mac_src].type == NODE_TYPE.TSN ||
+      this.Nodes.value[pkt.mac_dst].type == NODE_TYPE.TSN
+    ) {
+      pkt.protocol = PROTOCOL_TYPE.TSN
+    }
+    if (
+      this.Nodes.value[pkt.mac_src].type == NODE_TYPE.FIVE_G_GNB ||
+      this.Nodes.value[pkt.mac_dst].type == NODE_TYPE.FIVE_G_GNB ||
+      this.Nodes.value[pkt.mac_src].type == NODE_TYPE.FIVE_G_UE ||
+      this.Nodes.value[pkt.mac_dst].type == NODE_TYPE.FIVE_G_UE
+    ) {
+      pkt.protocol = PROTOCOL_TYPE.FIVE_G
+    }
+    // must use this format for the detailedView function of el-table-v2
+    pkt.id = this.Packets.value.length
+    pkt.children = [
+      {
+        id: `${this.Packets.value.length}-detail-content`,
+        detail: JSON.stringify(pkt.payload).replace(/"/g, '')
+      }
+    ]
+
     this.Packets.value.push(pkt)
     this.PacketsCurrent.value.push(pkt)
   }
@@ -142,8 +174,10 @@ export class NetworkHub {
         case NODE_TYPE.TSN:
           n.w = new Worker(new URL('@/core/node_tsn.ts', import.meta.url), { type: 'module' })
           break
-        case NODE_TYPE.FIVE_G_BS:
-          n.w = new Worker(new URL('@/core/node_five_g_bs.ts', import.meta.url), { type: 'module' })
+        case NODE_TYPE.FIVE_G_GNB:
+          n.w = new Worker(new URL('@/core/node_FIVE_G_GNB.ts', import.meta.url), {
+            type: 'module'
+          })
           break
         case NODE_TYPE.FIVE_G_UE:
           n.w = new Worker(new URL('@/core/node_five_g_ue.ts', import.meta.url), { type: 'module' })

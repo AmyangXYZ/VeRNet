@@ -25,12 +25,18 @@ class EndSystem extends Node {
     this.ASN = payload.asn
 
     // do something
-    postMessage(<Packet>{
-      uid: Math.floor(Math.random() * 0xffff),
-      type: PKT_TYPE.DATA,
-      mac_src: this.id,
-      mac_dst: this.neighbors[0]
-    })
+    if (this.ASN % 3 == this.id % 3) {
+      postMessage(<Packet>{
+        uid: Math.floor(Math.random() * 0xffff),
+        type: PKT_TYPE.DATA,
+        asn: this.ASN,
+        e2e_src: this.id,
+        mac_src: this.id,
+        mac_dst: this.neighbors[0],
+        len: 'biubiubiu'.length,
+        payload: 'biubiubiu'
+      })
+    }
 
     postMessage(<Message>{
       type: MSG_TYPE.DONE

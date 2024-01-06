@@ -165,7 +165,7 @@ export async function useDrawTopology(dom: HTMLElement) {
       -Math.PI / 2
     )
     await loadModel(NODE_TYPE.TSN, '/models/switch/scene.gltf', [7, 7, 7], 0)
-    await loadModel(NODE_TYPE.FIVE_G_BS, '/models/5g_tower/scene.gltf', [6, 6, 6], 0)
+    await loadModel(NODE_TYPE.FIVE_G_GNB, '/models/5g_tower/scene.gltf', [6, 6, 6], 0)
     await loadModel(NODE_TYPE.FIVE_G_UE, '/models/5g_ue/scene.gltf', [0.5, 0.5, 0.5], -Math.PI / 2)
     await loadModel(
       NODE_TYPE.END_SYSTEM_SERVER,

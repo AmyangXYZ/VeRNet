@@ -13,7 +13,9 @@ import { NODE_TYPE, NODE_TYPE_DISPLAY_NAME } from '@/core/typedefs'
       </el-col>
       <el-col :span="13">
         <span style="font-weight: 600; font-size: 0.9rem">
-          {{ NODE_TYPE_DISPLAY_NAME[NODE_TYPE[Network.Nodes.value[SelectedNode].type]] }}-{{ SelectedNode }}
+          {{ NODE_TYPE_DISPLAY_NAME[NODE_TYPE[Network.Nodes.value[SelectedNode].type]] }}-{{
+            SelectedNode
+          }}
         </span>
         <br />
         - TX: {{ Network.Nodes.value[SelectedNode].tx_cnt }} , RX:
