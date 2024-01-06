@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Network, SignalEditTopology, SignalUpdateTopology } from '@/hooks/useStates'
+import { Network, SignalEditTopology, SignalAddNode } from '@/hooks/useStates'
 import { Check, Plus, Switch } from '@element-plus/icons-vue'
 
 const nodeType = ref(0)
@@ -25,15 +25,13 @@ const nodeTypes = [
   }
 ]
 
-const presetTopos: any = []
-
 const addNode = () => {
   Network.AddNode(nodeType.value)
-  SignalUpdateTopology.value++
+  SignalAddNode.value++
 }
 const connect = () => {
   Network.EstablishConnection()
-  SignalUpdateTopology.value++
+  SignalAddNode.value++
 }
 const finishEdit = () => {
   Network.StartWebWorkers()
@@ -42,59 +40,68 @@ const finishEdit = () => {
 </script>
 
 <template>
-  <el-card class="card">
-    <el-row :gutter="30">
-      <el-col
-        >Load preset topology:<el-select>
+  <el-card class="card p-4">
+    <div class="flex-container">
+      <span class="label-margin">Load preset:</span>
+      <el-select class="dropdown" v-model="Network.SelectedTopo.value" style="margin-right: 55px">
+        <el-option v-for="(_, name) in Network.PresetTopos" :key="name" :label="name" :value="name" />
+      </el-select>
+    </div>
+
+    <div class="flex-container mt-4">
+      <span class="label-margin">Add node:</span>
+      <el-select class="dropdown" v-model="nodeType">
+        <el-option-group v-for="group in nodeTypes" :key="group.label" :label="group.label">
           <el-option
-            class="item"
-            v-for="item in presetTopos"
+            v-for="item in group.types"
             :key="item.value"
             :label="item.label"
             :value="item.value"
-          /> </el-select
-      ></el-col>
-    </el-row>
-    <el-row :gutter="30">
-      <el-col>
-        Add a
-        <el-select v-model="nodeType">
-          <el-option-group v-for="group in nodeTypes" :key="group.label" :label="group.label">
-            <el-option
-              class="item"
-              v-for="item in group.types"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-option-group>
-        </el-select>
-        <el-button size="small" @click="addNode" type="primary" :icon="Plus" circle />
-      </el-col>
-    </el-row>
-    <el-row :gutter="30">
-      <el-col>
-        Connect<el-button size="small" @click="connect" type="info" :icon="Switch" circle />
-      </el-col>
-    </el-row>
+          />
+        </el-option-group>
+      </el-select>
 
-    <el-row :gutter="30">
-      <el-col>
-        Finish<el-button size="small" @click="finishEdit" type="danger" :icon="Check" circle />
-      </el-col>
-    </el-row>
+      <el-button class="circular-button" @click="addNode" type="primary" :icon="Plus" circle />
+    </div>
+
+    <div class="flex-container mt-4">
+      <span class="label-margin">Connect</span>
+      <el-button class="circular-button" @click="connect" type="info" :icon="Switch" circle />
+    </div>
+
+    <div class="flex-container mt-4">
+      <span class="label-margin">Finish</span>
+      <el-button class="circular-button" @click="finishEdit" type="danger" :icon="Check" circle />
+    </div>
   </el-card>
 </template>
 
 <style scoped>
 .card {
-  /* margin-top: 2px; */
-  height: 150px;
-  /* background-color:white; */
-  /* width: 380px; */
-  font-size: 0.87rem;
+  padding: 10px;
 }
-.item {
-  font-size: 0.82rem;
+.flex-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+.label-margin {
+  margin-right: 8px;
+}
+.dropdown {
+  width: 120px;
+}
+.el-select-dropdown__item {
+  line-height: 25px;
+  height: 25px;
+}
+.circular-button {
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+}
+.button-margin {
+  margin-left: 8px;
 }
 </style>

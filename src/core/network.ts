@@ -16,6 +16,8 @@ import {
 } from './typedefs'
 import { SeededRandom } from '@/utils/rand'
 
+import presetTopos from './preset_topologies.json'
+
 export class NetworkHub {
   Config: Ref<Config>
   Nodes: Ref<Node[]>
@@ -27,6 +29,9 @@ export class NetworkHub {
   ASN = ref<number>(0) // absolute slot number
   Rand: SeededRandom
   kdTree: KDTree // to find nearest neighbors
+
+  PresetTopos: { [name: string]: any } = presetTopos
+  SelectedTopo = ref('Random')
 
   asnTimer: any
   SignalReset = ref(0)
@@ -40,6 +45,10 @@ export class NetworkHub {
     this.Nodes = ref<Node[]>([<Node>{ id: 0 }]) // placeholder to let node_id start from 1
     this.Rand = new SeededRandom(this.Config.value.seed)
     this.kdTree = new KDTree()
+
+    watch(this.SelectedTopo, () => {
+      this.LoadTopology()
+    })
 
     watch(this.ASN, () => {
       if (this.ASN.value > 0) {
@@ -111,28 +120,51 @@ export class NetworkHub {
     this.Packets.value.push(pkt)
     this.PacketsCurrent.value.push(pkt)
   }
-  clearNodes() {}
-  LoadTopology(name: string) {
-    for (let i = 1; i <= this.Config.value.num_nodes; i++) {
-      const n = <Node>{
-        id: this.Nodes.value.length,
-        type: [0, 1, 2, 3, 11, 12, 13][
-          Math.floor((this.Rand.next() * Object.keys(NODE_TYPE).length) / 2)
-        ],
-        pos: [
-          Math.floor(this.Rand.next() * this.Config.value.grid_size) -
-            this.Config.value.grid_size / 2,
-          Math.floor(this.Rand.next() * this.Config.value.grid_size) -
-            this.Config.value.grid_size / 2
-        ],
-        neighbors: [],
-        tx_cnt: 0,
-        rx_cnt: 0,
-        w: undefined
+  clearNodes() {
+    for (const n of this.Nodes.value) {
+      if (n.id == 0) continue
+      if (n.w != undefined) {
+        n.w.terminate()
       }
-      this.Nodes.value.push(n)
     }
-    this.Logs.value.unshift(`Loaded topology: {${name}}.`)
+    this.Nodes.value = [<Node>{ id: 0 }] // placeholder to let node_id start from 1
+    this.Links.value = []
+  }
+  LoadTopology() {
+    this.clearNodes()
+
+    if (this.SelectedTopo.value == 'Random') {
+      for (let i = 1; i <= this.Config.value.num_nodes; i++) {
+        const n = <Node>{
+          id: this.Nodes.value.length,
+          type: [0, 1, 2, 3, 11, 12, 13][
+            Math.floor((this.Rand.next() * Object.keys(NODE_TYPE).length) / 2)
+          ],
+          pos: [
+            Math.floor(this.Rand.next() * this.Config.value.grid_size) -
+              this.Config.value.grid_size / 2,
+            Math.floor(this.Rand.next() * this.Config.value.grid_size) -
+              this.Config.value.grid_size / 2
+          ],
+          neighbors: [],
+          tx_cnt: 0,
+          rx_cnt: 0,
+          w: undefined
+        }
+        this.Nodes.value.push(n)
+      }
+    } else {
+      const topo = this.PresetTopos[this.SelectedTopo.value]
+      for (const n of topo.nodes) {
+        this.Nodes.value.push(<Node>{
+          id: n.id,
+          type: n.type,
+          pos: n.pos
+        })
+      }
+    }
+
+    this.Logs.value.unshift(`Loaded topology: {${this.SelectedTopo.value}}.`)
   }
 
   EstablishConnection() {
@@ -235,9 +267,9 @@ export class NetworkHub {
     let type: number = LINK_TYPE.WIRELESS
     if (
       this.Nodes.value[v1].type == NODE_TYPE.TSN ||
-      this.Nodes.value[v1].type >= 4 || // is a end system
+      this.Nodes.value[v1].type >= 10 || // is a end system
       this.Nodes.value[v2].type == NODE_TYPE.TSN ||
-      this.Nodes.value[v2].type >= 4
+      this.Nodes.value[v2].type >= 10
     ) {
       type = LINK_TYPE.WIRED
     }

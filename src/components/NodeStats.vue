@@ -6,7 +6,7 @@ import { NODE_TYPE, NODE_TYPE_DISPLAY_NAME } from '@/core/typedefs'
 </script>
 
 <template>
-  <el-card class="card" v-show="SelectedNode > 0">
+  <el-card class="card" v-if="SelectedNode > 0 && Network.Nodes.value[SelectedNode]!=undefined">
     <el-row :gutter="30">
       <el-col :span="11" align="center">
         <img :src="SelectedNode == 1 ? rpi4 : sensortag" />

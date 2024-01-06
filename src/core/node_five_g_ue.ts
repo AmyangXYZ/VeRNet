@@ -13,6 +13,7 @@ class FiveGUE extends Node {
     super()
     this.registerMsgHandler(MSG_TYPE.INIT, this.initMsgHandler)
     this.registerMsgHandler(MSG_TYPE.ASN, this.asnMsgHandler)
+    this.registerPktHandler(PKT_TYPE.DATA, this.dataPktHandler)
   }
   initMsgHandler = (msg: Message) => {
     const payload: InitMsgPayload = msg.payload
@@ -28,6 +29,9 @@ class FiveGUE extends Node {
     postMessage(<Message>{
       type: MSG_TYPE.DONE
     })
+  }
+  dataPktHandler = (pkt: Packet) => {
+    // console.log('tsn', pkt)
   }
 }
 new FiveGUE().Run()
