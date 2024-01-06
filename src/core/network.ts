@@ -175,7 +175,7 @@ export class NetworkHub {
           n.w = new Worker(new URL('@/core/node_tsn.ts', import.meta.url), { type: 'module' })
           break
         case NODE_TYPE.FIVE_G_GNB:
-          n.w = new Worker(new URL('@/core/node_FIVE_G_GNB.ts', import.meta.url), {
+          n.w = new Worker(new URL('@/core/node_five_g_gnb.ts', import.meta.url), {
             type: 'module'
           })
           break
