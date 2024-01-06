@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Network, SignalEditTopology, SignalAddNode } from '@/hooks/useStates'
+import { Network, SignalEditTopology, SignalAddNode,SignalUpdateLinks } from '@/hooks/useStates'
 import { Check, Plus, Switch } from '@element-plus/icons-vue'
 
 const nodeType = ref(0)
@@ -31,7 +31,7 @@ const addNode = () => {
 }
 const connect = () => {
   Network.EstablishConnection()
-  SignalAddNode.value++
+  SignalUpdateLinks.value++
 }
 const finishEdit = () => {
   Network.StartWebWorkers()

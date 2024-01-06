@@ -4,7 +4,8 @@ import {
   SelectedNode,
   SignalEditTopology,
   SignalResetCamera,
-  SignalAddNode
+  SignalAddNode,
+  SignalUpdateLinks
 } from './useStates'
 
 import * as THREE from 'three'
@@ -607,6 +608,9 @@ export async function useDrawTopology(dom: HTMLElement) {
 
   watch(SignalAddNode, () => {
     drawNodes()
+  })
+  watch(SignalUpdateLinks, ()=>{
+    clearLinks()
     drawLinks()
   })
   watch(Network.SelectedTopo, () => {
