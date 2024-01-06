@@ -13,7 +13,15 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
-import { type Node, NODE_TYPE, ADDR, type Packet, type Link, LINK_TYPE } from '@/core/typedefs'
+import {
+  type Node,
+  NODE_TYPE,
+  ADDR,
+  type Packet,
+  type Link,
+  LINK_TYPE,
+  NODE_TYPE_DISPLAY_NAME
+} from '@/core/typedefs'
 
 export async function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
@@ -177,7 +185,7 @@ export async function useDrawTopology(dom: HTMLElement) {
       [0.004, 0.004, 0.004],
       -Math.PI / 2
     )
-    Network.Logs.value[0] += 'done!'
+    Network.Logs.value[0] += 'done.'
   }
 
   let drawnNodes: { [id: number]: any } = {}
@@ -205,8 +213,7 @@ export async function useDrawTopology(dom: HTMLElement) {
     const box = new THREE.Box3().setFromObject(model)
     const size = new THREE.Vector3()
     box.getSize(size)
-
-    const label = createLabel(`${NODE_TYPE[node.type]}-${node.id}`)
+    const label = createLabel(`${NODE_TYPE_DISPLAY_NAME[NODE_TYPE[node.type]]}-${node.id}`)
     label.position.set(model.position.x, size.y + 1, model.position.z) // Adjust the position as needed
     scene.add(label)
 
@@ -255,22 +262,19 @@ export async function useDrawTopology(dom: HTMLElement) {
     }
   }
   const drawLink = (l: Link) => {
-    const p1 = new THREE.Vector3(
-      Network.Nodes.value[l.v1].pos[0],
-      1.6,
-      Network.Nodes.value[l.v1].pos[1]
-    )
+    const srcModel = drawnNodes[l.v1].model
+    const srcBox = new THREE.Box3().setFromObject(srcModel)
+    const srcSize = new THREE.Vector3()
+    srcBox.getSize(srcSize)
 
-    const p3 = new THREE.Vector3(
-      Network.Nodes.value[l.v2].pos[0],
-      1.6,
-      Network.Nodes.value[l.v2].pos[1]
-    )
+    const dstModel = drawnNodes[l.v2].model
+    const dstBox = new THREE.Box3().setFromObject(dstModel)
+    const dstSize = new THREE.Vector3()
+    dstBox.getSize(dstSize)
 
-    const x2 = (p1.x + p3.x) / 2
-    const z2 = (p1.z + p3.z) / 2
-    const h = 5
-    const p2 = new THREE.Vector3(x2, h, z2)
+    const p1 = new THREE.Vector3(srcModel.position.x, srcSize.y * 0.7, srcModel.position.z)
+    const p3 = new THREE.Vector3(dstModel.position.x, dstSize.y * 0.7, dstModel.position.z)
+    const p2 = new THREE.Vector3((p1.x + p3.x) / 2, (srcSize.y + dstSize.y) / 2, (p1.z + p3.z) / 2)
 
     const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
     const points = curve.getPoints(64)
@@ -355,24 +359,22 @@ export async function useDrawTopology(dom: HTMLElement) {
       vertexColors: true
     })
 
+    const srcModel = drawnNodes[pkt.mac_src].model
+    const srcBox = new THREE.Box3().setFromObject(srcModel)
+    const srcSize = new THREE.Vector3()
+    srcBox.getSize(srcSize)
+
+    const dstModel = drawnNodes[pkt.mac_dst].model
+    const dstBox = new THREE.Box3().setFromObject(dstModel)
+    const dstSize = new THREE.Vector3()
+    dstBox.getSize(dstSize)
+
     const mesh = new THREE.Points(geometry, material)
     scene.add(mesh)
-    const p1 = new THREE.Vector3(
-      Network.Nodes.value[pkt.mac_src].pos[0],
-      1.6,
-      Network.Nodes.value[pkt.mac_src].pos[1]
-    )
 
-    const p3 = new THREE.Vector3(
-      Network.Nodes.value[pkt.mac_dst].pos[0],
-      1.6,
-      Network.Nodes.value[pkt.mac_dst].pos[1]
-    )
-
-    const x2 = (p1.x + p3.x) / 2
-    const z2 = (p1.z + p3.z) / 2
-    const h = 5
-    const p2 = new THREE.Vector3(x2, h, z2)
+    const p1 = new THREE.Vector3(srcModel.position.x, srcSize.y * 0.7, srcModel.position.z)
+    const p3 = new THREE.Vector3(dstModel.position.x, dstSize.y * 0.7, dstModel.position.z)
+    const p2 = new THREE.Vector3((p1.x + p3.x) / 2, (srcSize.y + dstSize.y) / 2, (p1.z + p3.z) / 2)
 
     drawnUnicastPackets[pkt.uid] = {
       mesh,
@@ -401,12 +403,8 @@ export async function useDrawTopology(dom: HTMLElement) {
       side: THREE.DoubleSide
     })
     const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.copy(drawnNodes[pkt.mac_src].model.position)
     mesh.rotation.x = Math.PI / 2
-    mesh.position.set(
-      Network.Nodes.value[pkt.mac_src].pos[0],
-      0.5,
-      Network.Nodes.value[pkt.mac_src].pos[1]
-    )
     scene.add(mesh)
     drawnBeaconPackets[pkt.uid] = { mesh, uid: pkt.uid, mac_src: pkt.mac_dst, mac_dst: pkt.mac_dst }
   }
@@ -545,6 +543,7 @@ export async function useDrawTopology(dom: HTMLElement) {
     clearLinks()
     clearPackets()
     drawNodes()
+    drawLinks()
   })
   watch(SignalResetCamera, () => {
     animateCameraPosition({ x: 0, y: 70, z: 80 }, 1000)

@@ -17,6 +17,16 @@ export enum NODE_TYPE {
   END_SYSTEM_ROBOTIC_ARM
 }
 
+export const NODE_TYPE_DISPLAY_NAME = <{ [name: string]: string }>{
+  TSCH: 'TSCH Node',
+  TSN: 'TSN Bridge',
+  FIVE_G_BS: '5G gNB',
+  FIVE_G_UE: '5G UE',
+  END_SYSTEM_SERVER: 'Edge Server',
+  END_SYSTEM_SENSOR: 'Sensor',
+  END_SYSTEM_ROBOTIC_ARM: 'Robotic Arm'
+}
+
 export interface Node {
   id: number
   type: number

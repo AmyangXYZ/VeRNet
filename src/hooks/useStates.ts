@@ -5,7 +5,7 @@ import { type Config } from '@/core/typedefs'
 import { NetworkHub } from '@/core/network'
 
 export const Network = new NetworkHub(<Config>{
-  seed: 11,
+  seed: 1111,
   num_nodes: 20,
   grid_size: 80,
   tx_range: 20

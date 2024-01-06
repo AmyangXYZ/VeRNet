@@ -2,7 +2,7 @@
 import rpi4 from '@/assets/rpi4.png'
 import sensortag from '@/assets/sensortag.png'
 import { Network, SelectedNode } from '@/hooks/useStates'
-import { NODE_TYPE } from '@/core/typedefs'
+import { NODE_TYPE, NODE_TYPE_DISPLAY_NAME } from '@/core/typedefs'
 </script>
 
 <template>
@@ -13,7 +13,7 @@ import { NODE_TYPE } from '@/core/typedefs'
       </el-col>
       <el-col :span="13">
         <span style="font-weight: 600; font-size: 0.9rem">
-          {{ NODE_TYPE[Network.Nodes.value[SelectedNode].type] }}-{{ SelectedNode }}
+          {{ NODE_TYPE_DISPLAY_NAME[NODE_TYPE[Network.Nodes.value[SelectedNode].type]] }}-{{ SelectedNode }}
         </span>
         <br />
         - TX: {{ Network.Nodes.value[SelectedNode].tx_cnt }} , RX:

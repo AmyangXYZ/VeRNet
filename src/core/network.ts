@@ -41,17 +41,19 @@ export class NetworkHub {
     this.kdTree = new KDTree()
 
     watch(this.ASN, () => {
-      this.doneCnt = 0
-      this.PacketsCurrent.value = []
+      if (this.ASN.value > 0) {
+        this.doneCnt = 0
+        this.PacketsCurrent.value = []
 
-      if (this.Nodes.value.length > 1) {
-        for (const n of this.Nodes.value) {
-          if (n.w != undefined) {
-            n.w.postMessage(<Packet>{
-              type: MSG_TYPE.ASN,
-              id: n.id,
-              payload: <ASNMsgPayload>{ asn: this.ASN.value }
-            })
+        if (this.Nodes.value.length > 1) {
+          for (const n of this.Nodes.value) {
+            if (n.w != undefined) {
+              n.w.postMessage(<Packet>{
+                type: MSG_TYPE.ASN,
+                id: n.id,
+                payload: <ASNMsgPayload>{ asn: this.ASN.value }
+              })
+            }
           }
         }
       }
@@ -77,7 +79,7 @@ export class NetworkHub {
     this.Packets.value.push(pkt)
     this.PacketsCurrent.value.push(pkt)
   }
-
+  clearNodes() {}
   LoadTopology(name: string) {
     for (let i = 1; i <= this.Config.value.num_nodes; i++) {
       const n = <Node>{
@@ -123,7 +125,7 @@ export class NetworkHub {
       })
     }
 
-    this.Logs.value.unshift(`Established ${Object.keys(this.Links.value).length} links`)
+    this.Logs.value.unshift(`Established ${Object.keys(this.Links.value).length} links.`)
   }
 
   StartWebWorkers() {
@@ -167,7 +169,7 @@ export class NetworkHub {
         }
       }
     }
-    this.Logs.value.unshift('Started WebWorkers')
+    this.Logs.value.unshift('Started WebWorkers.')
   }
 
   AddNode(type: number) {
@@ -186,7 +188,7 @@ export class NetworkHub {
     }
     this.Nodes.value.push(n)
 
-    this.Logs.value.unshift(`New ${NODE_TYPE[type]} node: ID ${n.id}, position: [${n.pos}]`)
+    this.Logs.value.unshift(`New ${NODE_TYPE[type]} node: ID:${n.id}, position-:[${n.pos}].`)
   }
 
   AddLink(v1: number, v2: number) {
@@ -212,7 +214,9 @@ export class NetworkHub {
   }
 
   Run = () => {
-    this.Step()
+    this.Logs.value.unshift('Emulation started.')
+    this.ASN.value++
+    this.SlotDone.value = false
     this.Running.value = true
     this.asnTimer = setInterval(() => {
       this.ASN.value++
@@ -220,16 +224,22 @@ export class NetworkHub {
     }, this.SlotDuration.value)
   }
   Step = () => {
+    this.Logs.value.unshift('ASN increased by one.')
     this.ASN.value++
     this.SlotDone.value = false
   }
   Pause = () => {
+    this.Logs.value.unshift('Emulation paused.')
     this.Running.value = false
     clearInterval(this.asnTimer)
   }
   Reset = () => {
+    this.Logs.value.unshift('Emulation reset.')
     this.Running.value = false
     clearInterval(this.asnTimer)
     this.SignalReset.value++
+    this.Packets.value = []
+    this.PacketsCurrent.value = []
+    this.ASN.value = 0
   }
 }
