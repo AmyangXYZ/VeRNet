@@ -25,7 +25,7 @@ const nodeTypes = [
   }
 ]
 
-const presetTopos:any = []
+const presetTopos: any = []
 
 const addNode = () => {
   Network.AddNode(nodeType.value)

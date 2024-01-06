@@ -60,8 +60,14 @@ onUnmounted(() => {
   display: flex;
   max-width: 40%;
   overflow-y: scroll;
+  scrollbar-width: none;
   flex-direction: column-reverse;
 }
+
+.log-container::-webkit-scrollbar {
+  display: none;
+}
+
 .log {
   font-family: 'Share Tech Mono', monospace;
   padding-right: 20px;
