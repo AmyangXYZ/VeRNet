@@ -40,15 +40,6 @@ export class NetworkHub {
     this.Rand = new SeededRandom(this.Config.value.seed)
     this.kdTree = new KDTree()
 
-    // this.createNodes()
-    this.AddNode(NODE_TYPE.TSCH)
-    this.AddNode(NODE_TYPE.TSN)
-    this.AddNode(NODE_TYPE.FIVE_G_BS)
-    this.AddNode(NODE_TYPE.FIVE_G_UE)
-    this.AddNode(NODE_TYPE.END_SYSTEM_ROBOTIC_ARM)
-    this.AddNode(NODE_TYPE.END_SYSTEM_SENSOR)
-    this.AddNode(NODE_TYPE.END_SYSTEM_SERVER)
-
     watch(this.ASN, () => {
       this.doneCnt = 0
       this.PacketsCurrent.value = []
@@ -67,26 +58,50 @@ export class NetworkHub {
     })
   }
 
-  AddNode(type: number) {
-    const n = <Node>{
-      id: this.Nodes.value.length,
-      type: type,
-      pos: [
-        Math.floor(this.Rand.next() * this.Config.value.grid_size) -
-          this.Config.value.grid_size / 2,
-        Math.floor(this.Rand.next() * this.Config.value.grid_size) - this.Config.value.grid_size / 2
-      ],
-      neighbors: [],
-      tx_cnt: 0,
-      rx_cnt: 0,
-      w: undefined
+  // handle control plane msg from each node
+  handleMsg = (msg: Message) => {
+    switch (msg.type) {
+      case MSG_TYPE.DONE:
+        if (++this.doneCnt == this.Nodes.value.length - 1) {
+          this.SlotDone.value = true
+        }
+        break
+      case MSG_TYPE.STAT:
+        break
     }
-    this.Nodes.value.push(n)
-
-    this.Logs.value.unshift(`New ${NODE_TYPE[type]} node: ID ${n.id}, position: [${n.pos}]`)
   }
 
-  ConstructTopology() {
+  // forward physical layer pkt from each node
+  handlePkt = (pkt: Packet) => {
+    this.Nodes.value[pkt.mac_dst].w!.postMessage(pkt)
+    this.Packets.value.push(pkt)
+    this.PacketsCurrent.value.push(pkt)
+  }
+
+  LoadTopology(name: string) {
+    for (let i = 1; i <= this.Config.value.num_nodes; i++) {
+      const n = <Node>{
+        id: this.Nodes.value.length,
+        type: [0, 1, 2, 3, 11, 12, 13][
+          Math.floor((this.Rand.next() * Object.keys(NODE_TYPE).length) / 2)
+        ],
+        pos: [
+          Math.floor(this.Rand.next() * this.Config.value.grid_size) -
+            this.Config.value.grid_size / 2,
+          Math.floor(this.Rand.next() * this.Config.value.grid_size) -
+            this.Config.value.grid_size / 2
+        ],
+        neighbors: [],
+        tx_cnt: 0,
+        rx_cnt: 0,
+        w: undefined
+      }
+      this.Nodes.value.push(n)
+    }
+    this.Logs.value.unshift(`Loaded topology: {${name}}.`)
+  }
+
+  EstablishConnection() {
     this.kdTree = new KDTree()
     this.Links.value = []
     for (const n of this.Nodes.value) {
@@ -152,27 +167,26 @@ export class NetworkHub {
         }
       }
     }
-    this.Logs.value.unshift('WebWorkers started')
+    this.Logs.value.unshift('Started WebWorkers')
   }
 
-  // handle control plane msg from each node
-  handleMsg = (msg: Message) => {
-    switch (msg.type) {
-      case MSG_TYPE.DONE:
-        if (++this.doneCnt == this.Nodes.value.length - 1) {
-          this.SlotDone.value = true
-        }
-        break
-      case MSG_TYPE.STAT:
-        break
+  AddNode(type: number) {
+    const n = <Node>{
+      id: this.Nodes.value.length,
+      type: type,
+      pos: [
+        Math.floor(this.Rand.next() * this.Config.value.grid_size) -
+          this.Config.value.grid_size / 2,
+        Math.floor(this.Rand.next() * this.Config.value.grid_size) - this.Config.value.grid_size / 2
+      ],
+      neighbors: [],
+      tx_cnt: 0,
+      rx_cnt: 0,
+      w: undefined
     }
-  }
+    this.Nodes.value.push(n)
 
-  // forward physical layer pkt from each node
-  handlePkt = (pkt: Packet) => {
-    this.Nodes.value[pkt.mac_dst].w!.postMessage(pkt)
-    this.Packets.value.push(pkt)
-    this.PacketsCurrent.value.push(pkt)
+    this.Logs.value.unshift(`New ${NODE_TYPE[type]} node: ID ${n.id}, position: [${n.pos}]`)
   }
 
   AddLink(v1: number, v2: number) {

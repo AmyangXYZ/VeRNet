@@ -1,10 +1,16 @@
 import { Node } from './node'
-import { PKT_TYPE, type Message, type Packet, MSG_TYPE, type ASNMsgPayload } from './typedefs'
+import { PKT_TYPE, type Message, type Packet, MSG_TYPE, type ASNMsgPayload, type InitMsgPayload } from './typedefs'
 
 class FiveGUE extends Node {
   constructor() {
     super()
+    this.registerMsgHandler(MSG_TYPE.INIT, this.initMsgHandler)
     this.registerMsgHandler(MSG_TYPE.ASN, this.asnMsgHandler)
+  }
+  initMsgHandler = (msg: Message) => {
+    const payload: InitMsgPayload = msg.payload
+    this.id = payload.id
+    this.neighbors = payload.neighbors
   }
   asnMsgHandler = (msg: Message) => {
     const payload: ASNMsgPayload = msg.payload

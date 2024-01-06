@@ -32,7 +32,7 @@ const addNode = () => {
   SignalUpdateTopology.value++
 }
 const connect = () => {
-  Network.ConstructTopology()
+  Network.EstablishConnection()
   SignalUpdateTopology.value++
 }
 const finishEdit = () => {

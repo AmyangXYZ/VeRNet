@@ -15,7 +15,7 @@ import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
 import { type Node, NODE_TYPE, ADDR, type Packet, type Link, LINK_TYPE } from '@/core/typedefs'
 
-export function useDrawTopology(dom: HTMLElement) {
+export async function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000)
   camera.layers.enableAll()
@@ -105,7 +105,7 @@ export function useDrawTopology(dom: HTMLElement) {
     texture.generateMipmaps = false
     const spriteMaterial = new THREE.SpriteMaterial({
       map: texture,
-      depthTest: false, // add this line
+      depthTest: false, // add Network line
       transparent: true
     })
     const sprite = new THREE.Sprite(spriteMaterial)
@@ -117,29 +117,15 @@ export function useDrawTopology(dom: HTMLElement) {
   }
 
   const loadingManager = new THREE.LoadingManager()
-  loadingManager.onStart = function (url, itemsLoaded, itemsTotal) {
-    // console.log(
-    //   'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.'
-    // )
-    Network.Logs.value.unshift(
-      'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.'
-    )
-  }
 
   loadingManager.onLoad = function () {
     // console.log('Loading complete!')
-    Network.Logs.value.unshift('Loading complete!')
-  }
-
-  loadingManager.onProgress = function (url, itemsLoaded, itemsTotal) {
-    // console.log(
-    //   'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.'
-    // )
-    // Logs.value.unshift( 'Loading file: '  + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.')
+    Network.Logs.value[0] += '.'
   }
 
   const modelTemplates: { [type: number]: any } = {}
   const loadGLTFModels = async () => {
+    Network.Logs.value.unshift('Loading resources')
     const loader = new GLTFLoader(loadingManager)
     const loadModel = async (
       type: number,
@@ -191,13 +177,11 @@ export function useDrawTopology(dom: HTMLElement) {
       [0.004, 0.004, 0.004],
       -Math.PI / 2
     )
+    Network.Logs.value[0] += 'done!'
   }
 
   let drawnNodes: { [id: number]: any } = {}
-  const drawNodes = async () => {
-    if (Object.values(modelTemplates).length == 0) {
-      await loadGLTFModels()
-    }
+  const drawNodes = () => {
     for (const node of Network.Nodes.value) {
       if (node.id == 0 || drawnNodes[node.id] != undefined) continue
       drawNode(node)
@@ -528,13 +512,20 @@ export function useDrawTopology(dom: HTMLElement) {
     stats.update()
   }
 
-  // main
+  // ###### main #######
   setCamera()
   addLights()
   drawGround()
-  drawNodes()
-  drawLinks()
   animate()
+
+  await loadGLTFModels()
+  Network.LoadTopology('default-random')
+  drawNodes()
+  Network.EstablishConnection()
+  Network.StartWebWorkers()
+
+  drawLinks()
+  // ###################
 
   watch(SignalUpdateTopology, () => {
     drawNodes()

@@ -31,7 +31,7 @@ const resetTimer = () => {
       Network.Logs.value = []
     })
     showLog.value = false
-  }, 4000)
+  }, 5000)
 }
 
 onUnmounted(() => {
@@ -71,6 +71,6 @@ onUnmounted(() => {
 .log {
   font-family: 'Share Tech Mono', monospace;
   padding-right: 20px;
-  font-size: 0.82rem;
+  font-size: 0.88rem;
 }
 </style>
