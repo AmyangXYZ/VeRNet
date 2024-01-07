@@ -129,12 +129,16 @@ export async function useDrawTopology(dom: HTMLElement) {
 
   loadingManager.onLoad = function () {
     // console.log('Loading complete!')
-    Network.Logs.value[0] += '.'
+    Network.Logs.value[0] = `Loading resources...${1 + Object.keys(modelTemplates).length}/${
+      Object.keys(NODE_TYPE).length / 2
+    }`
   }
 
   const modelTemplates: { [type: number]: any } = {}
   const loadGLTFModels = async () => {
-    Network.Logs.value.unshift('Loading resources')
+    Network.Logs.value.unshift(`Loading resources...${1 + Object.keys(modelTemplates).length}/${
+      Object.keys(NODE_TYPE).length / 2
+    }`)
     const loader = new GLTFLoader(loadingManager)
     const loadModel = async (
       type: number,
@@ -186,7 +190,7 @@ export async function useDrawTopology(dom: HTMLElement) {
       [0.004, 0.004, 0.004],
       -Math.PI / 2
     )
-    Network.Logs.value[0] += 'done.'
+    Network.Logs.value[0] = `Loading resources...done.`
   }
 
   let drawnNodes: { [id: number]: any } = {}
@@ -609,7 +613,7 @@ export async function useDrawTopology(dom: HTMLElement) {
   watch(SignalAddNode, () => {
     drawNodes()
   })
-  watch(SignalUpdateLinks, ()=>{
+  watch(SignalUpdateLinks, () => {
     clearLinks()
     drawLinks()
   })
