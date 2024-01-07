@@ -31,7 +31,7 @@ export class NetworkHub {
   kdTree: KDTree // to find nearest neighbors
 
   PresetTopos: { [name: string]: any } = presetTopos
-  SelectedTopo = ref('5G single-cell')
+  SelectedTopo = ref('Random')
 
   asnTimer: any
   SignalReset = ref(0)
@@ -85,8 +85,6 @@ export class NetworkHub {
 
   // forward physical layer pkt from each node
   handlePkt = (pkt: Packet) => {
-    this.Nodes.value[pkt.mac_dst].w!.postMessage(pkt)
-
     // check protocol type
     if (
       this.Nodes.value[pkt.mac_src].type == NODE_TYPE.TSCH ||
@@ -108,17 +106,39 @@ export class NetworkHub {
     ) {
       pkt.protocol = PROTOCOL_TYPE.FIVE_G
     }
-    // must use this format for the detailedView function of el-table-v2
-    pkt.id = this.Packets.value.length
-    pkt.children = [
-      {
-        id: `${this.Packets.value.length}-detail-content`,
-        detail: JSON.stringify(pkt.payload).replace(/"/g, '')
-      }
-    ]
 
-    this.Packets.value.push(pkt)
-    this.PacketsCurrent.value.push(pkt)
+    let isValid: boolean = false
+    // To-do: validate packet and check interference
+    switch (pkt.protocol) {
+      case PROTOCOL_TYPE.TSN:
+        isValid = true
+        break
+      case PROTOCOL_TYPE.TSCH:
+        isValid = true
+        break
+      case PROTOCOL_TYPE.FIVE_G:
+        break
+      default:
+        isValid = true
+    }
+
+    if (isValid) {
+      this.Nodes.value[pkt.mac_src].tx_cnt++
+      this.Nodes.value[pkt.mac_dst].rx_cnt++
+      this.Nodes.value[pkt.mac_dst].w!.postMessage(pkt)
+
+      // must use this format for the detailedView function of el-table-v2
+      pkt.id = this.Packets.value.length
+      pkt.children = [
+        {
+          id: `${this.Packets.value.length}-detail-content`,
+          detail: JSON.stringify(pkt.payload).replace(/"/g, '')
+        }
+      ]
+
+      this.Packets.value.push(pkt)
+      this.PacketsCurrent.value.push(pkt)
+    }
   }
   clearNodes() {
     for (const n of this.Nodes.value) {
@@ -131,6 +151,12 @@ export class NetworkHub {
     this.Links.value = []
   }
   LoadTopology() {
+    this.Running.value = false
+    clearInterval(this.asnTimer)
+    this.Links.value = []
+    this.Packets.value = []
+    this.PacketsCurrent.value = []
+    this.ASN.value = 0
     this.clearNodes()
 
     if (this.SelectedTopo.value == 'Random') {
