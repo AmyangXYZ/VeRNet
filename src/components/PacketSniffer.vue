@@ -3,7 +3,7 @@ import ChannelChart from '@/components/ChannelChart.vue'
 
 import { ref, watch, nextTick } from 'vue'
 import { Network } from '@/hooks/useStates'
-import { type Packet } from '@/core/typedefs'
+import { PKT_TYPE, PROTOCOL_TYPE, type Packet } from '@/core/typedefs'
 
 import { Filter } from '@element-plus/icons-vue'
 
@@ -30,13 +30,7 @@ const columns: any = [
     width: 40,
     align: 'center'
   },
-  {
-    key: 'ch',
-    title: 'CH',
-    dataKey: 'ch',
-    width: 30,
-    align: 'center'
-  },
+
   {
     key: 'mac_src',
     title: 'SRC',
@@ -52,6 +46,14 @@ const columns: any = [
     align: 'center'
   },
   {
+    key: 'protocol',
+    title: 'PROTOCOL',
+    dataKey: 'protocol',
+    width: 70,
+    align: 'center',
+    cellRenderer: ({ cellData: protocol }: any) => protocol
+  },
+  {
     key: 'uid',
     title: 'UID',
     dataKey: 'uid',
@@ -63,11 +65,9 @@ const columns: any = [
     key: 'type',
     title: 'TYPE',
     dataKey: 'type',
-    width: 80,
+    width: 60,
     align: 'center',
-    cellRenderer: ({ cellData: type }: any) => {
-      type
-    }
+    cellRenderer: ({ cellData: type }: any) => PKT_TYPE[type]
   },
   // {
   //   key: 'seq',
@@ -80,7 +80,7 @@ const columns: any = [
     key: 'len',
     title: 'LEN',
     dataKey: 'len',
-    width: 60,
+    width: 40,
     align: 'center'
   }
 ]

@@ -1,149 +1,98 @@
-// import { watch } from 'vue'
 // import * as echarts from 'echarts'
+// import 'echarts-gl'
 
-// import { CELL_TYPES } from '@/networks/TSCH/typedefs'
+// import { Network } from './useStates'
 
-// import { Network, SignalShowSchedule } from './useStates'
-
-// export function useDrawSchedule(chartDom: HTMLElement): any {
+// export function useDrawSchedule3D(chartDom: HTMLElement): any {
 //   const chart = echarts.init(chartDom)
+
+//   const zCategories = ['Shared', 'Mgmt', 'Data']
+
 //   const option: any = {
-//     grid: {
-//       top: '35px',
-//       left: '32px',
-//       right: '1px',
-//       bottom: '1px'
+//     dataset: {
+//       dimensions: ['slot', 'channel', 'type'],
+//       source: []
 //     },
-//     xAxis: {
-//       name: 'Time',
+//     yAxis3D: {
 //       type: 'category',
-//       position: 'top',
-//       nameLocation: 'center',
-//       nameGap: '22',
-//       interval: 0,
-//       splitLine: {
-//         interval: 0,
-//         show: true,
-//         lineStyle: { color: 'lightgrey', width: 0.5 }
-//       },
-//       axisTick: {
-//         interval: 0
-//       },
-//       axisLabel: {
-//         fontSize: 10
-//         // interval:0
-//       },
-//       data: []
-//     },
-//     yAxis: {
 //       name: 'Channels',
-//       type: 'category',
-//       inverse: true,
-//       nameLocation: 'center',
-//       nameGap: 20,
+//       nameTextStyle: {
+//         color: 'white'
+//       },
+//       data: Array.from({ length: Network.SchConfig.value.num_slots }, (_, i) => i + 1),
+//       axisTick: {
+//         interval: 1
+//       },
 //       axisLabel: {
-//         interval: 0,
-//         fontSize: 11
+//         color: 'white'
 //       },
-//       splitLine: {
-//         show: true,
-//         lineStyle: { color: 'lightgrey', width: 0.5 }
-//       },
-//       data: []
+//       min: 0,
+//       max: 10
 //     },
-//     visualMap: {
-//       type: 'piecewise',
-//       pieces: [
-//         { value: CELL_TYPES.SHARED, label: 'Shared', color: 'green' },
-//         { value: CELL_TYPES.MGMT, label: 'Mgmt', color: 'red' },
-//         { value: CELL_TYPES.DATA, label: 'Data', color: 'royalblue' }
-//       ],
-//       textStyle: {
-//         color: 'grey'
+//     xAxis3D: {
+//       type: 'category',
+//       name: 'Slots',
+//       nameTextStyle: {
+//         color: 'white'
 //       },
-//       itemHeight: 10,
-//       itemWidth: 15,
-//       top: -4,
-//       right: 0,
-//       orient: 'horizontal'
+//       data: Array.from({ length: Network.SchConfig.value.num_channels }, (_, i) => i + 1),
+//       axisTick: {
+//         interval: 1
+//       },
+//       axisLabel: {
+//         color: 'white'
+//       },
+//       min: 0,
+//       max: 20
+//     },
+//     zAxis3D: {
+//       type: 'category',
+//       data: zCategories,
+//       axisTick: {
+//         interval: 1
+//       },
+//       axisLabel: {
+//         color: 'white'
+//       },
+//       min: 0,
+//       max: 2
+//     },
+//     grid3D: {
+//       light: {
+//         main: {
+//           shadow: true,
+//           quality: 'ultra',
+//           intensity: 1.5
+//         }
+//       },
+//       borderColor: 'white'
 //     },
 //     series: [
 //       {
-//         name: 'Schedule',
-//         type: 'heatmap',
+//         type: 'bar3D',
+
+//         xAxisIndex: 0,
+//         yAxisIndex: 0,
+//         zAxisIndex: 0,
+
+//         seriesIndex: 0,
 //         itemStyle: {
-//           borderColor: 'lightgrey',
-//           borderWidth: 0.5
+//           depth: 20,
+//           height: 20
 //         },
-//         label: { show: true, fontSize: 10 },
-//         animation: false,
-//         data: [],
-//         markLine: {
-//           lineStyle: { color: 'red' },
-//           symbolSize: 5,
-//           data: []
+//         encode: {
+//           x: 'slot',
+//           y: 'channel',
+//           z: {
+//             field: 'type',
+//             ordinal: 'true'
+//           },
+//           color: 'color'
 //         }
 //       }
-//     ]
+//     ],
+//     responsive: true
 //   }
 
-//   function drawCells() {
-//     option.xAxis.data = []
-//     option.yAxis.data = []
-//     option.series[0].data = []
-//     for (let s = 1; s <= Network.SchConfig.value.num_slots; s++) {
-//       option.xAxis.data.push(`${s}`)
-//     }
-//     for (let c = 1; c <= Network.SchConfig.value.num_channels; c++) {
-//       option.yAxis.data.push(`${c}`)
-//     }
-
-//     for (let slot = 1; slot <= Network.SchConfig.value.num_slots; slot++) {
-//       for (let ch = 1; ch <= Network.SchConfig.value.num_channels; ch++) {
-//         const cell = Network.Schedule.value[slot][ch]
-//         if (cell != undefined) {
-//           let label = `${cell.src}\n${cell.dst}`
-//           if (cell.type == CELL_TYPES.SHARED) {
-//             label = ''
-//           }
-//           option.series[0].data.push({
-//             value: [`${slot}`, `${ch}`, cell.type],
-//             name: label,
-//             label: {
-//               formatter: ({ name }: any) => name
-//             }
-//           })
-//         }
-//       }
-//     }
-//     chart.setOption(option)
-//   }
-
-//   function drawSlotOffset() {
-//     const slot =
-//       Network.ASN.value % Network.SchConfig.value.num_slots || Network.SchConfig.value.num_slots
-//     option.series[0].markLine.data = [
-//       {
-//         name: 'Slot offset',
-//         xAxis: slot - 1
-//       }
-//     ]
-//     chart.setOption(option)
-//   }
-
-//   watch(
-//     Network.Schedule,
-//     () => {
-//       drawCells()
-//     },
-//     { immediate: true, deep: true }
-//   )
-
-//   watch(Network.ASN, () => {
-//     drawSlotOffset()
-//   })
-
-//   watch(SignalShowSchedule, () => {
-//     setInterval(chart.resize, 50)
-//   })
+//   chart.setOption(option)
 // }

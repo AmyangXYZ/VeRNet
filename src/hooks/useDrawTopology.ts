@@ -4,7 +4,8 @@ import {
   SelectedNode,
   SignalEditTopology,
   SignalResetCamera,
-  SignalUpdateTopology
+  SignalAddNode,
+  SignalUpdateLinks
 } from './useStates'
 
 import * as THREE from 'three'
@@ -13,18 +14,27 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
-import { type Node, NODE_TYPE, ADDR, type Packet, type Link, LINK_TYPE } from '@/core/typedefs'
+import {
+  type Node,
+  NODE_TYPE,
+  ADDR,
+  type Packet,
+  type Link,
+  LINK_TYPE,
+  NODE_TYPE_DISPLAY_NAME
+} from '@/core/typedefs'
 
-export function useDrawTopology(dom: HTMLElement) {
+export async function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000)
+  camera.layers.enableAll()
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
   const controls = new OrbitControls(camera, renderer.domElement)
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.shadowMap.enabled = true
   renderer.setPixelRatio(window.devicePixelRatio)
   dom.appendChild(renderer.domElement)
-  const objectsToDrag: any = []
+  let objectsToDrag: any = []
 
   const stats = new Stats()
   stats.dom.style.position = 'fixed'
@@ -75,6 +85,8 @@ export function useDrawTopology(dom: HTMLElement) {
     scene.add(plane)
   }
 
+  const LABEL_LAYER = new THREE.Layers()
+  LABEL_LAYER.set(1)
   const createLabel = (value: string): THREE.Sprite => {
     const canvas = document.createElement('canvas')
     const padding = 10
@@ -102,19 +114,32 @@ export function useDrawTopology(dom: HTMLElement) {
     texture.generateMipmaps = false
     const spriteMaterial = new THREE.SpriteMaterial({
       map: texture,
-      depthTest: false, // add this line
+      depthTest: false, // add Network line
       transparent: true
     })
     const sprite = new THREE.Sprite(spriteMaterial)
 
     // Scale down sprite to match your scene
+    sprite.layers.set(1)
     sprite.scale.set(canvas.width / 108, canvas.height / 108, 1)
     return sprite
   }
 
+  const loadingManager = new THREE.LoadingManager()
+
+  loadingManager.onLoad = function () {
+    // console.log('Loading complete!')
+    Network.Logs.value[0] = `Loading resources...${1 + Object.keys(modelTemplates).length}/${
+      Object.keys(NODE_TYPE).length / 2
+    }`
+  }
+
   const modelTemplates: { [type: number]: any } = {}
   const loadGLTFModels = async () => {
-    const loader = new GLTFLoader()
+    Network.Logs.value.unshift(`Loading resources...${1 + Object.keys(modelTemplates).length}/${
+      Object.keys(NODE_TYPE).length / 2
+    }`)
+    const loader = new GLTFLoader(loadingManager)
     const loadModel = async (
       type: number,
       modelPath: string,
@@ -145,7 +170,7 @@ export function useDrawTopology(dom: HTMLElement) {
       -Math.PI / 2
     )
     await loadModel(NODE_TYPE.TSN, '/models/switch/scene.gltf', [7, 7, 7], 0)
-    await loadModel(NODE_TYPE.FIVE_G_BS, '/models/5g_tower/scene.gltf', [6, 6, 6], 0)
+    await loadModel(NODE_TYPE.FIVE_G_GNB, '/models/5g_tower/scene.gltf', [6, 6, 6], 0)
     await loadModel(NODE_TYPE.FIVE_G_UE, '/models/5g_ue/scene.gltf', [0.5, 0.5, 0.5], -Math.PI / 2)
     await loadModel(
       NODE_TYPE.END_SYSTEM_SERVER,
@@ -165,13 +190,11 @@ export function useDrawTopology(dom: HTMLElement) {
       [0.004, 0.004, 0.004],
       -Math.PI / 2
     )
+    Network.Logs.value[0] = `Loading resources...done.`
   }
 
   let drawnNodes: { [id: number]: any } = {}
-  const drawNodes = async () => {
-    if (Object.values(modelTemplates).length == 0) {
-      await loadGLTFModels()
-    }
+  const drawNodes = () => {
     for (const node of Network.Nodes.value) {
       if (node.id == 0 || drawnNodes[node.id] != undefined) continue
       drawNode(node)
@@ -195,8 +218,7 @@ export function useDrawTopology(dom: HTMLElement) {
     const box = new THREE.Box3().setFromObject(model)
     const size = new THREE.Vector3()
     box.getSize(size)
-
-    const label = createLabel(`${NODE_TYPE[node.type]}-${node.id}`)
+    const label = createLabel(`${NODE_TYPE_DISPLAY_NAME[NODE_TYPE[node.type]]}-${node.id}`)
     label.position.set(model.position.x, size.y + 1, model.position.z) // Adjust the position as needed
     scene.add(label)
 
@@ -234,6 +256,9 @@ export function useDrawTopology(dom: HTMLElement) {
       scene.remove(node.dragBoxHelper)
     }
     drawnNodes = {}
+    dragControls.dispose()
+    objectsToDrag = []
+    createDragControls()
   }
 
   let drawnLinks: { [uid: number]: { mesh: any; link: Link } } = {}
@@ -245,22 +270,19 @@ export function useDrawTopology(dom: HTMLElement) {
     }
   }
   const drawLink = (l: Link) => {
-    const p1 = new THREE.Vector3(
-      Network.Nodes.value[l.v1].pos[0],
-      1.6,
-      Network.Nodes.value[l.v1].pos[1]
-    )
+    const srcModel = drawnNodes[l.v1].model
+    const srcBox = new THREE.Box3().setFromObject(srcModel)
+    const srcSize = new THREE.Vector3()
+    srcBox.getSize(srcSize)
 
-    const p3 = new THREE.Vector3(
-      Network.Nodes.value[l.v2].pos[0],
-      1.6,
-      Network.Nodes.value[l.v2].pos[1]
-    )
+    const dstModel = drawnNodes[l.v2].model
+    const dstBox = new THREE.Box3().setFromObject(dstModel)
+    const dstSize = new THREE.Vector3()
+    dstBox.getSize(dstSize)
 
-    const x2 = (p1.x + p3.x) / 2
-    const z2 = (p1.z + p3.z) / 2
-    const h = 5
-    const p2 = new THREE.Vector3(x2, h, z2)
+    const p1 = new THREE.Vector3(srcModel.position.x, srcSize.y * 0.7, srcModel.position.z)
+    const p3 = new THREE.Vector3(dstModel.position.x, dstSize.y * 0.7, dstModel.position.z)
+    const p2 = new THREE.Vector3((p1.x + p3.x) / 2, (srcSize.y + dstSize.y) / 2, (p1.z + p3.z) / 2)
 
     const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
     const points = curve.getPoints(64)
@@ -345,24 +367,22 @@ export function useDrawTopology(dom: HTMLElement) {
       vertexColors: true
     })
 
+    const srcModel = drawnNodes[pkt.mac_src].model
+    const srcBox = new THREE.Box3().setFromObject(srcModel)
+    const srcSize = new THREE.Vector3()
+    srcBox.getSize(srcSize)
+
+    const dstModel = drawnNodes[pkt.mac_dst].model
+    const dstBox = new THREE.Box3().setFromObject(dstModel)
+    const dstSize = new THREE.Vector3()
+    dstBox.getSize(dstSize)
+
     const mesh = new THREE.Points(geometry, material)
     scene.add(mesh)
-    const p1 = new THREE.Vector3(
-      Network.Nodes.value[pkt.mac_src].pos[0],
-      1.6,
-      Network.Nodes.value[pkt.mac_src].pos[1]
-    )
 
-    const p3 = new THREE.Vector3(
-      Network.Nodes.value[pkt.mac_dst].pos[0],
-      1.6,
-      Network.Nodes.value[pkt.mac_dst].pos[1]
-    )
-
-    const x2 = (p1.x + p3.x) / 2
-    const z2 = (p1.z + p3.z) / 2
-    const h = 5
-    const p2 = new THREE.Vector3(x2, h, z2)
+    const p1 = new THREE.Vector3(srcModel.position.x, srcSize.y * 0.7, srcModel.position.z)
+    const p3 = new THREE.Vector3(dstModel.position.x, dstSize.y * 0.7, dstModel.position.z)
+    const p2 = new THREE.Vector3((p1.x + p3.x) / 2, (srcSize.y + dstSize.y) / 2, (p1.z + p3.z) / 2)
 
     drawnUnicastPackets[pkt.uid] = {
       mesh,
@@ -391,12 +411,8 @@ export function useDrawTopology(dom: HTMLElement) {
       side: THREE.DoubleSide
     })
     const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.copy(drawnNodes[pkt.mac_src].model.position)
     mesh.rotation.x = Math.PI / 2
-    mesh.position.set(
-      Network.Nodes.value[pkt.mac_src].pos[0],
-      0.5,
-      Network.Nodes.value[pkt.mac_src].pos[1]
-    )
     scene.add(mesh)
     drawnBeaconPackets[pkt.uid] = { mesh, uid: pkt.uid, mac_src: pkt.mac_dst, mac_dst: pkt.mac_dst }
   }
@@ -502,18 +518,110 @@ export function useDrawTopology(dom: HTMLElement) {
     stats.update()
   }
 
-  // main
+  let dragControls: DragControls
+  const createDragControls = () => {
+    dragControls = new DragControls(objectsToDrag, camera, renderer.domElement)
+    let relatedLinks: any = []
+    let relatedUnicastPackets: any = []
+    let relatedBeaconPacket: any = undefined
+    if (!SignalEditTopology.value) {
+      dragControls.deactivate()
+    }
+    dragControls.addEventListener('dragstart', function (event: any) {
+      if (NODE_TYPE[event.object.userData.type] != undefined) {
+        const node = event.object.userData.node_id
+        for (const l of Object.values(drawnLinks)) {
+          if (l.link.v1 == node || l.link.v2 == node) {
+            relatedLinks.push(l)
+          }
+        }
+        for (const u of Object.values(drawnUnicastPackets)) {
+          if (u.mac_src == node || u.mac_dst == node) {
+            relatedUnicastPackets.push(u)
+          }
+        }
+        for (const b of Object.values(drawnBeaconPackets)) {
+          if (b.mac_src == node) {
+            relatedBeaconPacket = b
+            break
+          }
+        }
+      }
+      controls.enabled = false
+    })
+    dragControls.addEventListener('dragend', function () {
+      relatedLinks = []
+      relatedUnicastPackets = []
+      relatedBeaconPacket = undefined
+      controls.enabled = true
+    })
+    dragControls.addEventListener('drag', function (event: any) {
+      // snap to ground
+      event.object.position.y = 0
+
+      if (NODE_TYPE[event.object.userData.type] != undefined) {
+        Network.Nodes.value[event.object.userData.node_id].pos = [
+          event.object.position.x,
+          event.object.position.z
+        ]
+
+        for (const l of relatedLinks) {
+          clearLink(l.link.uid)
+          drawLink(l.link)
+        }
+        for (const pkt of relatedUnicastPackets) {
+          clearPacket(pkt.uid)
+          drawUnicastPacket(pkt)
+        }
+        if (relatedBeaconPacket != undefined) {
+          clearPacket(relatedBeaconPacket.uid)
+          drawBeaconPacket(relatedBeaconPacket)
+        }
+      }
+
+      // update dragbox and model
+      for (const node of Object.values(drawnNodes)) {
+        node.model.position.copy(node.dragBox.position)
+        node.dragBoxHelper.update()
+        if (node.label != undefined) {
+          node.label.position.set(
+            node.dragBox.position.x,
+            node.label.position.y,
+            node.dragBox.position.z
+          )
+        }
+      }
+    })
+  }
+
+  // ###### main #######
   setCamera()
   addLights()
   drawGround()
-  drawNodes()
-  drawLinks()
   animate()
 
-  watch(SignalUpdateTopology, () => {
+  await loadGLTFModels()
+  Network.LoadTopology()
+  drawNodes()
+  createDragControls()
+  Network.EstablishConnection()
+  Network.StartWebWorkers()
+
+  drawLinks()
+  // ###################
+
+  watch(SignalAddNode, () => {
     drawNodes()
+  })
+  watch(SignalUpdateLinks, () => {
     clearLinks()
     drawLinks()
+  })
+  watch(Network.SelectedTopo, () => {
+    clearPackets()
+    clearLinks()
+    clearNodes()
+    drawNodes()
   })
 
   watch(Network.SlotDone, () => {
@@ -528,6 +636,7 @@ export function useDrawTopology(dom: HTMLElement) {
     clearLinks()
     clearPackets()
     drawNodes()
+    drawLinks()
   })
   watch(SignalResetCamera, () => {
     animateCameraPosition({ x: 0, y: 70, z: 80 }, 1000)
@@ -547,6 +656,7 @@ export function useDrawTopology(dom: HTMLElement) {
 
   // onClick
   const raycaster = new THREE.Raycaster()
+  raycaster.layers.set(0)
   const mouse = new THREE.Vector2()
   window.addEventListener(
     'click',
@@ -556,88 +666,14 @@ export function useDrawTopology(dom: HTMLElement) {
 
       raycaster.setFromCamera(mouse, camera)
 
-      const intersects = raycaster.intersectObjects(scene.children, true)
-
-      if (intersects.length > 0) {
-        if (
-          intersects[0].object.userData.node_id != undefined &&
-          intersects[0].object.userData.type == 'TSCH'
-        )
-          SelectedNode.value = intersects[0].object.userData.node_id
+      const intersects = raycaster.intersectObjects(scene.children)
+      for (const o of intersects) {
+        if (o.object.userData.node_id != undefined) {
+          SelectedNode.value = o.object.userData.node_id
+          break
+        }
       }
     },
     false
   )
-
-  // onDrag
-  const dragControls = new DragControls(objectsToDrag, camera, renderer.domElement)
-  let relatedLinks: any = []
-  let relatedUnicastPackets: any = []
-  let relatedBeaconPacket: any = undefined
-  dragControls.deactivate()
-  dragControls.addEventListener('dragstart', function (event) {
-    if (NODE_TYPE[event.object.userData.type] != undefined) {
-      const node = event.object.userData.node_id
-      for (const l of Object.values(drawnLinks)) {
-        if (l.link.v1 == node || l.link.v2 == node) {
-          relatedLinks.push(l)
-        }
-      }
-      for (const u of Object.values(drawnUnicastPackets)) {
-        if (u.mac_src == node || u.mac_dst == node) {
-          relatedUnicastPackets.push(u)
-        }
-      }
-      for (const b of Object.values(drawnBeaconPackets)) {
-        if (b.mac_src == node) {
-          relatedBeaconPacket = b
-          break
-        }
-      }
-    }
-    controls.enabled = false
-  })
-  dragControls.addEventListener('dragend', function () {
-    relatedLinks = []
-    relatedUnicastPackets = []
-    relatedBeaconPacket = undefined
-    controls.enabled = true
-  })
-  dragControls.addEventListener('drag', function (event) {
-    // snap to ground
-    event.object.position.y = 0
-
-    if (NODE_TYPE[event.object.userData.type] != undefined) {
-      Network.Nodes.value[event.object.userData.node_id].pos = [
-        event.object.position.x,
-        event.object.position.z
-      ]
-
-      for (const l of relatedLinks) {
-        clearLink(l.link.uid)
-        drawLink(l.link)
-      }
-      for (const pkt of relatedUnicastPackets) {
-        clearPacket(pkt.uid)
-        drawUnicastPacket(pkt)
-      }
-      if (relatedBeaconPacket != undefined) {
-        clearPacket(relatedBeaconPacket.uid)
-        drawBeaconPacket(relatedBeaconPacket)
-      }
-    }
-
-    // update dragbox and model
-    for (const node of Object.values(drawnNodes)) {
-      node.model.position.copy(node.dragBox.position)
-      node.dragBoxHelper.update()
-      if (node.label != undefined) {
-        node.label.position.set(
-          node.dragBox.position.x,
-          node.label.position.y,
-          node.dragBox.position.z
-        )
-      }
-    }
-  })
 }
