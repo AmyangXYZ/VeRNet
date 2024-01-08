@@ -31,7 +31,7 @@ export class NetworkHub {
   kdTree: KDTree // to find nearest neighbors
 
   PresetTopos: { [name: string]: any } = presetTopos
-  SelectedTopo = ref('Random')
+  SelectedTopo = ref('5G single-cell')
 
   asnTimer: any
   SignalReset = ref(0)
@@ -117,6 +117,7 @@ export class NetworkHub {
         isValid = true
         break
       case PROTOCOL_TYPE.FIVE_G:
+        isValid = true
         break
       default:
         isValid = true
