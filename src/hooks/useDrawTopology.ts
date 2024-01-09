@@ -174,19 +174,43 @@ export async function useDrawTopology(dom: HTMLElement) {
     await loadModel(NODE_TYPE.FIVE_G_UE, '/models/5g_ue/scene.gltf', [0.5, 0.5, 0.5], -Math.PI / 2)
     await loadModel(
       NODE_TYPE.END_SYSTEM_SERVER,
-      '/models/server/scene.gltf',
+      '/models/es/server/scene.gltf',
       [1.5, 1.5, 1.5],
       Math.PI / 2
     )
     await loadModel(
       NODE_TYPE.END_SYSTEM_SENSOR,
-      '/models/sensor/scene.glb',
+      '/models/es/sensor/scene.glb',
       [2, 2, 2],
       -Math.PI / 3
     )
     await loadModel(
-      NODE_TYPE.END_SYSTEM_ROBOTIC_ARM,
-      '/models/robotic_arm/scene.gltf',
+      NODE_TYPE.END_SYSTEM_SENSOR_TEMP,
+      '/models/es/sensor_temp/scene.gltf',
+      [2, 2, 2],
+      -Math.PI / 3
+    )
+    await loadModel(
+      NODE_TYPE.END_SYSTEM_SENSOR_HUMIDITY,
+      '/models/es/sensor_humidity/scene.gltf',
+      [2, 2, 2],
+      -Math.PI / 3
+    )
+    await loadModel(
+      NODE_TYPE.END_SYSTEM_SENSOR_PRESSURE,
+      '/models/es/sensor_pressure/scene.gltf',
+      [2, 2, 2],
+      -Math.PI / 3
+    )
+    await loadModel(
+      NODE_TYPE.END_SYSTEM_ACTUATOR_ROBOTIC_ARM,
+      '/models/es/robotic_arm/scene.gltf',
+      [0.004, 0.004, 0.004],
+      -Math.PI / 2
+    )
+    await loadModel(
+      NODE_TYPE.END_SYSTEM_ACTUATOR_PNEUMATIC,
+      '/models/es/actuator_pneumatic/scene.gltf',
       [0.004, 0.004, 0.004],
       -Math.PI / 2
     )

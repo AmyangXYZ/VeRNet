@@ -14,7 +14,11 @@ export enum NODE_TYPE {
   FIVE_G_UE,
   END_SYSTEM_SERVER = 11,
   END_SYSTEM_SENSOR,
-  END_SYSTEM_ROBOTIC_ARM
+  END_SYSTEM_SENSOR_TEMP,
+  END_SYSTEM_SENSOR_PRESSURE,
+  END_SYSTEM_SENSOR_HUMIDITY,
+  END_SYSTEM_ACTUATOR_ROBOTIC_ARM,
+  END_SYSTEM_ACTUATOR_PNEUMATIC
 }
 
 export const NODE_TYPE_DISPLAY_NAME = <{ [name: string]: string }>{
@@ -24,7 +28,11 @@ export const NODE_TYPE_DISPLAY_NAME = <{ [name: string]: string }>{
   FIVE_G_UE: '5G UE',
   END_SYSTEM_SERVER: 'Edge Server',
   END_SYSTEM_SENSOR: 'Sensor',
-  END_SYSTEM_ROBOTIC_ARM: 'Robotic Arm'
+  END_SYSTEM_SENSOR_TEMP: 'Temperature Sensor',
+  END_SYSTEM_SENSOR_PRESSURE: 'Pressure Sensor',
+  END_SYSTEM_SENSOR_HUMIDITY: 'Humidity Sensor',
+  END_SYSTEM_ACTUATOR_ROBOTIC_ARM: 'Robotic Arm',
+  END_SYSTEM_ACTUATOR_PNEUMATIC: 'Pneumatic Actuator'
 }
 
 export interface Node {

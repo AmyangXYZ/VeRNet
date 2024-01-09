@@ -1,0 +1,11 @@
+Model Information:
+* title:	Manifold Gauge
+* source:	https://sketchfab.com/3d-models/manifold-gauge-dafb6ddb54ba4dadb5418aa01a02d30b
+* author:	rifdiano (https://sketchfab.com/rifdiano)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Manifold Gauge" (https://sketchfab.com/3d-models/manifold-gauge-dafb6ddb54ba4dadb5418aa01a02d30b) by rifdiano (https://sketchfab.com/rifdiano) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

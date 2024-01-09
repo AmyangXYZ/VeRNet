@@ -163,7 +163,7 @@ export class NetworkHub {
       for (let i = 1; i <= this.Config.value.num_nodes; i++) {
         const n = <Node>{
           id: this.Nodes.value.length,
-          type: [0, 1, 2, 3, 11, 12, 13][
+          type: [0, 1, 2, 3, 11, 12, 13, 14, 15, 16, 17][
             Math.floor((this.Rand.next() * Object.keys(NODE_TYPE).length) / 2)
           ],
           pos: [
