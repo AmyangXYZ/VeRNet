@@ -79,6 +79,7 @@ const finishEdit = () => {
       <el-button class="circular-button" @click="finishEdit" type="danger" :icon="Check" circle />
     </div>
   </el-card>
+  
 </template>
 
 <style scoped>

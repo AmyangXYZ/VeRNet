@@ -205,11 +205,69 @@ export class NetworkHub {
     for (const n of this.Nodes.value) {
       if (n.id == 0) continue
 
-      if (n.type == NODE_TYPE.TSN || n.type == NODE_TYPE.TSCH) {
-        n.neighbors = this.kdTree.FindKNearest(n.pos, 4, 20)
-      } else {
-        n.neighbors = this.kdTree.FindKNearest(n.pos, 1, this.Config.value.grid_size)
+      const neighbors: any = []
+
+      switch (n.type) {
+        // 5G UE connects to one 5G tower and multiple wired end systems
+        case NODE_TYPE.FIVE_G_UE: {
+          const ueBsNeighbors = this.kdTree.FindKNearest(n.pos, 1, 20)
+          const validUeBs = ueBsNeighbors.find(nn => this.Nodes.value[nn].type === NODE_TYPE.FIVE_G_GNB)
+          if (validUeBs !== undefined) neighbors.push(validUeBs)
+
+          const ueEndNeighbors = this.kdTree.FindKNearest(n.pos, 1000, 20)
+          const validUeEnd = ueEndNeighbors.find(nn => this.Nodes.value[nn].type >= NODE_TYPE.END_SYSTEM_SERVER)
+          if (validUeEnd !== undefined) neighbors.push(validUeEnd)
+
+          break
+        }
+        // 5G GNB connects to a TSN, an end system, and multiple 5G UEs
+        case NODE_TYPE.FIVE_G_GNB: {
+          const bsNeighbors = this.kdTree.FindKNearest(n.pos, 1, 20)
+          const validGnbTsn = bsNeighbors.find(nn => this.Nodes.value[nn].type === NODE_TYPE.TSN)
+          const validBsEnd = bsNeighbors.find(nn => this.Nodes.value[nn].type >= NODE_TYPE.END_SYSTEM_SERVER)
+          if (validGnbTsn !== undefined) neighbors.push(validGnbTsn)
+          if (validBsEnd !== undefined) neighbors.push(validBsEnd)
+
+          const gnbUeNeighbors = this.kdTree.FindKNearest(n.pos, 1000, 20)
+          const validUes = gnbUeNeighbors.filter(nn => this.Nodes.value[nn].type === NODE_TYPE.FIVE_G_UE)
+          neighbors.push(...validUes)
+
+          break
+        }
+        // TSCH node connects to multiple other TSCH nodes and wired end systems
+        case NODE_TYPE.TSCH: {
+          const tschNeighbors = this.kdTree.FindKNearest(n.pos, 1000, 20)
+          const validTsch = tschNeighbors.filter(nn => this.Nodes.value[nn].type === NODE_TYPE.TSCH)
+          const validTschEnd = tschNeighbors.find(nn => this.Nodes.value[nn].type >= NODE_TYPE.END_SYSTEM_SERVER)
+          neighbors.push(...validTsch)
+          if (validTschEnd !== undefined) neighbors.push(validTschEnd)
+          break
+        }
+        // TSN bridge connects multiple TSN bridges, 5G tower and end systems
+        case NODE_TYPE.TSN: {
+          const tsnNeighbors = this.kdTree.FindKNearest(n.pos, 1000, 20)
+          const validTsn = tsnNeighbors.filter(nn => this.Nodes.value[nn].type === NODE_TYPE.TSN)
+          const validTsnGnb = tsnNeighbors.find(nn => this.Nodes.value[nn].type === NODE_TYPE.FIVE_G_GNB)
+          const validTsnEnd = tsnNeighbors.find(nn => this.Nodes.value[nn].type >= NODE_TYPE.END_SYSTEM_SERVER)
+          neighbors.push(...validTsn)
+          if (validTsnGnb !== undefined) neighbors.push(validTsnGnb)
+          if (validTsnEnd !== undefined) neighbors.push(validTsnEnd)
+          
+          break
+        }
+        // end system connects to one network node
+        default: {
+          const networkNeighbors = this.kdTree.FindKNearest(n.pos, 1, 20)
+          const validNetwork = networkNeighbors.find(nn => 
+            this.Nodes.value[nn].type === NODE_TYPE.TSN || 
+            this.Nodes.value[nn].type === NODE_TYPE.TSCH || 
+            this.Nodes.value[nn].type === NODE_TYPE.FIVE_G_UE)
+          if (validNetwork !== undefined) neighbors.push(validNetwork)
+          break
+          }
       }
+
+      n.neighbors = neighbors
 
       n.neighbors.forEach((nn: number) => {
         this.AddLink(n.id, nn)
@@ -286,7 +344,7 @@ export class NetworkHub {
 
   AddLink(v1: number, v2: number) {
     if (v1 > v2) {
-      ;[v1, v2] = [v2, v1]
+      [v1, v2] = [v2, v1]
     }
     // Cantor pairing
     const uid = 0.5 * (v1 + v2) * (v1 + v2 + 1) + v2
