@@ -136,9 +136,11 @@ export async function useDrawTopology(dom: HTMLElement) {
 
   const modelTemplates: { [type: number]: any } = {}
   const loadGLTFModels = async () => {
-    Network.Logs.value.unshift(`Loading resources...${1 + Object.keys(modelTemplates).length}/${
-      Object.keys(NODE_TYPE).length / 2
-    }`)
+    Network.Logs.value.unshift(
+      `Loading resources...${1 + Object.keys(modelTemplates).length}/${
+        Object.keys(NODE_TYPE).length / 2
+      }`
+    )
     const loader = new GLTFLoader(loadingManager)
     const loadModel = async (
       type: number,
@@ -280,9 +282,13 @@ export async function useDrawTopology(dom: HTMLElement) {
     const dstSize = new THREE.Vector3()
     dstBox.getSize(dstSize)
 
-    const p1 = new THREE.Vector3(srcModel.position.x, srcSize.y * 0.7, srcModel.position.z)
-    const p3 = new THREE.Vector3(dstModel.position.x, dstSize.y * 0.7, dstModel.position.z)
-    const p2 = new THREE.Vector3((p1.x + p3.x) / 2, (srcSize.y + dstSize.y) / 2, (p1.z + p3.z) / 2)
+    const hMid = l.type == LINK_TYPE.WIRED ? 5 : (srcSize.y + dstSize.y) / 2 + 4
+    const hEndSrc = l.type == LINK_TYPE.WIRED ? 1.6 : srcSize.y * 0.7
+    const hEndDst = l.type == LINK_TYPE.WIRED ? 1.6 : dstSize.y * 0.7
+
+    const p1 = new THREE.Vector3(srcModel.position.x, hEndSrc, srcModel.position.z)
+    const p3 = new THREE.Vector3(dstModel.position.x, hEndDst, dstModel.position.z)
+    const p2 = new THREE.Vector3((p1.x + p3.x) / 2, hMid, (p1.z + p3.z) / 2)
 
     const curve = new THREE.QuadraticBezierCurve3(p1, p2, p3)
     const points = curve.getPoints(64)
@@ -379,10 +385,22 @@ export async function useDrawTopology(dom: HTMLElement) {
 
     const mesh = new THREE.Points(geometry, material)
     scene.add(mesh)
+    let linkType: number = LINK_TYPE.WIRELESS
+    if (
+      Network.Nodes.value[pkt.mac_src].type == NODE_TYPE.TSN ||
+      Network.Nodes.value[pkt.mac_src].type >= 10 || // is an end system
+      Network.Nodes.value[pkt.mac_dst].type == NODE_TYPE.TSN ||
+      Network.Nodes.value[pkt.mac_dst].type >= 10
+    ) {
+      linkType = LINK_TYPE.WIRED
+    }
+    const hMid = linkType == LINK_TYPE.WIRED ? 5 : (srcSize.y + dstSize.y) / 2
+    const hEndSrc = linkType == LINK_TYPE.WIRED ? 1.6 : srcSize.y * 0.7
+    const hEndDst = linkType == LINK_TYPE.WIRED ? 1.6 : dstSize.y * 0.7
 
-    const p1 = new THREE.Vector3(srcModel.position.x, srcSize.y * 0.7, srcModel.position.z)
-    const p3 = new THREE.Vector3(dstModel.position.x, dstSize.y * 0.7, dstModel.position.z)
-    const p2 = new THREE.Vector3((p1.x + p3.x) / 2, (srcSize.y + dstSize.y) / 2, (p1.z + p3.z) / 2)
+    const p1 = new THREE.Vector3(srcModel.position.x, hEndSrc, srcModel.position.z)
+    const p3 = new THREE.Vector3(dstModel.position.x, hEndDst, dstModel.position.z)
+    const p2 = new THREE.Vector3((p1.x + p3.x) / 2, hMid, (p1.z + p3.z) / 2)
 
     drawnUnicastPackets[pkt.uid] = {
       mesh,

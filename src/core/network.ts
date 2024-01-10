@@ -352,7 +352,7 @@ export class NetworkHub {
     let type: number = LINK_TYPE.WIRELESS
     if (
       this.Nodes.value[v1].type == NODE_TYPE.TSN ||
-      this.Nodes.value[v1].type >= 10 || // is a end system
+      this.Nodes.value[v1].type >= 10 || // is an end system
       this.Nodes.value[v2].type == NODE_TYPE.TSN ||
       this.Nodes.value[v2].type >= 10
     ) {
