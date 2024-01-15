@@ -181,8 +181,8 @@ export async function useDrawTopology(dom: HTMLElement) {
       Math.PI / 2
     )
     await loadModel(
-      NODE_TYPE.END_SYSTEM_SENSOR,
-      '/models/es/sensor/scene.glb',
+      NODE_TYPE.END_SYSTEM_SENSOR_CAMERA,
+      '/models/es/sensor_camera/scene.glb',
       2,
       -Math.PI / 3
     )

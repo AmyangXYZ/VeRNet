@@ -18,9 +18,10 @@ const nodeTypes = [
   {
     label: 'End systems',
     types: [
-      { label: 'Edge server', value: NODE_TYPE.END_SYSTEM_SENSOR },
-      { label: 'Sensor', value: NODE_TYPE.END_SYSTEM_SENSOR },
-      { label: 'Robotic arm', value: NODE_TYPE.END_SYSTEM_ROBOTIC_ARM }
+      { label: 'Edge server', value: NODE_TYPE.END_SYSTEM_SERVER },
+      { label: 'Temp Sensor', value: NODE_TYPE.END_SYSTEM_SENSOR_TEMP },
+      { label: 'Camera', value: NODE_TYPE.END_SYSTEM_SENSOR_CAMERA },
+      { label: 'Robotic arm', value: NODE_TYPE.END_SYSTEM_ACTUATOR_ROBOTIC_ARM }
     ]
   }
 ]
