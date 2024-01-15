@@ -1,0 +1,11 @@
+Model Information:
+* title:	Rosemount 3144P
+* source:	https://sketchfab.com/3d-models/rosemount-3144p-b6cfbde06b6544438d49b75ccd4470ae
+* author:	The_Dall (https://sketchfab.com/The_Dall)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Rosemount 3144P" (https://sketchfab.com/3d-models/rosemount-3144p-b6cfbde06b6544438d49b75ccd4470ae) by The_Dall (https://sketchfab.com/The_Dall) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

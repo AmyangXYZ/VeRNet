@@ -1,0 +1,11 @@
+Model Information:
+* title:	Pneumatic actuator SAM
+* source:	https://sketchfab.com/3d-models/pneumatic-actuator-sam-781aebe25af54d0b9319abb2b920cf39
+* author:	zerodotnrg (https://sketchfab.com/zerodotnrg)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Pneumatic actuator SAM" (https://sketchfab.com/3d-models/pneumatic-actuator-sam-781aebe25af54d0b9319abb2b920cf39) by zerodotnrg (https://sketchfab.com/zerodotnrg) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
