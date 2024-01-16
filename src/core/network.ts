@@ -214,11 +214,11 @@ export class NetworkHub {
         // 5G UE connects to one 5G tower and multiple wired end systems
         case NODE_TYPE.FIVE_G_UE: {
           const ueBsNeighbors = this.kdTree.FindKNearest(n.pos, 1, this.Config.value.tx_range)
-          const validUeBs = ueBsNeighbors.find(nn => this.Nodes.value[nn].type === NODE_TYPE.FIVE_G_GNB)
+          const validUeBs = ueBsNeighbors.find(nn => this.Nodes.value[nn]?.type === NODE_TYPE.FIVE_G_GNB)
           if (validUeBs !== undefined) neighbors.push(validUeBs)
 
           const ueEndNeighbors = this.kdTree.FindKNearest(n.pos, 1000, 20)
-          const validUeEnd = ueEndNeighbors.find(nn => this.Nodes.value[nn].type >= NODE_TYPE.END_SYSTEM_SERVER)
+          const validUeEnd = ueEndNeighbors.find(nn => this.Nodes.value[nn]?.type >= NODE_TYPE.END_SYSTEM_SERVER)
           if (validUeEnd !== undefined) neighbors.push(validUeEnd)
 
           break
@@ -249,9 +249,9 @@ export class NetworkHub {
         // TSN bridge connects multiple TSN bridges, 5G tower and end systems
         case NODE_TYPE.TSN: {
           const tsnNeighbors = this.kdTree.FindKNearest(n.pos, 1000, this.Config.value.tx_range)
-          const validTsn = tsnNeighbors.filter(nn => this.Nodes.value[nn].type === NODE_TYPE.TSN)
-          const validFiveGnb = tsnNeighbors.find(nn => this.Nodes.value[nn].type === NODE_TYPE.FIVE_G_GNB)
-          const validTsnEnd = tsnNeighbors.find(nn => this.Nodes.value[nn].type >= NODE_TYPE.END_SYSTEM_SERVER)
+          const validTsn = tsnNeighbors.filter(nn => this.Nodes.value[nn]?.type === NODE_TYPE.TSN)
+          const validFiveGnb = tsnNeighbors.find(nn => this.Nodes.value[nn]?.type === NODE_TYPE.FIVE_G_GNB)
+          const validTsnEnd = tsnNeighbors.find(nn => this.Nodes.value[nn]?.type >= NODE_TYPE.END_SYSTEM_SERVER)
           neighbors.push(...validTsn)
           if (validFiveGnb !== undefined) neighbors.push(validFiveGnb)
           if (validTsnEnd !== undefined) neighbors.push(validTsnEnd)
@@ -262,9 +262,9 @@ export class NetworkHub {
         default: {
           const networkNeighbors = this.kdTree.FindKNearest(n.pos, 3, this.Config.value.grid_size)
           const validNetwork = networkNeighbors.find(nn => 
-            this.Nodes.value[nn].type === NODE_TYPE.TSN || 
-            this.Nodes.value[nn].type === NODE_TYPE.TSCH || 
-            this.Nodes.value[nn].type === NODE_TYPE.FIVE_G_UE)
+            this.Nodes.value[nn]?.type === NODE_TYPE.TSN || 
+            this.Nodes.value[nn]?.type === NODE_TYPE.TSCH || 
+            this.Nodes.value[nn]?.type === NODE_TYPE.FIVE_G_UE)
           if (validNetwork !== undefined) neighbors.push(validNetwork)
           break
           }
