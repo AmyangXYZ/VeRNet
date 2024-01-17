@@ -6,20 +6,17 @@ import { NODE_TYPE, NODE_TYPE_DISPLAY_NAME } from '@/core/typedefs'
 </script>
 
 <template>
-  <el-card class="card" v-if="SelectedNode > 0 && Network.Nodes.value[SelectedNode]!=undefined">
+  <el-card class="card" v-if="SelectedNode > 0 && Network.Nodes.value[SelectedNode] != undefined">
     <el-row :gutter="30">
       <el-col :span="11" align="center">
         <img :src="SelectedNode == 1 ? rpi4 : sensortag" />
       </el-col>
       <el-col :span="13">
         <span style="font-weight: 600; font-size: 0.9rem">
-          {{ NODE_TYPE_DISPLAY_NAME[NODE_TYPE[Network.Nodes.value[SelectedNode].type]] }}-{{
-            SelectedNode
-          }}
+          {{ NODE_TYPE_DISPLAY_NAME[NODE_TYPE[Network.Nodes.value[SelectedNode].type]] }}-{{ SelectedNode }}
         </span>
         <br />
-        - TX: {{ Network.Nodes.value[SelectedNode].tx_cnt }} , RX:
-        {{ Network.Nodes.value[SelectedNode].rx_cnt }}<br />
+        - TX: {{ Network.Nodes.value[SelectedNode].tx_cnt }} , RX: {{ Network.Nodes.value[SelectedNode].rx_cnt }}<br />
       </el-col>
     </el-row>
   </el-card>

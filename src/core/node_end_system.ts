@@ -1,12 +1,5 @@
 import { Node } from './node'
-import {
-  PKT_TYPE,
-  type Message,
-  type Packet,
-  MSG_TYPE,
-  type ASNMsgPayload,
-  type InitMsgPayload
-} from './typedefs'
+import { PKT_TYPE, type Message, type Packet, MSG_TYPE, type ASNMsgPayload, type InitMsgPayload } from './typedefs'
 
 class EndSystem extends Node {
   constructor() {

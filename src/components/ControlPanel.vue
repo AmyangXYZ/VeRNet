@@ -27,35 +27,17 @@ onKeyStroke('ArrowRight', () => {
       <el-col :span="8" style="margin-top: 3px">
         <a href="https://github.com/AmyangXYZ/VeRNet"><img height="48" :src="VeRNetLogo" /></a>
         <el-button-group class="btns">
-          <el-button
-            class="btn"
-            :disabled="Network.Running.value"
-            size="small"
-            type="primary"
-            @click="Network.Run"
-          >
+          <el-button class="btn" :disabled="Network.Running.value" size="small" type="primary" @click="Network.Run">
             <el-icon size="18">
               <IconPlay />
             </el-icon>
           </el-button>
-          <el-button
-            class="btn"
-            :disabled="Network.Running.value"
-            size="small"
-            type="info"
-            @click="Network.Step"
-          >
+          <el-button class="btn" :disabled="Network.Running.value" size="small" type="info" @click="Network.Step">
             <el-icon size="18">
               <IconPlusOne />
             </el-icon>
           </el-button>
-          <el-button
-            class="btn"
-            :disabled="!Network.Running.value"
-            size="small"
-            type="warning"
-            @click="Network.Pause"
-          >
+          <el-button class="btn" :disabled="!Network.Running.value" size="small" type="warning" @click="Network.Pause">
             <el-icon size="18">
               <IconPause />
             </el-icon>

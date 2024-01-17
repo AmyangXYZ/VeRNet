@@ -40,13 +40,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div
-    class="log-container"
-    v-show="showLog"
-    ref="logContainer"
-    @mouseover="handleMouseOver"
-    @mouseleave="resetTimer"
-  >
+  <div class="log-container" v-show="showLog" ref="logContainer" @mouseover="handleMouseOver" @mouseleave="resetTimer">
     <div class="log" v-for="(log, i) in Network.Logs.value" :key="i">> {{ log }}</div>
   </div>
 </template>

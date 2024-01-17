@@ -33,12 +33,7 @@ onKeyStroke('`', () => {
         </a>
       </el-col>
       <el-col :span="4">
-        <el-tooltip
-          effect="light"
-          content="Network settings"
-          :hide-after="0"
-          placement="right-start"
-        >
+        <el-tooltip effect="light" content="Network settings" :hide-after="0" placement="right-start">
           <el-button class="btn" size="small" @click="SignalShowSettings = !SignalShowSettings">
             <el-icon color="#aaa" size="20">
               <Setting />
@@ -56,12 +51,7 @@ onKeyStroke('`', () => {
         </el-tooltip>
       </el-col>
       <el-col :span="4">
-        <el-tooltip
-          effect="light"
-          content="Network statistics"
-          :hide-after="0"
-          placement="right-start"
-        >
+        <el-tooltip effect="light" content="Network statistics" :hide-after="0" placement="right-start">
           <el-button class="btn" size="small" @click="SignalShowStatistics = !SignalShowStatistics">
             <el-icon color="#aaa" size="20">
               <DataAnalysis />

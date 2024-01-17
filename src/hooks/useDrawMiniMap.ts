@@ -16,8 +16,8 @@ export function useDrawMiniMap(chartDom: HTMLElement) {
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: { show: false },
-      min: -(Network.Config.value.grid_size + 10) / 2,
-      max: (Network.Config.value.grid_size + 10) / 2,
+      min: -Network.Config.value.grid_size / 2 - 10,
+      max: Network.Config.value.grid_size / 2 + 10,
       zlevel: -4
     },
     yAxis: {
@@ -27,8 +27,8 @@ export function useDrawMiniMap(chartDom: HTMLElement) {
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: { show: false },
-      min: -(Network.Config.value.grid_size + 10) / 2,
-      max: (Network.Config.value.grid_size + 10) / 2,
+      min: -Network.Config.value.grid_size / 2 - 10,
+      max: Network.Config.value.grid_size / 2 + 10,
       zlevel: -4,
       inverse: true
     },

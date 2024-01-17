@@ -45,12 +45,7 @@ const finishEdit = () => {
     <div class="flex-container">
       <span class="label-margin">Load preset:</span>
       <el-select class="dropdown" v-model="Network.SelectedTopo.value" style="margin-right: 55px">
-        <el-option
-          v-for="(_, name) in Network.PresetTopos"
-          :key="name"
-          :label="name"
-          :value="name"
-        />
+        <el-option v-for="(_, name) in Network.PresetTopos" :key="name" :label="name" :value="name" />
       </el-select>
     </div>
 
@@ -58,12 +53,7 @@ const finishEdit = () => {
       <span class="label-margin">Add node:</span>
       <el-select class="dropdown" v-model="nodeType">
         <el-option-group v-for="group in nodeTypes" :key="group.label" :label="group.label">
-          <el-option
-            v-for="item in group.types"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
+          <el-option v-for="item in group.types" :key="item.value" :label="item.label" :value="item.value" />
         </el-option-group>
       </el-select>
 
@@ -80,7 +70,6 @@ const finishEdit = () => {
       <el-button class="circular-button" @click="finishEdit" type="danger" :icon="Check" circle />
     </div>
   </el-card>
-  
 </template>
 
 <style scoped>

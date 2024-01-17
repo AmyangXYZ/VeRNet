@@ -28,7 +28,12 @@ export class NetworkHub {
   Logs = ref<string[]>([])
   ASN = ref<number>(0) // absolute slot number
   Rand: SeededRandom
-  kdTree: KDTree // to find nearest neighbors
+
+  // to find nearest neighbors, only network devices are inserted in KDTrees
+  kdTreeAny: KDTree // any network devices
+  kdTreeTSCH: KDTree // TSCH only
+  kdTreeTSN: KDTree // TSN only
+  kdTreeFiveGgNB: KDTree // 5G gNB only
 
   PresetTopos: { [name: string]: any } = presetTopos
   SelectedTopo = ref('5G-TSN-TSCH') // realistic topo example
@@ -44,7 +49,10 @@ export class NetworkHub {
     this.Config = ref<Config>(config)
     this.Nodes = ref<Node[]>([<Node>{ id: 0 }]) // placeholder to let node_id start from 1
     this.Rand = new SeededRandom(this.Config.value.seed)
-    this.kdTree = new KDTree()
+    this.kdTreeAny = new KDTree()
+    this.kdTreeTSCH = new KDTree()
+    this.kdTreeTSN = new KDTree()
+    this.kdTreeFiveGgNB = new KDTree()
 
     watch(this.SelectedTopo, () => {
       this.LoadTopology()
@@ -86,16 +94,10 @@ export class NetworkHub {
   // forward physical layer pkt from each node
   handlePkt = (pkt: Packet) => {
     // check protocol type
-    if (
-      this.Nodes.value[pkt.mac_src].type == NODE_TYPE.TSCH ||
-      this.Nodes.value[pkt.mac_dst].type == NODE_TYPE.TSCH
-    ) {
+    if (this.Nodes.value[pkt.mac_src].type == NODE_TYPE.TSCH || this.Nodes.value[pkt.mac_dst].type == NODE_TYPE.TSCH) {
       pkt.protocol = PROTOCOL_TYPE.TSCH
     }
-    if (
-      this.Nodes.value[pkt.mac_src].type == NODE_TYPE.TSN ||
-      this.Nodes.value[pkt.mac_dst].type == NODE_TYPE.TSN
-    ) {
+    if (this.Nodes.value[pkt.mac_src].type == NODE_TYPE.TSN || this.Nodes.value[pkt.mac_dst].type == NODE_TYPE.TSN) {
       pkt.protocol = PROTOCOL_TYPE.TSN
     }
     if (
@@ -167,14 +169,10 @@ export class NetworkHub {
           // type: [0, 1, 2, 3, 11, 12, 13, 14, 15, 16, 17][
           //   Math.floor((this.Rand.next() * Object.keys(NODE_TYPE).length) / 2)
           // ],
-          type: [0, 1, 2, 3, 11, 12, 16][
-            Math.floor(this.Rand.next() * 7)
-          ],
+          type: [0, 1, 2, 3, 11, 12, 16][Math.floor(this.Rand.next() * 7)],
           pos: [
-            Math.floor(this.Rand.next() * this.Config.value.grid_size) -
-              this.Config.value.grid_size / 2,
-            Math.floor(this.Rand.next() * this.Config.value.grid_size) -
-              this.Config.value.grid_size / 2
+            Math.floor(this.Rand.next() * this.Config.value.grid_size) - this.Config.value.grid_size / 2,
+            Math.floor(this.Rand.next() * this.Config.value.grid_size) - this.Config.value.grid_size / 2
           ],
           neighbors: [],
           tx_cnt: 0,
@@ -198,76 +196,63 @@ export class NetworkHub {
   }
 
   EstablishConnection() {
-    this.kdTree = new KDTree()
+    this.kdTreeAny = new KDTree()
+    this.kdTreeTSCH = new KDTree()
+    this.kdTreeTSN = new KDTree()
+    this.kdTreeFiveGgNB = new KDTree()
     this.Links.value = []
     for (const n of this.Nodes.value) {
       if (n.id == 0 || n.type > 10) continue
-      this.kdTree.Insert(new KDNode(n.id, n.pos))
+      this.kdTreeAny.Insert(new KDNode(n.id, n.pos))
+      switch (n.type) {
+        case NODE_TYPE.TSCH:
+          this.kdTreeTSCH.Insert(new KDNode(n.id, n.pos))
+          break
+        case NODE_TYPE.TSN:
+          this.kdTreeTSN.Insert(new KDNode(n.id, n.pos))
+          break
+        case NODE_TYPE.FIVE_G_GNB:
+          this.kdTreeFiveGgNB.Insert(new KDNode(n.id, n.pos))
+          break
+        default:
+          break
+      }
     }
 
     for (const n of this.Nodes.value) {
       if (n.id == 0) continue
 
-      const neighbors: any = []
+      let neighbors: any = []
 
+      // actively find connections, final routing table will be based on the
+      // overall connected graph (Links), not just the neighbors of each node
       switch (n.type) {
-        // 5G UE connects to one 5G tower and multiple wired end systems
+        // 5G UE connects to one 5G tower
         case NODE_TYPE.FIVE_G_UE: {
-          const ueBsNeighbors = this.kdTree.FindKNearest(n.pos, 1, this.Config.value.tx_range)
-          const validUeBs = ueBsNeighbors.find(nn => this.Nodes.value[nn]?.type === NODE_TYPE.FIVE_G_GNB)
-          if (validUeBs !== undefined) neighbors.push(validUeBs)
-
-          const ueEndNeighbors = this.kdTree.FindKNearest(n.pos, 1000, 20)
-          const validUeEnd = ueEndNeighbors.find(nn => this.Nodes.value[nn]?.type >= NODE_TYPE.END_SYSTEM_SERVER)
-          if (validUeEnd !== undefined) neighbors.push(validUeEnd)
-
+          neighbors = this.kdTreeFiveGgNB.FindKNearest(n.pos, 1, this.Config.value.tx_range)
           break
         }
-        // 5G GNB connects to a TSN, an end system, and multiple 5G UEs
+        // 5G GNB connects to TSN bridges
         case NODE_TYPE.FIVE_G_GNB: {
-          const bsNeighbors = this.kdTree.FindKNearest(n.pos, 1, this.Config.value.tx_range)
-          const validGnbTsn = bsNeighbors.find(nn => this.Nodes.value[nn].type === NODE_TYPE.TSN)
-          const validBsEnd = bsNeighbors.find(nn => this.Nodes.value[nn].type >= NODE_TYPE.END_SYSTEM_SERVER)
-          if (validGnbTsn !== undefined) neighbors.push(validGnbTsn)
-          if (validBsEnd !== undefined) neighbors.push(validBsEnd)
-
-          const gnbUeNeighbors = this.kdTree.FindKNearest(n.pos, 1000, this.Config.value.tx_range)
-          const validUes = gnbUeNeighbors.filter(nn => this.Nodes.value[nn].type === NODE_TYPE.FIVE_G_UE)
-          neighbors.push(...validUes)
-
+          neighbors = this.kdTreeTSN.FindKNearest(n.pos, 2, this.Config.value.grid_size)
           break
         }
-        // TSCH node connects to multiple other TSCH nodes and wired end systems
+        // TSCH node connects to multiple other TSCH nodes and one TSN bridge
         case NODE_TYPE.TSCH: {
-          const tschNeighbors = this.kdTree.FindKNearest(n.pos, 1000, this.Config.value.tx_range)
-          const validTsch = tschNeighbors.filter(nn => this.Nodes.value[nn].type === NODE_TYPE.TSCH)
-          const validTschEnd = tschNeighbors.find(nn => this.Nodes.value[nn].type >= NODE_TYPE.END_SYSTEM_SERVER)
-          neighbors.push(...validTsch)
-          if (validTschEnd !== undefined) neighbors.push(validTschEnd)
+          neighbors = this.kdTreeTSCH.FindKNearest(n.pos, 1000, this.Config.value.tx_range)
+          neighbors.push(...this.kdTreeTSN.FindKNearest(n.pos, 1, 12))
           break
         }
-        // TSN bridge connects multiple TSN bridges, 5G tower and end systems
+        // TSN bridge connects multiple TSN bridges
         case NODE_TYPE.TSN: {
-          const tsnNeighbors = this.kdTree.FindKNearest(n.pos, 1000, this.Config.value.tx_range)
-          const validTsn = tsnNeighbors.filter(nn => this.Nodes.value[nn]?.type === NODE_TYPE.TSN)
-          const validFiveGnb = tsnNeighbors.find(nn => this.Nodes.value[nn]?.type === NODE_TYPE.FIVE_G_GNB)
-          const validTsnEnd = tsnNeighbors.find(nn => this.Nodes.value[nn]?.type >= NODE_TYPE.END_SYSTEM_SERVER)
-          neighbors.push(...validTsn)
-          if (validFiveGnb !== undefined) neighbors.push(validFiveGnb)
-          if (validTsnEnd !== undefined) neighbors.push(validTsnEnd)
-          
+          neighbors = this.kdTreeTSN.FindKNearest(n.pos, 1000, this.Config.value.tx_range)
           break
         }
         // end system connects to one network node
         default: {
-          const networkNeighbors = this.kdTree.FindKNearest(n.pos, 3, this.Config.value.grid_size)
-          const validNetwork = networkNeighbors.find(nn => 
-            this.Nodes.value[nn]?.type === NODE_TYPE.TSN || 
-            this.Nodes.value[nn]?.type === NODE_TYPE.TSCH || 
-            this.Nodes.value[nn]?.type === NODE_TYPE.FIVE_G_UE)
-          if (validNetwork !== undefined) neighbors.push(validNetwork)
+          neighbors = this.kdTreeAny.FindKNearest(n.pos, 1, this.Config.value.grid_size)
           break
-          }
+        }
       }
 
       n.neighbors = neighbors
@@ -331,8 +316,7 @@ export class NetworkHub {
       id: this.Nodes.value.length,
       type: type,
       pos: [
-        Math.floor(this.Rand.next() * this.Config.value.grid_size) -
-          this.Config.value.grid_size / 2,
+        Math.floor(this.Rand.next() * this.Config.value.grid_size) - this.Config.value.grid_size / 2,
         Math.floor(this.Rand.next() * this.Config.value.grid_size) - this.Config.value.grid_size / 2
       ],
       neighbors: [],
@@ -347,11 +331,10 @@ export class NetworkHub {
 
   AddLink(v1: number, v2: number) {
     if (v1 > v2) {
-      [v1, v2] = [v2, v1]
+      ;[v1, v2] = [v2, v1]
     }
     // Cantor pairing
     const uid = 0.5 * (v1 + v2) * (v1 + v2 + 1) + v2
-
     let type: number = LINK_TYPE.WIRELESS
     if (
       this.Nodes.value[v1].type == NODE_TYPE.TSN ||

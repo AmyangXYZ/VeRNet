@@ -50,16 +50,12 @@ export class KDTree {
 
     const d = this._distanceSquared(current.pos, pos)
     if (!(current.pos[0] == pos[0] && current.pos[1] == pos[1]) && d <= range) {
-      
       if (nearestNodes.length < k) {
         nearestNodes.push(current)
       } else if (d < this._distanceSquared(pos, nearestNodes[k - 1].pos)) {
         nearestNodes[k - 1] = current
       }
-      nearestNodes.sort(
-        (a: KDNode, b: KDNode) =>
-          this._distanceSquared(pos, a.pos) - this._distanceSquared(pos, b.pos)
-      )
+      nearestNodes.sort((a: KDNode, b: KDNode) => this._distanceSquared(pos, a.pos) - this._distanceSquared(pos, b.pos))
     }
 
     const cd = depth % 2

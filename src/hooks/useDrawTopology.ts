@@ -14,15 +14,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import * as TWEEN from '@tweenjs/tween.js'
-import {
-  type Node,
-  NODE_TYPE,
-  ADDR,
-  type Packet,
-  type Link,
-  LINK_TYPE,
-  NODE_TYPE_DISPLAY_NAME
-} from '@/core/typedefs'
+import { type Node, NODE_TYPE, ADDR, type Packet, type Link, LINK_TYPE, NODE_TYPE_DISPLAY_NAME } from '@/core/typedefs'
 
 export async function useDrawTopology(dom: HTMLElement) {
   const scene = new THREE.Scene()
@@ -137,17 +129,10 @@ export async function useDrawTopology(dom: HTMLElement) {
   const modelTemplates: { [type: number]: any } = {}
   const loadGLTFModels = async () => {
     Network.Logs.value.unshift(
-      `Loading resources...${1 + Object.keys(modelTemplates).length}/${
-        Object.keys(NODE_TYPE).length / 2
-      }`
+      `Loading resources...${1 + Object.keys(modelTemplates).length}/${Object.keys(NODE_TYPE).length / 2}`
     )
     const loader = new GLTFLoader(loadingManager)
-    const loadModel = async (
-      type: number,
-      modelPath: string,
-      scaleFactor: number,
-      rotationY: number
-    ) => {
+    const loadModel = async (type: number, modelPath: string, scaleFactor: number, rotationY: number) => {
       const gltf: any = await new Promise((resolve) => {
         loader.load(modelPath, (gltf: any) => resolve(gltf))
       })
@@ -165,51 +150,16 @@ export async function useDrawTopology(dom: HTMLElement) {
       modelTemplates[type] = modelTemplate
     }
 
-    await loadModel(
-      NODE_TYPE.TSCH,
-      '/models/wi-fi_router/scene.gltf',
-      1.6,
-      -Math.PI / 2
-    )
+    await loadModel(NODE_TYPE.TSCH, '/models/wi-fi_router/scene.gltf', 1.6, -Math.PI / 2)
     await loadModel(NODE_TYPE.TSN, '/models/switch/scene.gltf', 7, 0)
     await loadModel(NODE_TYPE.FIVE_G_GNB, '/models/5g_tower/scene.gltf', 6, 0)
     await loadModel(NODE_TYPE.FIVE_G_UE, '/models/5g_ue/scene.gltf', 0.5, -Math.PI / 2)
-    await loadModel(
-      NODE_TYPE.END_SYSTEM_SERVER,
-      '/models/es/server/scene.gltf',
-      1.5,
-      Math.PI / 2
-    )
-    await loadModel(
-      NODE_TYPE.END_SYSTEM_SENSOR_CAMERA,
-      '/models/es/sensor_camera/scene.glb',
-      2,
-      -Math.PI / 3
-    )
-    await loadModel(
-      NODE_TYPE.END_SYSTEM_SENSOR_TEMP,
-      '/models/es/sensor_temp/scene.gltf',
-      12,
-      -Math.PI / 3
-    )
-    await loadModel(
-      NODE_TYPE.END_SYSTEM_SENSOR_HUMIDITY,
-      '/models/es/sensor_humidity/scene.gltf',
-      100,
-      -Math.PI / 3
-    )
-    await loadModel(
-      NODE_TYPE.END_SYSTEM_SENSOR_PRESSURE,
-      '/models/es/sensor_pressure/scene.gltf',
-      16,
-      -Math.PI / 3
-    )
-    await loadModel(
-      NODE_TYPE.END_SYSTEM_ACTUATOR_ROBOTIC_ARM,
-      '/models/es/robotic_arm/scene.gltf',
-      .004,
-      -Math.PI / 2
-    )
+    await loadModel(NODE_TYPE.END_SYSTEM_SERVER, '/models/es/server/scene.gltf', 1.5, Math.PI / 2)
+    await loadModel(NODE_TYPE.END_SYSTEM_SENSOR_CAMERA, '/models/es/sensor_camera/scene.glb', 2, -Math.PI / 3)
+    await loadModel(NODE_TYPE.END_SYSTEM_SENSOR_TEMP, '/models/es/sensor_temp/scene.gltf', 12, -Math.PI / 3)
+    await loadModel(NODE_TYPE.END_SYSTEM_SENSOR_HUMIDITY, '/models/es/sensor_humidity/scene.gltf', 100, -Math.PI / 3)
+    await loadModel(NODE_TYPE.END_SYSTEM_SENSOR_PRESSURE, '/models/es/sensor_pressure/scene.gltf', 16, -Math.PI / 3)
+    await loadModel(NODE_TYPE.END_SYSTEM_ACTUATOR_ROBOTIC_ARM, '/models/es/robotic_arm/scene.gltf', 0.004, -Math.PI / 2)
     await loadModel(
       NODE_TYPE.END_SYSTEM_ACTUATOR_PNEUMATIC,
       '/models/es/actuator_pneumatic/scene.gltf',
@@ -436,15 +386,7 @@ export async function useDrawTopology(dom: HTMLElement) {
     }
   }
   const drawBeaconPacket = (pkt: Packet) => {
-    const geometry = new THREE.SphereGeometry(
-      Network.Config.value.tx_range,
-      32,
-      32,
-      0,
-      Math.PI,
-      0,
-      -Math.PI
-    )
+    const geometry = new THREE.SphereGeometry(Network.Config.value.tx_range, 32, 32, 0, Math.PI, 0, -Math.PI)
     const material = new THREE.MeshBasicMaterial({
       color: 'skyblue',
       opacity: 0.33,
@@ -602,10 +544,7 @@ export async function useDrawTopology(dom: HTMLElement) {
       event.object.position.y = 0
 
       if (NODE_TYPE[event.object.userData.type] != undefined) {
-        Network.Nodes.value[event.object.userData.node_id].pos = [
-          event.object.position.x,
-          event.object.position.z
-        ]
+        Network.Nodes.value[event.object.userData.node_id].pos = [event.object.position.x, event.object.position.z]
 
         for (const l of relatedLinks) {
           clearLink(l.link.uid)
@@ -626,11 +565,7 @@ export async function useDrawTopology(dom: HTMLElement) {
         node.model.position.copy(node.dragBox.position)
         node.dragBoxHelper.update()
         if (node.label != undefined) {
-          node.label.position.set(
-            node.dragBox.position.x,
-            node.label.position.y,
-            node.dragBox.position.z
-          )
+          node.label.position.set(node.dragBox.position.x, node.label.position.y, node.dragBox.position.z)
         }
       }
     })
