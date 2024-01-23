@@ -220,7 +220,7 @@ export class NetworkHub {
     }
 
     for (const n of this.Nodes.value) {
-      if (n.id == 0) continue
+      if (n.id == 0) continue 
 
       let neighbors: any = []
 
