@@ -16,7 +16,7 @@ import {
 } from './typedefs'
 import { SeededRandom } from '@/utils/rand'
 
-import presetTopos from './preset_topologies.json'
+import presetTopos from './preset_topologies.json'  
 
 export class NetworkHub {
   Config: Ref<Config>
@@ -220,7 +220,7 @@ export class NetworkHub {
     }
 
     for (const n of this.Nodes.value) {
-      if (n.id == 0) continue
+      if (n.id == 0) continue 
 
       let neighbors: any = []
 
