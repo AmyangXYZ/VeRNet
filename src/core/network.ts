@@ -16,7 +16,7 @@ import {
 } from './typedefs'
 import { SeededRandom } from '@/utils/rand'
 
-import presetTopos from './preset_topologies.json' 
+import presetTopos from './preset_topologies.json'  
 
 export class NetworkHub {
   Config: Ref<Config>
