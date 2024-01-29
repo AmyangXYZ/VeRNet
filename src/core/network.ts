@@ -356,7 +356,11 @@ export class NetworkHub {
     const graph: RoutingGraph = {}
 
     for (const link of this.Links.value) {
-      const [v1, v2] = [link.v1, link.v2]
+      
+      if (link === undefined) continue
+
+      const v1 = link.v1
+      const v2 = link.v2
 
       if (graph[v1]) {
         graph[v1].push(v2)
