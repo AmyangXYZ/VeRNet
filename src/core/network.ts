@@ -12,22 +12,24 @@ import {
   type ASNMsgPayload,
   LINK_TYPE,
   type InitMsgPayload,
-  PROTOCOL_TYPE
+  PROTOCOL_TYPE,
+  type RoutingGraph
 } from './typedefs'
 import { SeededRandom } from '@/utils/rand'
 
-import presetTopos from './preset_topologies.json'  
+import presetTopos from './preset_topologies.json'
 
 export class NetworkHub {
   Config: Ref<Config>
   Nodes: Ref<Node[]>
-  Links = ref<Link[]>([])
+  Links = ref<{ [uid: number]: Link }>({})
   Flows = ref<Flow[]>([])
   Packets = ref<Packet[]>([])
   PacketsCurrent = ref<Packet[]>([])
   Logs = ref<string[]>([])
   ASN = ref<number>(0) // absolute slot number
   Rand: SeededRandom
+  RoutingGraph = ref<RoutingGraph>()
 
   // to find nearest neighbors, only network devices are inserted in KDTrees
   kdTreeAny: KDTree // any network devices
@@ -151,12 +153,12 @@ export class NetworkHub {
       }
     }
     this.Nodes.value = [<Node>{ id: 0 }] // placeholder to let node_id start from 1
-    this.Links.value = []
+    this.Links.value = {}
   }
   LoadTopology() {
     this.Running.value = false
     clearInterval(this.asnTimer)
-    this.Links.value = []
+    this.Links.value = {}
     this.Packets.value = []
     this.PacketsCurrent.value = []
     this.ASN.value = 0
@@ -200,7 +202,7 @@ export class NetworkHub {
     this.kdTreeTSCH = new KDTree()
     this.kdTreeTSN = new KDTree()
     this.kdTreeFiveGgNB = new KDTree()
-    this.Links.value = []
+    this.Links.value = {}
     for (const n of this.Nodes.value) {
       if (n.id == 0 || n.type > 10) continue
       this.kdTreeAny.Insert(new KDNode(n.id, n.pos))
@@ -220,7 +222,7 @@ export class NetworkHub {
     }
 
     for (const n of this.Nodes.value) {
-      if (n.id == 0) continue 
+      if (n.id == 0) continue
 
       let neighbors: any = []
 
@@ -347,6 +349,106 @@ export class NetworkHub {
 
     if (this.Links.value[uid] == undefined) {
       this.Links.value[uid] = <Link>{ uid, v1, v2, type }
+    }
+  }
+
+  constructRoutingGraph() {
+    const graph: RoutingGraph = {}
+
+    for (const link of Object.values(this.Links.value)) {
+      if (link === undefined) continue
+
+      const v1 = link.v1
+      const v2 = link.v2
+
+      if (graph[v1]) {
+        graph[v1].push(v2)
+      } else {
+        graph[v1] = [v2]
+      }
+
+      if (graph[v2]) {
+        graph[v2].push(v1)
+      } else {
+        graph[v2] = [v1]
+      }
+    }
+
+    this.RoutingGraph.value = graph
+  }
+
+  findPath(srcId: number, dstId: number) {
+    // Dijkstra's shortest path algorithm
+    const graph = this.RoutingGraph.value || {} // null check
+    const distances: { [nodeId: number]: number } = {}
+    const previous: { [nodeId: number]: number | null } = {}
+
+    // initialize distance and previous
+    for (const nodeId in graph) {
+      distances[nodeId] = parseInt(nodeId) === srcId ? 0 : Infinity
+      previous[nodeId] = null
+    }
+
+    const unvisited = Object.keys(graph).map((id) => parseInt(id))
+
+    while (unvisited.length > 0) {
+      // node w/ smallest distance
+      let smallest = 0
+      for (let i = 1; i < unvisited.length; i++) {
+        if (distances[unvisited[i]] < distances[unvisited[smallest]]) {
+          smallest = i
+        }
+      }
+      const current = unvisited[smallest]
+
+      // mark visited
+      unvisited.splice(smallest, 1)
+
+      // update distances of neighbors
+      for (const neighbor of graph[current]) {
+        const alt = distances[current] + 1
+        if (alt < distances[neighbor]) {
+          distances[neighbor] = alt
+          previous[neighbor] = current
+        }
+      }
+    }
+
+    // construct path from previous
+    const pathIds: number[] = []
+    let current: number | null = dstId
+    while (current != null) {
+      pathIds.unshift(current)
+      current = previous[current]
+    }
+
+    return pathIds
+  }
+
+  AddFlows(num_flows: number) {
+    
+    const endSystems = this.Nodes.value.filter(n => n.type >= 11)
+
+    for (let i = 0; i < num_flows; i++) {
+      const src = endSystems[Math.floor(this.Rand.next() * endSystems.length)]
+      
+      let dst = src
+      while (dst.id === src.id) {
+        dst = endSystems[Math.floor(this.Rand.next() * endSystems.length)]
+      }
+
+      const f = <Flow>{
+        id: this.Flows.value.length,
+        e2e_src: src.id,
+        e2e_dst: dst.id,
+        period: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
+        deadline: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
+        workload: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
+        path: this.findPath(src.id, dst.id)
+      }
+      this.Flows.value.push(f)
+
+      this.Logs.value.unshift(`New flow: ID:${f.id}, source:${f.e2e_src}, dest:${f.e2e_dst}.`)
     }
   }
 

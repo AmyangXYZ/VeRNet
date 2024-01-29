@@ -7,45 +7,52 @@ const columns: any = [
     key: 'flow_id',
     title: 'ID',
     dataKey: 'flow_id',
-    width: 60,
+    width: 40,
     align: 'center',
     cellRenderer: ({ rowIndex }: any) => rowIndex + 1
   },
   {
     key: 'src',
-    title: 'Source',
-    dataKey: 'src',
+    title: 'SRC',
+    dataKey: 'e2e_src',
     width: 40,
     align: 'center'
   },
   {
     key: 'dst',
-    title: 'Dest',
-    dataKey: 'dst',
+    title: 'DST',
+    dataKey: 'e2e_dst',
+    width: 40,
+    align: 'center'
+  },
+  // {
+  //   key: 'deadline',
+  //   title: 'Deadline',
+  //   dataKey: 'deadline',
+  //   width: 50,
+  //   align: 'center'
+  // },
+  {
+    key: 'period',
+    title: 'PERIOD',
+    dataKey: 'period',
     width: 40,
     align: 'center'
   },
   {
-    key: 'deadline',
-    title: 'Deadline',
-    dataKey: 'deadline',
+    key: 'path',
+    title: 'PATH',
+    dataKey: 'path',
+    width: 120,
+    align: 'center'
+  },
+  {
+    key: 'workload',
+    title: 'WORKLOAD',
+    dataKey: 'workload',
     width: 50,
     align: 'center'
-  },
-  {
-    key: 'period',
-    title: 'Period',
-    dataKey: 'period',
-    width: 60,
-    align: 'center'
-  },
-  {
-    key: 'payload_size',
-    title: 'Payload Size',
-    dataKey: 'payload_size',
-    width: 100,
-    align: 'center',
-    cellRenderer: ({ cellData: payload_size }: any) => payload_size.toString()
+    // cellRenderer: ({ cellData: payload_size }: any) => payload_size.toString()
   }
 ]
 

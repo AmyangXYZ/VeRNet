@@ -65,6 +65,7 @@ export interface Flow {
   deadline: number
   period: number
   workload: number
+  path: number[] // id's of all nodes in path
 }
 
 // Packet is transfered among nodes, at data-link layer
@@ -123,4 +124,8 @@ export interface InitMsgPayload {
 }
 export interface ASNMsgPayload {
   asn: number
+}
+
+export interface RoutingGraph {
+  [id: number]: number[]
 }
