@@ -426,18 +426,25 @@ export class NetworkHub {
   }
 
   AddFlows(num_flows: number) {
+    
+    const endSystems = this.Nodes.value.filter(n => n.type >= 11)
+
     for (let i = 0; i < num_flows; i++) {
-      const src = Math.floor(this.Rand.next() * 7) + 11
-      const dst = Math.floor(this.Rand.next() * 7) + 11
+      const src = endSystems[Math.floor(this.Rand.next() * endSystems.length)]
+      
+      let dst = src
+      while (dst.id === src.id) {
+        dst = endSystems[Math.floor(this.Rand.next() * endSystems.length)]
+      }
 
       const f = <Flow>{
         id: this.Flows.value.length,
-        e2e_src: src,
-        e2e_dst: dst,
+        e2e_src: src.id,
+        e2e_dst: dst.id,
         period: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
         deadline: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
         workload: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
-        path: this.findPath(src, dst)
+        path: this.findPath(src.id, dst.id)
       }
       this.Flows.value.push(f)
 
