@@ -14,14 +14,14 @@ const columns: any = [
   {
     key: 'src',
     title: 'Source',
-    dataKey: 'src',
+    dataKey: 'e2e_src',
     width: 40,
     align: 'center'
   },
   {
     key: 'dst',
     title: 'Dest',
-    dataKey: 'dst',
+    dataKey: 'e2e_dst',
     width: 40,
     align: 'center'
   },
@@ -40,12 +40,12 @@ const columns: any = [
     align: 'center'
   },
   {
-    key: 'payload_size',
-    title: 'Payload Size',
-    dataKey: 'payload_size',
+    key: 'workload',
+    title: 'Workload',
+    dataKey: 'workload',
     width: 100,
     align: 'center',
-    cellRenderer: ({ cellData: payload_size }: any) => payload_size.toString()
+    // cellRenderer: ({ cellData: payload_size }: any) => payload_size.toString()
   }
 ]
 

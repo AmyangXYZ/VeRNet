@@ -12,7 +12,8 @@ import {
   type ASNMsgPayload,
   LINK_TYPE,
   type InitMsgPayload,
-  PROTOCOL_TYPE
+  PROTOCOL_TYPE, 
+  type RoutingGraph
 } from './typedefs'
 import { SeededRandom } from '@/utils/rand'
 
@@ -28,6 +29,7 @@ export class NetworkHub {
   Logs = ref<string[]>([])
   ASN = ref<number>(0) // absolute slot number
   Rand: SeededRandom
+  RoutingGraph = ref<RoutingGraph>()
 
   // to find nearest neighbors, only network devices are inserted in KDTrees
   kdTreeAny: KDTree // any network devices
@@ -348,6 +350,102 @@ export class NetworkHub {
     if (this.Links.value[uid] == undefined) {
       this.Links.value[uid] = <Link>{ uid, v1, v2, type }
     }
+  }
+
+  constructRoutingGraph() {
+    const graph: RoutingGraph = {}
+
+    for (const link of this.Links.value) {
+      
+      if (link === undefined) continue
+
+      const v1 = link.v1
+      const v2 = link.v2
+
+      if (graph[v1]) {
+        graph[v1].push(v2)
+      } else {
+        graph[v1] = [v2]
+      }
+
+      if (graph[v2]) {
+        graph[v2].push(v1)
+      } else {
+        graph[v2] = [v1]
+      }
+    }
+
+    this.RoutingGraph.value = graph
+  }
+
+  findPath(srcId: number, dstId: number) {
+    // Dijkstra's shortest path algorithm
+    const graph = this.RoutingGraph.value || {} // null check
+    const distances: {[nodeId: number]: number} = {}
+    const previous: {[nodeId: number]: number | null} = {}
+    
+    // initialize distance and previous
+    for (const nodeId in graph) {
+      distances[nodeId] = parseInt(nodeId) === srcId ? 0 : Infinity
+      previous[nodeId] = null
+    }
+
+    const unvisited = Object.keys(graph).map(id => parseInt(id))
+
+    while (unvisited.length > 0) {
+      // node w/ smallest distance
+      let smallest = 0
+      for (let i = 1; i < unvisited.length; i++) {
+        if (distances[unvisited[i]] < distances[unvisited[smallest]]) {
+          smallest = i
+        }
+      }
+      const current = unvisited[smallest]
+
+      // mark visited
+      unvisited.splice(smallest, 1)
+
+      // update distances of neighbors
+      for (const neighbor of graph[current]) {
+        const alt = distances[current] + 1
+        if (alt < distances[neighbor]) {
+          distances[neighbor] = alt
+          previous[neighbor] = current
+        }
+      }
+    }
+
+    // construct path from previous
+    const pathIds: number[] = []
+    let current: number | null = dstId
+    while (current != null) {
+      pathIds.unshift(current)
+      current = previous[current]
+    }
+
+    return pathIds
+  }
+
+  AddFlows(num_flows: number) {
+    for (let i = 0; i < num_flows; i++) {
+      let src = Math.floor(this.Rand.next() * 7) + 11
+      let dst = Math.floor(this.Rand.next() * 7) + 11
+
+      const f = <Flow>{
+        id: this.Flows.value.length,
+        e2e_src: src,
+        e2e_dst: dst,
+        period: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
+        deadline: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
+        workload: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
+        path: this.findPath(src, dst)
+      }
+  
+      this.Flows.value.push(f)
+  
+      this.Logs.value.unshift(`New flow: ID:${f.id}, source:${f.e2e_src}, dest:${f.e2e_dst}.`)
+    }
+    console.log(this.Flows.value)
   }
 
   Run = () => {

@@ -578,13 +578,16 @@ export async function useDrawTopology(dom: HTMLElement) {
   animate()
 
   await loadGLTFModels()
+  
   Network.LoadTopology()
   drawNodes()
   createDragControls()
   Network.EstablishConnection()
   Network.StartWebWorkers()
-
   drawLinks()
+  Network.constructRoutingGraph()
+  Network.AddFlows(10) // specify number of flows
+  
   // ###################
 
   watch(SignalAddNode, () => {
