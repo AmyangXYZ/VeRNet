@@ -355,7 +355,7 @@ export class NetworkHub {
   constructRoutingGraph() {
     const graph: RoutingGraph = {}
 
-    for (const link of this.Links.value) {
+    for (const link of Object.values(this.Links.value)) {
       
       if (link === undefined) continue
 
@@ -428,8 +428,8 @@ export class NetworkHub {
 
   AddFlows(num_flows: number) {
     for (let i = 0; i < num_flows; i++) {
-      let src = Math.floor(this.Rand.next() * 7) + 11
-      let dst = Math.floor(this.Rand.next() * 7) + 11
+      const src = Math.floor(this.Rand.next() * 7) + 11
+      const dst = Math.floor(this.Rand.next() * 7) + 11
 
       const f = <Flow>{
         id: this.Flows.value.length,
@@ -440,12 +440,10 @@ export class NetworkHub {
         workload: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
         path: this.findPath(src, dst)
       }
-  
       this.Flows.value.push(f)
   
       this.Logs.value.unshift(`New flow: ID:${f.id}, source:${f.e2e_src}, dest:${f.e2e_dst}.`)
     }
-    console.log(this.Flows.value)
   }
 
   Run = () => {

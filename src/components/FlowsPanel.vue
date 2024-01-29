@@ -7,43 +7,50 @@ const columns: any = [
     key: 'flow_id',
     title: 'ID',
     dataKey: 'flow_id',
-    width: 60,
+    width: 40,
     align: 'center',
     cellRenderer: ({ rowIndex }: any) => rowIndex + 1
   },
   {
     key: 'src',
-    title: 'Source',
+    title: 'SRC',
     dataKey: 'e2e_src',
     width: 40,
     align: 'center'
   },
   {
     key: 'dst',
-    title: 'Dest',
+    title: 'DST',
     dataKey: 'e2e_dst',
     width: 40,
     align: 'center'
   },
+  // {
+  //   key: 'deadline',
+  //   title: 'Deadline',
+  //   dataKey: 'deadline',
+  //   width: 50,
+  //   align: 'center'
+  // },
   {
-    key: 'deadline',
-    title: 'Deadline',
-    dataKey: 'deadline',
-    width: 50,
+    key: 'period',
+    title: 'PERIOD',
+    dataKey: 'period',
+    width: 40,
     align: 'center'
   },
   {
-    key: 'period',
-    title: 'Period',
-    dataKey: 'period',
-    width: 60,
+    key: 'path',
+    title: 'PATH',
+    dataKey: 'path',
+    width: 120,
     align: 'center'
   },
   {
     key: 'workload',
-    title: 'Workload',
+    title: 'WORKLOAD',
     dataKey: 'workload',
-    width: 100,
+    width: 50,
     align: 'center',
     // cellRenderer: ({ cellData: payload_size }: any) => payload_size.toString()
   }
