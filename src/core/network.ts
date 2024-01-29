@@ -16,12 +16,12 @@ import {
 } from './typedefs'
 import { SeededRandom } from '@/utils/rand'
 
-import presetTopos from './preset_topologies.json'  
+import presetTopos from './preset_topologies.json'
 
 export class NetworkHub {
   Config: Ref<Config>
   Nodes: Ref<Node[]>
-  Links = ref<Link[]>([])
+  Links = ref<{ [uid: number]: Link }>({})
   Flows = ref<Flow[]>([])
   Packets = ref<Packet[]>([])
   PacketsCurrent = ref<Packet[]>([])
@@ -151,12 +151,12 @@ export class NetworkHub {
       }
     }
     this.Nodes.value = [<Node>{ id: 0 }] // placeholder to let node_id start from 1
-    this.Links.value = []
+    this.Links.value = {}
   }
   LoadTopology() {
     this.Running.value = false
     clearInterval(this.asnTimer)
-    this.Links.value = []
+    this.Links.value = {}
     this.Packets.value = []
     this.PacketsCurrent.value = []
     this.ASN.value = 0
@@ -200,7 +200,7 @@ export class NetworkHub {
     this.kdTreeTSCH = new KDTree()
     this.kdTreeTSN = new KDTree()
     this.kdTreeFiveGgNB = new KDTree()
-    this.Links.value = []
+    this.Links.value = {}
     for (const n of this.Nodes.value) {
       if (n.id == 0 || n.type > 10) continue
       this.kdTreeAny.Insert(new KDNode(n.id, n.pos))
@@ -220,7 +220,7 @@ export class NetworkHub {
     }
 
     for (const n of this.Nodes.value) {
-      if (n.id == 0) continue 
+      if (n.id == 0) continue
 
       let neighbors: any = []
 
