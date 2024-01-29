@@ -127,5 +127,5 @@ export interface ASNMsgPayload {
 }
 
 export interface RoutingGraph {
-  [nodeId: number]: number[]
+  [id: number]: number[]
 }

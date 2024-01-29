@@ -196,6 +196,9 @@ export async function useDrawTopology(dom: HTMLElement) {
     box.getSize(size)
     const label = createLabel(`${NODE_TYPE_DISPLAY_NAME[NODE_TYPE[node.type]]}-${node.id}`)
     label.position.set(model.position.x, size.y + 1, model.position.z) // Adjust the position as needed
+    if (node.type == NODE_TYPE.TSN) {
+      label.position.y = size.y + 3
+    }
     scene.add(label)
 
     // dragbox and helper
@@ -578,7 +581,7 @@ export async function useDrawTopology(dom: HTMLElement) {
   animate()
 
   await loadGLTFModels()
-  
+
   Network.LoadTopology()
   drawNodes()
   createDragControls()
@@ -587,7 +590,7 @@ export async function useDrawTopology(dom: HTMLElement) {
   drawLinks()
   Network.constructRoutingGraph()
   Network.AddFlows(10) // specify number of flows
-  
+
   // ###################
 
   watch(SignalAddNode, () => {

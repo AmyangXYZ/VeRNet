@@ -12,7 +12,7 @@ import {
   type ASNMsgPayload,
   LINK_TYPE,
   type InitMsgPayload,
-  PROTOCOL_TYPE, 
+  PROTOCOL_TYPE,
   type RoutingGraph
 } from './typedefs'
 import { SeededRandom } from '@/utils/rand'
@@ -356,7 +356,6 @@ export class NetworkHub {
     const graph: RoutingGraph = {}
 
     for (const link of Object.values(this.Links.value)) {
-      
       if (link === undefined) continue
 
       const v1 = link.v1
@@ -381,16 +380,16 @@ export class NetworkHub {
   findPath(srcId: number, dstId: number) {
     // Dijkstra's shortest path algorithm
     const graph = this.RoutingGraph.value || {} // null check
-    const distances: {[nodeId: number]: number} = {}
-    const previous: {[nodeId: number]: number | null} = {}
-    
+    const distances: { [nodeId: number]: number } = {}
+    const previous: { [nodeId: number]: number | null } = {}
+
     // initialize distance and previous
     for (const nodeId in graph) {
       distances[nodeId] = parseInt(nodeId) === srcId ? 0 : Infinity
       previous[nodeId] = null
     }
 
-    const unvisited = Object.keys(graph).map(id => parseInt(id))
+    const unvisited = Object.keys(graph).map((id) => parseInt(id))
 
     while (unvisited.length > 0) {
       // node w/ smallest distance
@@ -441,7 +440,7 @@ export class NetworkHub {
         path: this.findPath(src, dst)
       }
       this.Flows.value.push(f)
-  
+
       this.Logs.value.unshift(`New flow: ID:${f.id}, source:${f.e2e_src}, dest:${f.e2e_dst}.`)
     }
   }

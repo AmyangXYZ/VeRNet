@@ -51,7 +51,7 @@ const columns: any = [
     title: 'WORKLOAD',
     dataKey: 'workload',
     width: 50,
-    align: 'center',
+    align: 'center'
     // cellRenderer: ({ cellData: payload_size }: any) => payload_size.toString()
   }
 ]
