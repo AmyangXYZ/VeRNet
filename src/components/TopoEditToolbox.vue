@@ -78,7 +78,7 @@ const finishEdit = () => {
 
     <div class="flex-container mt-4">
       <span class="label-margin">Connect</span>
-      <el-input v-model="nodeId1" placeholder="v1" class="node-input" />
+      <el-input v-model="nodeId1" placeholder="v1" class="node-input" style="margin-right: -35px"/>
       <el-input v-model="nodeId2" placeholder="v2" class="node-input" />
       <el-button class="circular-button" @click="connect" type="info" :icon="Switch" circle />
     </div>
@@ -125,14 +125,7 @@ const finishEdit = () => {
 }
 .node-input {
   display: flex;
-}
-
-.node-input input {
-  flex: 1;
-  min-width: 0; /* Allow input to shrink below content size */
-}
-
-.node-input input + input {
-  margin-left: -1px; /* Negative margin to overlap borders */
+  width: 60px;
+  margin-left: 10px;
 }
 </style>
