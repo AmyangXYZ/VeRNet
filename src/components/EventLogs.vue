@@ -31,7 +31,7 @@ const resetTimer = () => {
       Network.Logs.value = []
     })
     showLog.value = false
-  }, 5000)
+  }, 8000)
 }
 
 onUnmounted(() => {

@@ -111,20 +111,30 @@ export enum MSG_TYPE {
   INIT,
   ASN,
   DONE, // finished all activities of the current slot
+  ROUTING,
   FLOW, // install periodic flow
   STAT
 }
-
-export type MsgHandler = (msg: Message) => void
-export type PktHandler = (pkt: Packet) => void
 
 export interface InitMsgPayload {
   id: number
   neighbors: number[]
 }
+
 export interface ASNMsgPayload {
   asn: number
 }
+
+export interface RoutingMsgPayload {
+  [dst: number]: number
+}
+
+export interface FlowMsgPayload {
+  flows: Flow[]
+}
+
+export type MsgHandler = (msg: Message) => void
+export type PktHandler = (pkt: Packet) => void
 
 export interface RoutingGraph {
   [id: number]: number[]

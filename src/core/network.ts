@@ -13,11 +13,11 @@ import {
   LINK_TYPE,
   type InitMsgPayload,
   PROTOCOL_TYPE,
-  type RoutingGraph
+  type RoutingGraph,
+  type RoutingMsgPayload,
+  type FlowMsgPayload
 } from './typedefs'
 import { SeededRandom } from '@/utils/rand'
-
-import presetTopos from './preset_topologies.json'
 
 export class NetworkHub {
   Config: Ref<Config>
@@ -37,8 +37,9 @@ export class NetworkHub {
   kdTreeTSN: KDTree // TSN only
   kdTreeFiveGgNB: KDTree // 5G gNB only
 
-  PresetTopos: { [name: string]: any } = presetTopos
+  PresetTopos: { [name: string]: any } = {}
   SelectedTopo = ref('5G-TSN-TSCH') // realistic topo example
+  // SelectedTopo = ref('Routing test') // realistic topo example
 
   asnTimer: any
   SignalReset = ref(0)
@@ -55,6 +56,16 @@ export class NetworkHub {
     this.kdTreeTSCH = new KDTree()
     this.kdTreeTSN = new KDTree()
     this.kdTreeFiveGgNB = new KDTree()
+
+    // load preset topologies
+    const topos = import.meta.glob('@/topologies/*.json')
+    for (const path in topos) {
+      const name = path.split('/')[3].replace('.json', '')
+      this.PresetTopos[name] = {} // placeholder before fully load json files
+      topos[path]().then((f: any) => {
+        this.PresetTopos[name] = f.default
+      })
+    }
 
     watch(this.SelectedTopo, () => {
       this.LoadTopology()
@@ -126,7 +137,7 @@ export class NetworkHub {
       default:
         isValid = true
     }
-
+    pkt.asn = this.ASN.value
     if (isValid) {
       this.Nodes.value[pkt.mac_src].tx_cnt++
       this.Nodes.value[pkt.mac_dst].rx_cnt++
@@ -189,7 +200,10 @@ export class NetworkHub {
         this.Nodes.value.push(<Node>{
           id: n.id,
           type: n.type,
-          pos: n.pos
+          pos: n.pos,
+          tx_cnt: 0,
+          rx_cnt: 0,
+          neighbors: <number[]>[]
         })
       }
     }
@@ -256,11 +270,14 @@ export class NetworkHub {
           break
         }
       }
-
-      n.neighbors = neighbors
-
-      n.neighbors.forEach((nn: number) => {
+      neighbors.forEach((nn: number) => {
         this.AddLink(n.id, nn)
+        if (n.neighbors.indexOf(nn) == -1) {
+          n.neighbors.push(nn)
+        }
+        if (this.Nodes.value[nn].neighbors.indexOf(n.id) == -1) {
+          this.Nodes.value[nn].neighbors.push(n.id)
+        }
       })
     }
 
@@ -293,21 +310,21 @@ export class NetworkHub {
 
       switch (n.type) {
         case NODE_TYPE.TSCH:
-          n.w = new Worker(new URL('@/core/node_tsch.ts', import.meta.url), { type: 'module' })
+          n.w = new Worker(new URL('@/core/nodes/tsch.ts', import.meta.url), { type: 'module' })
           break
         case NODE_TYPE.TSN:
-          n.w = new Worker(new URL('@/core/node_tsn.ts', import.meta.url), { type: 'module' })
+          n.w = new Worker(new URL('@/core/nodes/tsn.ts', import.meta.url), { type: 'module' })
           break
         case NODE_TYPE.FIVE_G_GNB:
-          n.w = new Worker(new URL('@/core/node_five_g_gnb.ts', import.meta.url), {
+          n.w = new Worker(new URL('@/core/nodes/five_g_gnb.ts', import.meta.url), {
             type: 'module'
           })
           break
         case NODE_TYPE.FIVE_G_UE:
-          n.w = new Worker(new URL('@/core/node_five_g_ue.ts', import.meta.url), { type: 'module' })
+          n.w = new Worker(new URL('@/core/nodes/five_g_ue.ts', import.meta.url), { type: 'module' })
           break
         default:
-          n.w = new Worker(new URL('@/core/node_end_system.ts', import.meta.url), {
+          n.w = new Worker(new URL('@/core/nodes/end_system.ts', import.meta.url), {
             type: 'module'
           })
           break
@@ -318,6 +335,31 @@ export class NetworkHub {
         id: n.id,
         payload: <InitMsgPayload>{ id: n.id, neighbors: toRaw(n.neighbors) }
       })
+
+      const routingTable: RoutingMsgPayload = {}
+      const endSystems: Node[] = this.Nodes.value.filter((n) => n.type >= 11)
+      for (const s of endSystems) {
+        const path = this.findPath(n.id, s.id)
+        if (path.length > 1) {
+          routingTable[s.id] = path[1]
+        }
+      }
+      n.w.postMessage(<Message>{
+        type: MSG_TYPE.ROUTING,
+        id: n.id,
+        payload: toRaw(routingTable)
+      })
+
+      if (n.type >= 11) {
+        const flows = toRaw(this.Flows.value).filter((f: Flow) => f.e2e_src == n.id)
+        if (flows.length > 0) {
+          n.w.postMessage(<Message>{
+            type: MSG_TYPE.FLOW,
+            id: n.id,
+            payload: <FlowMsgPayload>{ flows: flows }
+          })
+        }
+      }
 
       n.w.onmessage = (e: any) => {
         if ('uid' in e.data) {
@@ -369,7 +411,7 @@ export class NetworkHub {
     }
   }
 
-  constructRoutingGraph() {
+  ConstructRoutingGraph() {
     const graph: RoutingGraph = {}
 
     for (const link of Object.values(this.Links.value)) {
@@ -443,12 +485,11 @@ export class NetworkHub {
   }
 
   AddFlows(num_flows: number) {
-    
-    const endSystems = this.Nodes.value.filter(n => n.type >= 11)
+    const endSystems = this.Nodes.value.filter((n) => n.type >= 11)
 
     for (let i = 0; i < num_flows; i++) {
       const src = endSystems[Math.floor(this.Rand.next() * endSystems.length)]
-      
+
       let dst = src
       while (dst.id === src.id) {
         dst = endSystems[Math.floor(this.Rand.next() * endSystems.length)]
@@ -458,15 +499,14 @@ export class NetworkHub {
         id: this.Flows.value.length,
         e2e_src: src.id,
         e2e_dst: dst.id,
-        period: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
-        deadline: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
-        workload: Math.floor(this.Rand.next() * 10), // from 0 to 9 - change this later
+        period: Math.floor(this.Rand.next() * 4 + 1) * 5, // from 5 to 10 - change this later
+        deadline: Math.floor(this.Rand.next() * 4 + 1) * 5, // from 5 to 10 - change this later
+        workload: Math.floor(this.Rand.next() * 10) + 1, // from 1 to 10 - change this later
         path: this.findPath(src.id, dst.id)
       }
       this.Flows.value.push(f)
-
-      this.Logs.value.unshift(`New flow: ID:${f.id}, source:${f.e2e_src}, dest:${f.e2e_dst}.`)
     }
+    this.Logs.value.unshift(`Generated ${this.Flows.value.length} flows.`)
   }
 
   Run = () => {
