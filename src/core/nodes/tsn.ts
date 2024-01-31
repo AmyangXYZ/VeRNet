@@ -44,7 +44,6 @@ class TSNNode extends Node {
 
   dataPktHandler = (pkt: Packet) => {
     if (pkt.e2e_dst != this.id) {
-      console.log(pkt.e2e_dst)
       if (this.routingTable[pkt.e2e_dst] != undefined) {
         pkt.mac_src = this.id
         pkt.mac_dst = this.routingTable[pkt.e2e_dst]

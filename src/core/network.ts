@@ -201,6 +201,8 @@ export class NetworkHub {
           id: n.id,
           type: n.type,
           pos: n.pos,
+          tx_cnt: 0,
+          rx_cnt: 0,
           neighbors: <number[]>[]
         })
       }

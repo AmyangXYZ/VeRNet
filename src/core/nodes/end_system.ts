@@ -65,7 +65,7 @@ class EndSystem extends Node {
     this.routingTable = payload
   }
   dataPktHandler = (pkt: Packet) => {
-    console.log('received', pkt)
+    // console.log('received', pkt)
   }
 }
 
