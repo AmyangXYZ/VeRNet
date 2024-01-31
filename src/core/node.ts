@@ -6,8 +6,9 @@ export class Node {
   pkt_seq: number = 0
   tx_cnt: number = 0
   rx_cnt: number = 0
+  queue: Packet[] = []
   ASN: number = 0
-
+  routingTable: { [dst: number]: number } = {}
   msgHandlers: { [type: number]: MsgHandler } = {}
   pktHandlers: { [type: number]: PktHandler } = {}
 

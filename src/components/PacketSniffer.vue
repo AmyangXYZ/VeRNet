@@ -65,7 +65,7 @@ const columns: any = [
     key: 'type',
     title: 'TYPE',
     dataKey: 'type',
-    width: 60,
+    width: 50,
     align: 'center',
     cellRenderer: ({ cellData: type }: any) => PKT_TYPE[type]
   },
@@ -80,7 +80,7 @@ const columns: any = [
     key: 'len',
     title: 'LEN',
     dataKey: 'len',
-    width: 40,
+    width: 60,
     align: 'center'
   }
 ]
@@ -124,7 +124,7 @@ Row.inheritAttrs = false
       class="table"
       :columns="columns"
       :data="Network.Packets.value.filter(filterFunc)"
-      :width="360"
+      :width="370"
       :height="370"
       :expand-column-key="columns[7].key"
       :estimated-row-height="16"

@@ -371,7 +371,7 @@ export async function useDrawTopology(dom: HTMLElement) {
     ) {
       linkType = LINK_TYPE.WIRED
     }
-    const hMid = linkType == LINK_TYPE.WIRED ? 5 : (srcSize.y + dstSize.y) / 2
+    const hMid = linkType == LINK_TYPE.WIRED ? 5 : (srcSize.y + dstSize.y) / 2 + 4
     const hEndSrc = linkType == LINK_TYPE.WIRED ? 1.6 : srcSize.y * 0.7
     const hEndDst = linkType == LINK_TYPE.WIRED ? 1.6 : dstSize.y * 0.7
 
@@ -586,10 +586,10 @@ export async function useDrawTopology(dom: HTMLElement) {
   drawNodes()
   createDragControls()
   Network.EstablishConnection()
-  Network.StartWebWorkers()
   drawLinks()
-  Network.constructRoutingGraph()
-  Network.AddFlows(10) // specify number of flows
+  Network.ConstructRoutingGraph()
+  Network.AddFlows(3) // specify number of flows
+  Network.StartWebWorkers()
 
   // ###################
 
