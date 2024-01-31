@@ -17,8 +17,6 @@ import {
 } from './typedefs'
 import { SeededRandom } from '@/utils/rand'
 
-import presetTopos from './preset_topologies.json'
-
 export class NetworkHub {
   Config: Ref<Config>
   Nodes: Ref<Node[]>
@@ -37,7 +35,7 @@ export class NetworkHub {
   kdTreeTSN: KDTree // TSN only
   kdTreeFiveGgNB: KDTree // 5G gNB only
 
-  PresetTopos: { [name: string]: any } = presetTopos
+  PresetTopos: { [name: string]: any } = {}
   SelectedTopo = ref('5G-TSN-TSCH') // realistic topo example
 
   asnTimer: any
@@ -55,6 +53,16 @@ export class NetworkHub {
     this.kdTreeTSCH = new KDTree()
     this.kdTreeTSN = new KDTree()
     this.kdTreeFiveGgNB = new KDTree()
+
+    // load preset topologies
+    const topos = import.meta.glob('@/topologies/*.json')
+    for (const path in topos) {
+      const name = path.split('/')[3].replace('.json', '')
+      this.PresetTopos[name] = {} // placeholder before fully load json files
+      topos[path]().then((f: any) => {
+        this.PresetTopos[name] = f.default
+      })
+    }
 
     watch(this.SelectedTopo, () => {
       this.LoadTopology()
@@ -426,12 +434,11 @@ export class NetworkHub {
   }
 
   AddFlows(num_flows: number) {
-    
-    const endSystems = this.Nodes.value.filter(n => n.type >= 11)
+    const endSystems = this.Nodes.value.filter((n) => n.type >= 11)
 
     for (let i = 0; i < num_flows; i++) {
       const src = endSystems[Math.floor(this.Rand.next() * endSystems.length)]
-      
+
       let dst = src
       while (dst.id === src.id) {
         dst = endSystems[Math.floor(this.Rand.next() * endSystems.length)]
@@ -447,9 +454,8 @@ export class NetworkHub {
         path: this.findPath(src.id, dst.id)
       }
       this.Flows.value.push(f)
-
-      this.Logs.value.unshift(`New flow: ID:${f.id}, source:${f.e2e_src}, dest:${f.e2e_dst}.`)
     }
+    this.Logs.value.unshift(`Generated ${this.Flows.value.length} flows.`)
   }
 
   Run = () => {
