@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, toRefs } from 'vue'
 import { Network, SignalEditTopology, SignalAddNode, SignalUpdateLinks } from '@/hooks/useStates'
-import { Check, Plus, Switch } from '@element-plus/icons-vue'
+import { Check, Plus, Switch, Sort } from '@element-plus/icons-vue'
 import { NODE_TYPE } from '@/core/typedefs'
 
 const nodeType = ref(0)
@@ -28,8 +28,8 @@ const nodeTypes = [
 
 const { nodeId1, nodeId2 } = toRefs({
   nodeId1: ref(''),
-  nodeId2: ref(''),
-});
+  nodeId2: ref('')
+})
 
 const addNode = () => {
   Network.AddNode(nodeType.value)
@@ -41,8 +41,7 @@ const connect = () => {
   if (!isNaN(v1) && !isNaN(v2)) {
     Network.connect(v1, v2)
     SignalUpdateLinks.value++
-  }
-  else {
+  } else {
     console.error('Invalid node IDs.')
   }
 }
@@ -60,12 +59,12 @@ const finishEdit = () => {
   <el-card class="card p-4">
     <div class="flex-container">
       <span class="label-margin">Load preset:</span>
-      <el-select class="dropdown" v-model="Network.SelectedTopo.value" style="margin-right: 55px">
+      <el-select class="dropdown" v-model="Network.SelectedTopo.value" style="width: 175px; text-align-last: center">
         <el-option v-for="(_, name) in Network.PresetTopos" :key="name" :label="name" :value="name" />
       </el-select>
     </div>
 
-    <div class="flex-container mt-4">
+    <div class="flex-container">
       <span class="label-margin">Add node:</span>
       <el-select class="dropdown" v-model="nodeType">
         <el-option-group v-for="group in nodeTypes" :key="group.label" :label="group.label">
@@ -76,19 +75,19 @@ const finishEdit = () => {
       <el-button class="circular-button" @click="addNode" type="primary" :icon="Plus" circle />
     </div>
 
-    <div class="flex-container mt-4">
+    <div class="flex-container">
       <span class="label-margin">Connect</span>
-      <el-input v-model="nodeId1" placeholder="v1" class="node-input" style="margin-right: -35px"/>
+      <el-input v-model="nodeId1" placeholder="v1" class="node-input" style="margin-right: -35px" />
       <el-input v-model="nodeId2" placeholder="v2" class="node-input" />
-      <el-button class="circular-button" @click="connect" type="info" :icon="Switch" circle />
+      <el-button class="circular-button" @click="connect" type="info" :icon="Sort" circle />
     </div>
 
-    <div class="flex-container mt-4">
+    <div class="flex-container">
       <span class="label-margin">Auto-Connect</span>
       <el-button class="circular-button" @click="autoConnect" type="info" :icon="Switch" circle />
     </div>
 
-    <div class="flex-container mt-4">
+    <div class="flex-container">
       <span class="label-margin">Finish</span>
       <el-button class="circular-button" @click="finishEdit" type="danger" :icon="Check" circle />
     </div>

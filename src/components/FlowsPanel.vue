@@ -1,19 +1,28 @@
 <script setup lang="tsx">
 import { ref, watch, nextTick } from 'vue'
 import { Network } from '@/hooks/useStates'
-
-const editCellRenderer = () => ({ column, rowIndex, rowData }: any) => {
-  if (rowIndex === Network.Flows.value.length - 1 && rowData.editing) {
-    return (
-      <el-input
-      v-model={rowData[column.dataKey!]}
-      placeholder="edit"
-      />
-    )
-  } else {
-    return <div>{rowData[column.dataKey!]}</div>
+import { Check, Close, Edit, Plus } from '@element-plus/icons-vue'
+const editCellRenderer =
+  () =>
+  ({ column, rowData }: any) => {
+    if (rowData.editing) {
+      return (
+        <input
+          style="
+            font-size:.65rem;
+            color:white;
+            text-align:center;
+            background:transparent;
+            font-family: Menlo;
+          "
+          v-model={rowData[column.dataKey!]}
+          placeholder=""
+        />
+      )
+    } else {
+      return <div>{rowData[column.dataKey!]}</div>
+    }
   }
-}
 
 const columns: any = [
   {
@@ -78,6 +87,19 @@ watch(
   { deep: true }
 )
 
+const editing = ref(false)
+watch(editing, () => {
+  if (editing.value == true) {
+    for (const f of Network.Flows.value) {
+      f.editing = true
+    }
+  } else {
+    for (const f of Network.Flows.value) {
+      f.editing = false
+    }
+  }
+})
+
 const addFlow = () => {
   const newFlow = {
     id: Network.Flows.value.length + 1,
@@ -90,12 +112,15 @@ const addFlow = () => {
     editing: true
   }
   Network.Flows.value.push(newFlow)
-  console.log('added flow')
+  // console.log('added flow')
 }
 
+// shall support adding multiple flows
 const saveFlow = () => {
+  editing.value = false
   const lastFlow = Network.Flows.value[Network.Flows.value.length - 1]
-  // lastFlow.path = Network.findPath(lastFlow.e2e_src, lastFlow.e2e_dst)
+  lastFlow.path = Network.findPath(lastFlow.e2e_src, lastFlow.e2e_dst)
+  console.log(lastFlow.path)
   lastFlow.editing = false
 }
 
@@ -109,9 +134,15 @@ Row.inheritAttrs = false
 <template>
   <el-card class="card">
     <template #header>
-      <div class="card-header">Flows</div>
-      <button @click="addFlow">Add Flow</button>
-      <button @click="saveFlow">Save Flow</button>
+      <div class="card-header">
+        Flows
+        <el-button :icon="Edit" circle size="small" v-if="!editing" @click="editing = !editing"></el-button>
+        <el-button-group v-if="editing">
+          <el-button :icon="Plus" circle size="small" @click="addFlow"></el-button>
+          <el-button :icon="Check" circle size="small" @click="saveFlow"></el-button>
+          <el-button :icon="Close" circle size="small" @click="editing = !editing"></el-button>
+        </el-button-group>
+      </div>
     </template>
 
     <el-table-v2
@@ -121,7 +152,6 @@ Row.inheritAttrs = false
       :data="Network.Flows.value"
       :width="360"
       :height="180"
-      :expand-column-key="columns[5].key"
       :estimated-row-height="16"
       :header-height="18"
     >
