@@ -2,6 +2,19 @@
 import { ref, watch, nextTick } from 'vue'
 import { Network } from '@/hooks/useStates'
 
+const editCellRenderer = () => ({ column, rowIndex, rowData }: any) => {
+  if (rowIndex === Network.Flows.value.length - 1 && rowData.editing) {
+    return (
+      <el-input
+      v-model={rowData[column.dataKey!]}
+      placeholder="edit"
+      />
+    )
+  } else {
+    return <div>{rowData[column.dataKey!]}</div>
+  }
+}
+
 const columns: any = [
   {
     key: 'flow_id',
@@ -16,28 +29,24 @@ const columns: any = [
     title: 'SRC',
     dataKey: 'e2e_src',
     width: 40,
-    align: 'center'
+    align: 'center',
+    cellRenderer: editCellRenderer()
   },
   {
     key: 'dst',
     title: 'DST',
     dataKey: 'e2e_dst',
     width: 40,
-    align: 'center'
+    align: 'center',
+    cellRenderer: editCellRenderer()
   },
-  // {
-  //   key: 'deadline',
-  //   title: 'Deadline',
-  //   dataKey: 'deadline',
-  //   width: 50,
-  //   align: 'center'
-  // },
   {
     key: 'period',
     title: 'PERIOD',
     dataKey: 'period',
     width: 40,
-    align: 'center'
+    align: 'center',
+    cellRenderer: editCellRenderer()
   },
   {
     key: 'path',
@@ -51,8 +60,8 @@ const columns: any = [
     title: 'WORKLOAD',
     dataKey: 'workload',
     width: 50,
-    align: 'center'
-    // cellRenderer: ({ cellData: payload_size }: any) => payload_size.toString()
+    align: 'center',
+    cellRenderer: editCellRenderer()
   }
 ]
 
@@ -69,6 +78,27 @@ watch(
   { deep: true }
 )
 
+const addFlow = () => {
+  const newFlow = {
+    id: Network.Flows.value.length + 1,
+    e2e_src: 0,
+    e2e_dst: 0,
+    deadline: 0,
+    workload: 0,
+    period: 0,
+    path: [],
+    editing: true
+  }
+  Network.Flows.value.push(newFlow)
+  console.log('added flow')
+}
+
+const saveFlow = () => {
+  const lastFlow = Network.Flows.value[Network.Flows.value.length - 1]
+  // lastFlow.path = Network.findPath(lastFlow.e2e_src, lastFlow.e2e_dst)
+  lastFlow.editing = false
+}
+
 const Row = ({ cells, rowData }: any) => {
   if (rowData.detail) return <div class="row-detail">{rowData.detail}</div>
   return cells
@@ -80,6 +110,8 @@ Row.inheritAttrs = false
   <el-card class="card">
     <template #header>
       <div class="card-header">Flows</div>
+      <button @click="addFlow">Add Flow</button>
+      <button @click="saveFlow">Save Flow</button>
     </template>
 
     <el-table-v2

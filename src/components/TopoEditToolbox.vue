@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, toRefs } from 'vue'
 import { Network, SignalEditTopology, SignalAddNode, SignalUpdateLinks } from '@/hooks/useStates'
 import { Check, Plus, Switch } from '@element-plus/icons-vue'
 import { NODE_TYPE } from '@/core/typedefs'
@@ -26,11 +26,27 @@ const nodeTypes = [
   }
 ]
 
+const { nodeId1, nodeId2 } = toRefs({
+  nodeId1: ref(''),
+  nodeId2: ref(''),
+});
+
 const addNode = () => {
   Network.AddNode(nodeType.value)
   SignalAddNode.value++
 }
 const connect = () => {
+  const v1 = parseInt(nodeId1.value, 10)
+  const v2 = parseInt(nodeId2.value, 10)
+  if (!isNaN(v1) && !isNaN(v2)) {
+    Network.connect(v1, v2)
+    SignalUpdateLinks.value++
+  }
+  else {
+    console.error('Invalid node IDs.')
+  }
+}
+const autoConnect = () => {
   Network.EstablishConnection()
   SignalUpdateLinks.value++
 }
@@ -62,7 +78,14 @@ const finishEdit = () => {
 
     <div class="flex-container mt-4">
       <span class="label-margin">Connect</span>
+      <el-input v-model="nodeId1" placeholder="v1" class="node-input" style="margin-right: -35px"/>
+      <el-input v-model="nodeId2" placeholder="v2" class="node-input" />
       <el-button class="circular-button" @click="connect" type="info" :icon="Switch" circle />
+    </div>
+
+    <div class="flex-container mt-4">
+      <span class="label-margin">Auto-Connect</span>
+      <el-button class="circular-button" @click="autoConnect" type="info" :icon="Switch" circle />
     </div>
 
     <div class="flex-container mt-4">
@@ -99,5 +122,10 @@ const finishEdit = () => {
 }
 .button-margin {
   margin-left: 8px;
+}
+.node-input {
+  display: flex;
+  width: 60px;
+  margin-left: 10px;
 }
 </style>

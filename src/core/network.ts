@@ -284,6 +284,23 @@ export class NetworkHub {
     this.Logs.value.unshift(`Established ${Object.keys(this.Links.value).length} links.`)
   }
 
+  connect(v1: number, v2: number) {
+    const node1 = this.Nodes.value.find(n => n.id === v1)
+    const node2 = this.Nodes.value.find(n => n.id === v2)
+
+    if (!node1 || !node2) {
+      console.error('Connection error: node(s) not found.')
+      return
+    }
+
+    this.AddLink(v1, v2)
+
+    node1.neighbors.push(v2)
+    node2.neighbors.push(v1)
+
+    this.Logs.value.unshift(`Connected nodes ${v1} and ${v2}`)
+  }
+
   StartWebWorkers() {
     for (const n of this.Nodes.value) {
       if (n.id == 0) continue
@@ -485,7 +502,8 @@ export class NetworkHub {
         period: Math.floor(this.Rand.next() * 4 + 1) * 5, // from 5 to 10 - change this later
         deadline: Math.floor(this.Rand.next() * 4 + 1) * 5, // from 5 to 10 - change this later
         workload: Math.floor(this.Rand.next() * 10) + 1, // from 1 to 10 - change this later
-        path: this.findPath(src.id, dst.id)
+        path: this.findPath(src.id, dst.id),
+        editing: false
       }
       this.Flows.value.push(f)
     }
