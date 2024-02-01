@@ -1,19 +1,31 @@
 <script setup lang="ts">
-import rpi4 from '@/assets/rpi4.png'
 import sensortag from '@/assets/sensortag.png'
+import tsn_switch from '@/assets/tsn_switch.png'
 import { Network, SelectedNode } from '@/hooks/useStates'
 import { NODE_TYPE, NODE_TYPE_DISPLAY_NAME } from '@/core/typedefs'
+import { Picture } from '@element-plus/icons-vue'
+
+const images: { [type: number]: string } = {
+  [NODE_TYPE.TSCH]: sensortag,
+  [NODE_TYPE.TSN]: tsn_switch
+}
 </script>
 
 <template>
   <el-card class="card" v-if="SelectedNode > 0 && Network.Nodes.value[SelectedNode] != undefined">
     <el-row :gutter="30">
       <el-col :span="11" align="center">
-        <img :src="SelectedNode == 1 ? rpi4 : sensortag" />
+        <el-image class="image" :src="images[Network.Nodes.value[SelectedNode].type]">
+          <template #error>
+            <div class="image">
+              <el-icon><Picture /></el-icon>
+            </div>
+          </template>
+        </el-image>
       </el-col>
-      <el-col :span="13">
-        <span style="font-weight: 600; font-size: 0.9rem">
-          {{ NODE_TYPE_DISPLAY_NAME[NODE_TYPE[Network.Nodes.value[SelectedNode].type]] }}-{{ SelectedNode }}
+      <el-col :span="10">
+        <span class="stats">
+          {{ NODE_TYPE_DISPLAY_NAME[Network.Nodes.value[SelectedNode].type] }}-{{ SelectedNode }}
         </span>
         <br />
         - TX: {{ Network.Nodes.value[SelectedNode].tx_cnt }} , RX: {{ Network.Nodes.value[SelectedNode].rx_cnt }}<br />
@@ -29,7 +41,12 @@ import { NODE_TYPE, NODE_TYPE_DISPLAY_NAME } from '@/core/typedefs'
   /* width: 380px; */
   font-size: 0.82rem;
 }
-.card img {
-  height: 100px;
+.image {
+  height: 110px;
+  font-size: 36px;
+}
+.stats {
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 </style>

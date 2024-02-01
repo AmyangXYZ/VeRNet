@@ -194,7 +194,7 @@ export async function useDrawTopology(dom: HTMLElement) {
     const box = new THREE.Box3().setFromObject(model)
     const size = new THREE.Vector3()
     box.getSize(size)
-    const label = createLabel(`${NODE_TYPE_DISPLAY_NAME[NODE_TYPE[node.type]]}-${node.id}`)
+    const label = createLabel(`${NODE_TYPE_DISPLAY_NAME[node.type]}-${node.id}`)
     label.position.set(model.position.x, size.y + 1, model.position.z) // Adjust the position as needed
     if (node.type == NODE_TYPE.TSN) {
       label.position.y = size.y + 3

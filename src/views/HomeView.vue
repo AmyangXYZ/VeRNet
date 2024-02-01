@@ -3,7 +3,7 @@ import MenuBar from '@/components/MenuBar.vue'
 import ControlPanel from '@/components/ControlPanel.vue'
 import Topology from '@/components/NetworkTopology.vue'
 import PacketSniffer from '@/components/PacketSniffer.vue'
-// import ScheduleTable from '@/components/ScheduleTable.vue'
+import ScheduleTable from '@/components/ScheduleTable.vue'
 import NodeStats from '@/components/NodeStats.vue'
 import MiniMap from '@/components/MiniMap.vue'
 import SettingsPanel from '@/components/SettingsPanel.vue'
@@ -29,9 +29,9 @@ import EventLogs from '@/components/EventLogs.vue'
   <MiniMap style="position: absolute; bottom: 16px; left: 16px; z-index: 999" />
   <FlowsPanelVue style="position: absolute; bottom: 480px; right: 16px; width: 380px; z-index: 999" />
   <PacketSniffer style="position: absolute; bottom: 16px; right: 16px; width: 380px; z-index: 999" />
-  <!-- <transition name="el-zoom-in-center">
+  <transition name="el-zoom-in-center">
     <ScheduleTable
       style="position: absolute; left: 16px; top: 48px; min-width: 336px; width: 32%; z-index: 999"
     />
-  </transition> -->
+  </transition>
 </template>

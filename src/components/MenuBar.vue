@@ -6,7 +6,7 @@ import {
   SignalEditTopology,
   SignalResetCamera
 } from '@/hooks/useStates'
-import { Setting, DataAnalysis, Edit, Camera, Operation } from '@element-plus/icons-vue'
+import { DataAnalysis, Edit, Camera, Operation } from '@element-plus/icons-vue'
 import IconCube from './icons/IconCube.vue'
 
 onKeyStroke('Escape', () => {

@@ -22,17 +22,17 @@ export enum NODE_TYPE {
 }
 
 export const NODE_TYPE_DISPLAY_NAME = <{ [name: string]: string }>{
-  TSCH: 'TSCH Node',
-  TSN: 'TSN Bridge',
-  FIVE_G_GNB: '5G gNB',
-  FIVE_G_UE: '5G UE',
-  END_SYSTEM_SERVER: 'Edge Server',
-  END_SYSTEM_SENSOR_CAMERA: 'Camera',
-  END_SYSTEM_SENSOR_TEMP: 'Temperature Sensor',
-  END_SYSTEM_SENSOR_PRESSURE: 'Pressure Sensor',
-  END_SYSTEM_SENSOR_HUMIDITY: 'Humidity Sensor',
-  END_SYSTEM_ACTUATOR_ROBOTIC_ARM: 'Robotic Arm',
-  END_SYSTEM_ACTUATOR_PNEUMATIC: 'Pneumatic Actuator'
+  [NODE_TYPE.TSCH]: 'TSCH Node',
+  [NODE_TYPE.TSN]: 'TSN Bridge',
+  [NODE_TYPE.FIVE_G_GNB]: '5G gNB',
+  [NODE_TYPE.FIVE_G_UE]: '5G UE',
+  [NODE_TYPE.END_SYSTEM_SERVER]: 'Edge Server',
+  [NODE_TYPE.END_SYSTEM_SENSOR_CAMERA]: 'Camera',
+  [NODE_TYPE.END_SYSTEM_SENSOR_TEMP]: 'Temperature Sensor',
+  [NODE_TYPE.END_SYSTEM_SENSOR_PRESSURE]: 'Pressure Sensor',
+  [NODE_TYPE.END_SYSTEM_SENSOR_HUMIDITY]: 'Humidity Sensor',
+  [NODE_TYPE.END_SYSTEM_ACTUATOR_ROBOTIC_ARM]: 'Robotic Arm',
+  [NODE_TYPE.END_SYSTEM_ACTUATOR_PNEUMATIC]: 'Pneumatic Actuator'
 }
 
 export interface Node {

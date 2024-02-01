@@ -1,9 +1,7 @@
 <script setup lang="tsx">
-import ChannelChart from '@/components/ChannelChart.vue'
-
 import { ref, watch, nextTick } from 'vue'
 import { Network } from '@/hooks/useStates'
-import { PKT_TYPE, PROTOCOL_TYPE, type Packet } from '@/core/typedefs'
+import { PKT_TYPE, type Packet } from '@/core/typedefs'
 
 import { Filter } from '@element-plus/icons-vue'
 
