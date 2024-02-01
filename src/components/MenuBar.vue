@@ -6,7 +6,7 @@ import {
   SignalEditTopology,
   SignalResetCamera
 } from '@/hooks/useStates'
-import { Setting, DataAnalysis, Edit, Camera } from '@element-plus/icons-vue'
+import { Setting, DataAnalysis, Edit, Camera, Operation } from '@element-plus/icons-vue'
 import IconCube from './icons/IconCube.vue'
 
 onKeyStroke('Escape', () => {
@@ -36,7 +36,7 @@ onKeyStroke('`', () => {
         <el-tooltip effect="light" content="Network settings" :hide-after="0" placement="right-start">
           <el-button class="btn" size="small" @click="SignalShowSettings = !SignalShowSettings">
             <el-icon color="#aaa" size="20">
-              <Setting />
+              <Operation />
             </el-icon>
           </el-button>
         </el-tooltip>
