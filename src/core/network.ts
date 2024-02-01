@@ -502,7 +502,8 @@ export class NetworkHub {
         period: Math.floor(this.Rand.next() * 4 + 1) * 5, // from 5 to 10 - change this later
         deadline: Math.floor(this.Rand.next() * 4 + 1) * 5, // from 5 to 10 - change this later
         workload: Math.floor(this.Rand.next() * 10) + 1, // from 1 to 10 - change this later
-        path: this.findPath(src.id, dst.id)
+        path: this.findPath(src.id, dst.id),
+        editing: false
       }
       this.Flows.value.push(f)
     }

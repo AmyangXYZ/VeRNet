@@ -66,6 +66,7 @@ export interface Flow {
   period: number
   workload: number
   path: number[] // id's of all nodes in path
+  editing: boolean // whether or not the user can edit in FlowsPanel
 }
 
 // Packet is transfered among nodes, at data-link layer
