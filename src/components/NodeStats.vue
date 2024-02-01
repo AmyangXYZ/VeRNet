@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import sensortag from '@/assets/sensortag.png'
 import tsn_switch from '@/assets/tsn_switch.png'
+import five_g_gnb from '@/assets/five_g_gnb.png'
 import { Network, SelectedNode } from '@/hooks/useStates'
 import { NODE_TYPE, NODE_TYPE_DISPLAY_NAME } from '@/core/typedefs'
 import { Picture } from '@element-plus/icons-vue'
 
 const images: { [type: number]: string } = {
   [NODE_TYPE.TSCH]: sensortag,
-  [NODE_TYPE.TSN]: tsn_switch
+  [NODE_TYPE.TSN]: tsn_switch,
+  [NODE_TYPE.FIVE_G_GNB]: five_g_gnb
 }
 </script>
 
