@@ -30,8 +30,6 @@ import EventLogs from '@/components/EventLogs.vue'
   <FlowsPanelVue style="position: absolute; bottom: 480px; right: 16px; width: 380px; z-index: 999" />
   <PacketSniffer style="position: absolute; bottom: 16px; right: 16px; width: 380px; z-index: 999" />
   <transition name="el-zoom-in-center">
-    <ScheduleTable
-      style="position: absolute; left: 16px; top: 48px; min-width: 336px; width: 32%; z-index: 999"
-    />
+    <ScheduleTable style="position: absolute; left: 16px; top: 48px; min-width: 336px; width: 32%; z-index: 999" />
   </transition>
 </template>

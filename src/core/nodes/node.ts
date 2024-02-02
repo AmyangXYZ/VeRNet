@@ -1,4 +1,4 @@
-import { type Message, type MsgHandler, type Packet, type PktHandler } from './typedefs'
+import { type Message, type MsgHandler, type Packet, type PktHandler, type RoutingTable } from '../typedefs'
 
 export class Node {
   id: number = 0
@@ -8,7 +8,7 @@ export class Node {
   rx_cnt: number = 0
   queue: Packet[] = []
   ASN: number = 0
-  routingTable: { [dst: number]: number } = {}
+  routingTable: RoutingTable = {}
   msgHandlers: { [type: number]: MsgHandler } = {}
   pktHandlers: { [type: number]: PktHandler } = {}
 
