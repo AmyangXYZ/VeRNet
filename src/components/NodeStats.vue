@@ -2,11 +2,11 @@
 import sensortag from '@/assets/sensortag.png'
 import tsn_switch from '@/assets/tsn_switch.png'
 import five_g_gnb from '@/assets/five_g_gnb.png'
-import { Network, SelectedNode } from '@/hooks/useStates'
+import { Network } from '@/hooks/useStates'
 import { NODE_TYPE, NODE_TYPE_DISPLAY_NAME } from '@/core/typedefs'
 import { Picture } from '@element-plus/icons-vue'
 
-const images: { [type: number]: string } = {
+const avatars: { [type: number]: string } = {
   [NODE_TYPE.TSCH]: sensortag,
   [NODE_TYPE.TSN]: tsn_switch,
   [NODE_TYPE.FIVE_G_GNB]: five_g_gnb
@@ -14,23 +14,33 @@ const images: { [type: number]: string } = {
 </script>
 
 <template>
-  <el-card class="card" v-if="SelectedNode > 0 && Network.Nodes.value[SelectedNode] != undefined">
+  <el-card class="card" v-if="Network.StatsPublisherNode.value > 0 && Network.NodeStats.value != undefined">
     <el-row :gutter="30">
-      <el-col :span="11" align="center">
-        <el-image class="image" :src="images[Network.Nodes.value[SelectedNode].type]">
+      <el-col :span="12" align="center">
+        <el-image class="avatar" :src="avatars[Network.Nodes.value[Network.StatsPublisherNode.value].type]">
           <template #error>
-            <div class="image">
+            <div class="avatar">
               <el-icon><Picture /></el-icon>
             </div>
           </template>
         </el-image>
       </el-col>
-      <el-col :span="10">
+      <el-col :span="12">
         <span class="stats">
-          {{ NODE_TYPE_DISPLAY_NAME[Network.Nodes.value[SelectedNode].type] }}-{{ SelectedNode }}
+          {{ NODE_TYPE_DISPLAY_NAME[Network.Nodes.value[Network.StatsPublisherNode.value].type] }}-{{
+            Network.StatsPublisherNode.value
+          }}
         </span>
         <br />
-        - TX: {{ Network.Nodes.value[SelectedNode].tx_cnt }} , RX: {{ Network.Nodes.value[SelectedNode].rx_cnt }}<br />
+        - TX: {{ Network.NodeStats.value.tx_cnt }} , RX: {{ Network.NodeStats.value.rx_cnt }}<br />
+        - Queue length: {{ Network.NodeStats.value.queue_len }} <br />
+        - Queue head:
+        {{
+          Network.NodeStats.value.queue_head != undefined
+            ? 'Pkt 0x' + Network.NodeStats.value.queue_head.toString(16).toUpperCase().padStart(4, '0')
+            : undefined
+        }}
+        <br />
       </el-col>
     </el-row>
   </el-card>
@@ -40,10 +50,10 @@ const images: { [type: number]: string } = {
 .card {
   /* margin-top: 2px; */
   height: 130px;
-  /* width: 380px; */
+
   font-size: 0.82rem;
 }
-.image {
+.avatar {
   height: 110px;
   font-size: 36px;
 }

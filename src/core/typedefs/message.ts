@@ -1,9 +1,9 @@
 import type { Flow } from './flow'
+import type { NodeStats } from './stats'
 
 // Message is used for direct communication (debug, cmd, stats) between nodes and controller
 export interface Message {
   type: number
-  id: number // node id
   payload: any
 }
 
@@ -15,7 +15,8 @@ export enum MSG_TYPE {
   DONE, // finished all activities of the current slot
   ROUTING,
   FLOW, // install periodic flow
-  STAT
+  STATS_SUBSCRIBE,
+  STATS_REPORT
 }
 
 export interface InitMsgPayload {
@@ -34,3 +35,9 @@ export interface RoutingMsgPayload {
 export interface FlowMsgPayload {
   flows: Flow[]
 }
+
+export interface StatsSubscribePayload {
+  flag: boolean // start or end
+}
+
+export type StatsReportPayload = NodeStats

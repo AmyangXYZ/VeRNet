@@ -26,10 +26,8 @@ const nodeTypes = [
   }
 ]
 
-const { nodeId1, nodeId2 } = toRefs({
-  nodeId1: ref(''),
-  nodeId2: ref('')
-})
+const nodeId1 = ref('')
+const nodeId2 = ref('')
 
 const addNode = () => {
   Network.AddNode(nodeType.value)

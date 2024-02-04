@@ -15,9 +15,11 @@ import {
   PROTOCOL_TYPE,
   type RoutingGraph,
   type RoutingMsgPayload,
-  type FlowMsgPayload
+  type FlowMsgPayload,
+  type StatsSubscribePayload
 } from './typedefs'
 import { SeededRandom } from '@/utils/rand'
+import type { NodeStats } from './typedefs/stats'
 
 export class NetworkHub {
   Config: Ref<Config>
@@ -40,6 +42,9 @@ export class NetworkHub {
   PresetTopos: { [name: string]: any } = {}
   SelectedTopo = ref('5G-TSN-TSCH') // realistic topo example
   // SelectedTopo = ref('Routing test') // realistic topo example
+
+  StatsPublisherNode = ref(0)
+  NodeStats = ref<NodeStats | undefined>(undefined) // stats from the publisher node
 
   asnTimer: any
   SignalReset = ref(0)
@@ -71,6 +76,21 @@ export class NetworkHub {
       this.LoadTopology()
     })
 
+    watch(this.StatsPublisherNode, (newN, oldN) => {
+      if (oldN > 0 && this.Nodes.value[oldN] != undefined) {
+        this.Nodes.value[oldN].w!.postMessage(<Message>{
+          type: MSG_TYPE.STATS_SUBSCRIBE,
+          payload: <StatsSubscribePayload>{ flag: false }
+        })
+      }
+      if (this.Nodes.value[newN] != undefined) {
+        this.Nodes.value[newN].w!.postMessage(<Message>{
+          type: MSG_TYPE.STATS_SUBSCRIBE,
+          payload: <StatsSubscribePayload>{ flag: true }
+        })
+      }
+    })
+
     watch(this.ASN, () => {
       if (this.ASN.value > 0) {
         this.doneCnt = 0
@@ -99,7 +119,8 @@ export class NetworkHub {
           this.SlotDone.value = true
         }
         break
-      case MSG_TYPE.STAT:
+      case MSG_TYPE.STATS_REPORT:
+        this.NodeStats.value = msg.payload
         break
     }
   }
@@ -139,8 +160,6 @@ export class NetworkHub {
     }
     pkt.asn = this.ASN.value
     if (isValid) {
-      this.Nodes.value[pkt.mac_src].tx_cnt++
-      this.Nodes.value[pkt.mac_dst].rx_cnt++
       this.Nodes.value[pkt.mac_dst].w!.postMessage(pkt)
 
       // must use this format for the detailedView function of el-table-v2
@@ -188,8 +207,6 @@ export class NetworkHub {
             Math.floor(this.Rand.next() * this.Config.value.grid_size) - this.Config.value.grid_size / 2
           ],
           neighbors: [],
-          tx_cnt: 0,
-          rx_cnt: 0,
           w: undefined
         }
         this.Nodes.value.push(n)
@@ -201,8 +218,6 @@ export class NetworkHub {
           id: n.id,
           type: n.type,
           pos: n.pos,
-          tx_cnt: 0,
-          rx_cnt: 0,
           neighbors: <number[]>[]
         })
       }
@@ -332,7 +347,6 @@ export class NetworkHub {
 
       n.w.postMessage(<Message>{
         type: MSG_TYPE.INIT,
-        id: n.id,
         payload: <InitMsgPayload>{ id: n.id, neighbors: toRaw(n.neighbors) }
       })
 
@@ -346,7 +360,6 @@ export class NetworkHub {
       }
       n.w.postMessage(<Message>{
         type: MSG_TYPE.ROUTING,
-        id: n.id,
         payload: toRaw(routingTable)
       })
 
@@ -355,7 +368,6 @@ export class NetworkHub {
         if (flows.length > 0) {
           n.w.postMessage(<Message>{
             type: MSG_TYPE.FLOW,
-            id: n.id,
             payload: <FlowMsgPayload>{ flows: flows }
           })
         }

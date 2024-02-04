@@ -1,12 +1,5 @@
 import { watch } from 'vue'
-import {
-  Network,
-  SelectedNode,
-  SignalEditTopology,
-  SignalResetCamera,
-  SignalAddNode,
-  SignalUpdateLinks
-} from './useStates'
+import { Network, SignalEditTopology, SignalResetCamera, SignalAddNode, SignalUpdateLinks } from './useStates'
 
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
@@ -652,7 +645,7 @@ export async function useDrawTopology(dom: HTMLElement) {
       const intersects = raycaster.intersectObjects(scene.children)
       for (const o of intersects) {
         if (o.object.userData.node_id != undefined) {
-          SelectedNode.value = o.object.userData.node_id
+          Network.StatsPublisherNode.value = o.object.userData.node_id
           break
         }
       }
