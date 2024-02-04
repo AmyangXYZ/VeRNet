@@ -7,9 +7,13 @@ import { Filter } from '@element-plus/icons-vue'
 
 const filterRules = ref()
 
-function filterFunc(pkt: Packet) {
+function filterFunc(pkt: Packet): boolean {
   if (filterRules.value == undefined) return true
-  return eval(filterRules.value)
+  try {
+    return eval(filterRules.value)
+  } catch (error) {
+    return pkt != undefined
+  }
 }
 
 const columns: any = [
@@ -111,7 +115,7 @@ Row.inheritAttrs = false
         <el-input
           v-model="filterRules"
           class="filter-input"
-          placeholder="pkt.src == 1 && pkt.type != ACK"
+          placeholder="pkt.mac_src == 1 && pkt.type != ACK"
           :suffix-icon="Filter"
         />
       </div>

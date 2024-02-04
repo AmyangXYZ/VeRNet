@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Network, SignalEditTopology, SignalAddNode, SignalUpdateLinks } from '@/hooks/useStates'
-import { Check, Plus, Switch, Sort, Share, Download } from '@element-plus/icons-vue'
+import { Check, Plus, Switch, Sort, Download } from '@element-plus/icons-vue'
 import { NODE_TYPE } from '@/core/typedefs'
 
 const nodeType = ref(0)
@@ -60,11 +60,11 @@ const exportTopo = () => {
 </script>
 
 <template>
-  <el-card >
-    <el-row :gutter="10" align="middle" >
+  <el-card>
+    <el-row :gutter="10" align="middle">
       <el-col :span="6"> Load: </el-col>
       <el-col :span="18">
-        <el-select  v-model="Network.SelectedTopo.value" style="width: 100%; text-align-last: center">
+        <el-select v-model="Network.SelectedTopo.value" style="width: 100%; text-align-last: center">
           <el-option v-for="(_, name) in Network.PresetTopos" :key="name" :label="name" :value="name" />
         </el-select>
       </el-col>
@@ -87,8 +87,8 @@ const exportTopo = () => {
     <el-row :gutter="10" align="middle" class="row">
       <el-col :span="6"> Connect: </el-col>
       <el-col :span="15">
-        <el-row justify="space-between" >
-          <el-col :span="11" >
+        <el-row justify="space-between">
+          <el-col :span="11">
             <el-input input-style="text-align=center" type="number" min="1" v-model="v1" />
           </el-col>
           <el-col :span="11">
