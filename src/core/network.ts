@@ -300,9 +300,8 @@ export class NetworkHub {
   }
 
   connect(v1: number, v2: number) {
-    const node1 = this.Nodes.value.find((n) => n.id === v1)
-    const node2 = this.Nodes.value.find((n) => n.id === v2)
-
+    const node1 = this.Nodes.value.find((n) => n.id == v1)
+    const node2 = this.Nodes.value.find((n) => n.id == v2)
     if (!node1 || !node2) {
       console.error('Connection error: node(s) not found.')
       return

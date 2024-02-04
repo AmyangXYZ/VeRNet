@@ -1,4 +1,5 @@
 import type { Flow } from './flow'
+import type { RoutingTable } from './routing'
 import type { NodeStats } from './stats'
 
 // Message is used for direct communication (debug, cmd, stats) between nodes and controller
@@ -28,9 +29,7 @@ export interface ASNMsgPayload {
   asn: number
 }
 
-export interface RoutingMsgPayload {
-  [dst: number]: number
-}
+export type RoutingMsgPayload = RoutingTable
 
 export interface FlowMsgPayload {
   flows: Flow[]

@@ -8,6 +8,7 @@ const editCellRenderer =
     if (rowData.editing) {
       return (
         <input
+          type="number"
           style="
             font-size:.65rem;
             color:white;
@@ -120,7 +121,6 @@ const saveFlow = () => {
   editing.value = false
   const lastFlow = Network.Flows.value[Network.Flows.value.length - 1]
   lastFlow.path = Network.findPath(lastFlow.e2e_src, lastFlow.e2e_dst)
-  console.log(lastFlow.path)
   lastFlow.editing = false
 }
 

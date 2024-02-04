@@ -583,7 +583,6 @@ export async function useDrawTopology(dom: HTMLElement) {
   Network.ConstructRoutingGraph()
   Network.AddFlows(3) // specify number of flows
   Network.StartWebWorkers()
-
   // ###################
 
   watch(SignalAddNode, () => {
