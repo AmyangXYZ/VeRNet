@@ -78,13 +78,13 @@ export class NetworkHub {
 
     watch(this.StatsPublisherNode, (newN, oldN) => {
       if (oldN > 0 && this.Nodes.value[oldN] != undefined) {
-        this.Nodes.value[oldN].w!.postMessage(<Message>{
+        this.Nodes.value[oldN].w?.postMessage(<Message>{
           type: MSG_TYPE.STATS_SUBSCRIBE,
           payload: <StatsSubscribePayload>{ flag: false }
         })
       }
       if (this.Nodes.value[newN] != undefined) {
-        this.Nodes.value[newN].w!.postMessage(<Message>{
+        this.Nodes.value[newN].w?.postMessage(<Message>{
           type: MSG_TYPE.STATS_SUBSCRIBE,
           payload: <StatsSubscribePayload>{ flag: true }
         })
@@ -160,7 +160,7 @@ export class NetworkHub {
     }
     pkt.asn = this.ASN.value
     if (isValid) {
-      this.Nodes.value[pkt.mac_dst].w!.postMessage(pkt)
+      this.Nodes.value[pkt.mac_dst].w?.postMessage(pkt)
 
       // must use this format for the detailedView function of el-table-v2
       pkt.id = this.Packets.value.length

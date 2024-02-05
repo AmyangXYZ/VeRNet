@@ -11,10 +11,15 @@ export const Network = new NetworkHub(<Config>{
   tx_range: 20
 })
 
-export const SignalResetCamera = ref(1)
-export const SignalShowSettings = ref(false)
-export const SignalShowSchedule = ref(false)
-export const SignalShowStatistics = ref(false)
-export const SignalEditTopology = ref(false)
-export const SignalAddNode = ref(0)
-export const SignalUpdateLinks = ref(0)
+export const MenubarSignals = {
+  ShowSettings: ref(false),
+  ShowSchedule: ref(false),
+  ShowNetworkStats: ref(false),
+  ShowTopoEditToolbox: ref(false),
+  ResetCamera: ref(1)
+}
+
+export const TopoEditSignals = {
+  AddNode: ref(0),
+  UpdateLinks: ref(0)
+}

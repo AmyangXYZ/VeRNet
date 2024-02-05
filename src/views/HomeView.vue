@@ -9,7 +9,6 @@ import MiniMap from '@/components/MiniMap.vue'
 import SettingsPanel from '@/components/SettingsPanel.vue'
 import FlowsPanelVue from '@/components/FlowsPanel.vue'
 import TopoEditToolbox from '@/components/TopoEditToolbox.vue'
-import { SignalEditTopology } from '@/hooks/useStates'
 import EventLogs from '@/components/EventLogs.vue'
 </script>
 
@@ -18,10 +17,7 @@ import EventLogs from '@/components/EventLogs.vue'
     <SettingsPanel style="position: absolute; left: 25%; width: 50%; top: 14%; height: 64%; z-index: 9999" />
   </transition>
   <MenuBar style="position: absolute; top: 16px; left: 16px; width: 150px; z-index: 999" />
-  <TopoEditToolbox
-    v-show="SignalEditTopology"
-    style="position: absolute; top: 48px; left: 16px; width: 300px; z-index: 999"
-  />
+  <TopoEditToolbox style="position: absolute; top: 48px; left: 16px; width: 300px; z-index: 999" />
   <ControlPanel style="position: absolute; top: 16px; left: 40%; min-width: 336px; width: 20%; z-index: 999" />
   <EventLogs style="position: absolute; left: 16px; z-index: 999" />
   <NodeStats style="position: absolute; bottom: 16px; left: 38%; min-width: 400px; z-index: 999" />

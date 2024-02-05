@@ -1,5 +1,5 @@
 import { watch } from 'vue'
-import { Network, SignalEditTopology, SignalResetCamera, SignalAddNode, SignalUpdateLinks } from './useStates'
+import { Network, MenubarSignals, TopoEditSignals } from './useStates'
 
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
@@ -210,7 +210,7 @@ export async function useDrawTopology(dom: HTMLElement) {
 
     const dragBoxHelper = new THREE.BoxHelper(model, 'skyblue')
     dragBoxHelper.castShadow = false
-    dragBoxHelper.visible = SignalEditTopology.value
+    dragBoxHelper.visible = MenubarSignals.ShowTopoEditToolbox.value
     scene.add(dragBoxHelper)
 
     drawnNodes[node.id] = {
@@ -504,7 +504,7 @@ export async function useDrawTopology(dom: HTMLElement) {
     let relatedLinks: any = []
     let relatedUnicastPackets: any = []
     let relatedBeaconPacket: any = undefined
-    if (!SignalEditTopology.value) {
+    if (!MenubarSignals.ShowTopoEditToolbox.value) {
       dragControls.deactivate()
     }
     dragControls.addEventListener('dragstart', function (event: any) {
@@ -585,10 +585,10 @@ export async function useDrawTopology(dom: HTMLElement) {
   Network.StartWebWorkers()
   // ###################
 
-  watch(SignalAddNode, () => {
+  watch(TopoEditSignals.AddNode, () => {
     drawNodes()
   })
-  watch(SignalUpdateLinks, () => {
+  watch(TopoEditSignals.UpdateLinks, () => {
     clearLinks()
     drawLinks()
   })
@@ -613,12 +613,12 @@ export async function useDrawTopology(dom: HTMLElement) {
     drawNodes()
     drawLinks()
   })
-  watch(SignalResetCamera, () => {
+  watch(MenubarSignals.ResetCamera, () => {
     animateCameraPosition({ x: 0, y: 70, z: 80 }, 1000)
     animatePanPosition({ x: 0, y: 0, z: 0 }, 1000)
   })
-  watch(SignalEditTopology, () => {
-    if (SignalEditTopology.value) {
+  watch(MenubarSignals.ShowTopoEditToolbox, () => {
+    if (MenubarSignals.ShowTopoEditToolbox.value) {
       dragControls.activate()
     } else {
       dragControls.deactivate()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Network, SignalEditTopology, SignalAddNode, SignalUpdateLinks } from '@/hooks/useStates'
-import { Check, Plus, Switch, Sort, Download } from '@element-plus/icons-vue'
+import { Network, MenubarSignals, TopoEditSignals } from '@/hooks/useStates'
+import { Plus, Switch, Sort, Download, Finished } from '@element-plus/icons-vue'
 import { NODE_TYPE } from '@/core/typedefs'
 
 const nodeType = ref(0)
@@ -31,19 +31,19 @@ const v2 = ref(1)
 
 const addNode = () => {
   Network.AddNode(nodeType.value)
-  SignalAddNode.value++
+  TopoEditSignals.AddNode.value++
 }
 const connect = () => {
   Network.connect(v1.value, v2.value)
-  SignalUpdateLinks.value++
+  TopoEditSignals.UpdateLinks.value++
 }
 const autoConnect = () => {
   Network.EstablishConnection()
-  SignalUpdateLinks.value++
+  TopoEditSignals.UpdateLinks.value++
 }
 const finishEdit = () => {
   Network.StartWebWorkers()
-  SignalEditTopology.value = !SignalEditTopology.value
+  MenubarSignals.ShowTopoEditToolbox.value = !MenubarSignals.ShowTopoEditToolbox.value
 }
 const exportTopo = () => {
   const link: HTMLAnchorElement = document.createElement('a')
@@ -60,7 +60,7 @@ const exportTopo = () => {
 </script>
 
 <template>
-  <el-card>
+  <el-card v-show="MenubarSignals.ShowTopoEditToolbox.value">
     <el-row :gutter="10" align="middle">
       <el-col :span="6"> Load: </el-col>
       <el-col :span="18">
@@ -108,7 +108,7 @@ const exportTopo = () => {
             <el-button @click="autoConnect" color="royalblue" :icon="Switch" circle />
           </el-tooltip>
           <el-tooltip effect="light" content="Finish edit and start WebWorkers" :hide-after="0" placement="bottom">
-            <el-button @click="finishEdit" color="red" :icon="Check" circle />
+            <el-button @click="finishEdit" color="red" :icon="Finished" circle />
           </el-tooltip>
           <el-tooltip effect="light" content="Export current topology" :hide-after="0" placement="bottom">
             <el-button @click="exportTopo" type="info" :icon="Download" circle />

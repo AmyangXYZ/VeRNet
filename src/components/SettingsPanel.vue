@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch } from 'vue'
-import { Network, SignalShowSettings } from '@/hooks/useStates'
+import { MenubarSignals, Network } from '@/hooks/useStates'
 
 watch(
   [Network.Config],
@@ -12,7 +12,7 @@ watch(
 </script>
 
 <template>
-  <el-card class="card" v-show="SignalShowSettings">
+  <el-card class="card" v-show="MenubarSignals.ShowSettings.value">
     <!-- <el-row class="form-row">
       <el-col :span="12" class="label-col">
         <img src="../assets/settings-toporand.png" class="icon" />
