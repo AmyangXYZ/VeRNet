@@ -1,4 +1,4 @@
-import { Node } from './node'
+import { Node } from '../node'
 import { PKT_TYPE, type Message, type Packet, MSG_TYPE, type FlowMsgPayload, type Flow } from '../typedefs'
 
 class EndSystem extends Node {

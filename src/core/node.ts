@@ -11,7 +11,7 @@ import {
   PKT_TYPE,
   type StatsSubscribePayload,
   type StatsReportPayload
-} from '../typedefs'
+} from './typedefs'
 
 export class Node {
   id: number = 0
