@@ -57,9 +57,24 @@ The `utils` and `hooks` directories hold TypeScript files that serve as "helpers
 
 The `assets` and `toplogies` directories hold image/vector assets and JSON topology layouts respectively. These are not logical in and of themselves, but hold static information that's used in the directories mentioned above.
 
-Finally, the 3D models that are used to represent nodes in the network simulation are stored as `.gltf` files in the `public/models` directory. The reason they are stored in `public` rather than `src` is due to the scope of the files that ThreeJS can read.
+Finally, the 3D models that are used to represent nodes in the network simulation are stored as `.gltf` files in the `public/models` directory. They are stored in `public` rather than `src` due to the scope of the files that ThreeJS can read.
 
 ## Backend Logic and Execution Process
+This is the sequence of actions that takes place in the `main` section of `useDrawTopology` when the site is accessed and a preset is loaded:
+
+- `setCamera()` - sets the camera's position and view angle to their defaults, where it's looking at the scene from above.
+- `addLights()` - adds ambient lighting and a shadow-casting spotlight effect from above.
+- `drawGround()` - draws the `ThreeJS` plane with size proportional to the preset network grid. This allows objects to be placed on a surface.
+- `animate()` - calculates the positions and timings of the packets that will be sent from node to node, and adds them to the plane. The animation will play when the use starts the simulation.
+- `await loadGLTFModels()` - There are 11 different 3D models that need to be loaded into the scene. This asynchronous function fetches the `.gltf` files, rotates and scales them, and adds them to the `modelTemplates` list. 
+- `Network.LoadTopology()` - this is called on `Network`, our instance of the `NetworkHub` class. Depending on which topology is selected (random or preset), the function generates/fetches the positions and types of every node in the network, and adds them to the `Nodes` collection to be used later.
+- `drawNodes()` - traverses the `modelTemplates` list, and adds a label and drag box to each template before placing them into the scene.
+- `createDragControls()` - gives the user the ability to drag the nodes to any position on the plane they wish. It also has event listeners that will update the links and packets based on the nodes' new positions.
+- `Network.EstablishConnection()` - establishes links and connections between nodes based on node type (TSCH, TSN, 5G) using a K-D Tree and K-nearest neighbors.
+- `drawLinks()` - draws an arc-shaped line between any two nodes that share a link established in the previous function call. Based on the link type, the line is either dashed (wireless) or solid (wired).
+- `Network.ConstructRoutingGraph()` - builds an adjacency list of nodes based on the current state of the network's links. This will be useful for future functions.
+- `Network.AddFlows(3)` - Generates a specified number of random flows between end systems in the network, to be displayed in the Flows panel (source node, destination node, path between them, etc.). 
+- `Network.StartWebWorkers()` - starts a web worker (background process) for each node in the network, to collect real-time packet and flow data to be displayed.
 
 
 ## Tutorial for Protocol Design and Evaluation
