@@ -109,4 +109,43 @@ This is the sequence of actions that takes place in the `main` section of `useDr
 
 
 ## Tutorial for Protocol Design and Evaluation
+Here's how you can add your own protocol to VeRNet with node types and network constraints:
+In `public/models/`, add a new folder that has a `.gltf` model with any required textures/shading for the new protocol. Name the folder the same as the name of the protocol.
 
+In `src/core/nodes/`:
+1. Create a new file, and name it `[name of protocol].ts`.
+2. Inside that `.ts` file, add the following code, replacing the bracketed text with the name of the protocol:
+  ```
+  import { Node } from '../node'
+
+  class [name of protocol]Node extends Node {
+    constructor() {
+      super()
+    }
+  }
+
+  new [name of protocol]Node().Run()
+  ```
+
+In `src/core/typedefs/index.ts`:
+1. Add the new protocol to `PROTOCOL_TYPE`.
+
+In `src/core/typedefs/node.ts`:
+1. Add the new node type to the `NODE_TYPE` enum.
+2. Add the desired display name to the `NODE_TYPE_DISPLAY_NAME` map.
+
+In `src/core/network.ts`:
+1. Declare a new `KDTree` object for the new node type before the constructor, and name it accordingly (e.g. the `TSCH` node's tree is `kdTreeTSCH`).
+2. In the `constructor()` method, instantiate the new K-D Tree: `this.[name] = new KDTree()`.
+3. In `handlePkt(pkt: Packet)`:
+  - Check if the type of the packet's MAC source or destination is equal to the new protocol's node type. If it is, set the packet's protocol type to the new protocol. See the tests for TSCH and TSN as an example.
+  - Add a case for `PROTOCOL_TYPE.[protocol name]`. Inside it, set `isValid` to `true`.
+4. In `EstablishConnection()`:
+  - Re-instantiate the K-D Tree for the new protocol (same code as step 2).
+  - In the first `for` loop's `switch` statement, add a case for the new protocol. Inside the case, write `this.[KDTree name].Insert(new KDNode(n.id, n.pos))`
+  - In the second `for` loop's `switch` statement, add a case for the new protocol. Inside the case, use `KDTree.FindKNearest()` to find the appropriate neighbors for the new protocol's nodes. Tweak the arguments based on the number of desired neghbors and the desired range. Be sure to add curly braces around the code block in the switch statement to avoid linter errors.
+5. In `StartWebWorkers()`, add a new case in the `switch` statement for the new protocol. Inside the case, create a new `WebWorker` as follows: `n.w = new Worker(new URL('@/core/nodes/[protocol name].ts', import.meta.url), { type: 'module' })`.
+
+
+In `src/hooks/useDrawTopology.ts`:
+1. Inside `loadGLTFModels()`, add the following line to the section where the rest of the models are loaded: `await loadModel(NODE_TYPE.[node name], '/models/[protocol name]/scene.gltf', scale, rotation)`.
