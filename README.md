@@ -108,8 +108,8 @@ This is the sequence of actions that takes place in the `main` section of `useDr
 - `Network.StartWebWorkers()`
 
 
-## Tutorial for Protocol Design and Evaluation
-Here's how you can add your own protocol to VeRNet with node types and network constraints:
+## Add Another Networking Technology
+Here's how you can add your own technology to VeRNet with node types and network constraints:
 In `public/models/`, add a new folder that has a `.gltf` model with any required textures/shading for the new protocol. Name the folder the same as the name of the protocol.
 
 In `src/core/nodes/`:
@@ -149,3 +149,18 @@ In `src/core/network.ts`:
 
 In `src/hooks/useDrawTopology.ts`:
 1. Inside `loadGLTFModels()`, add the following line to the section where the rest of the models are loaded: `await loadModel(NODE_TYPE.[node name], '/models/[protocol name]/scene.gltf', scale, rotation)`.
+
+## Tutorial for Protocol Design and Evaluation
+
+Creating a new communication protocol involves creating the necessary message/packet types and writing handlers for them.
+
+In `typedefs/packet.ts`:
+1. Add the requisite packet types (e.g. `Beacon`, `Request`, `Response`, etc.) to the `PKT_TYPE` enum.
+
+In `src/core/node.ts` OR `nodes/`:
+1. Create a packet handler `const` for each new packet type. You can use the `dataPktHandler` as a reference, but each packet handler's code will differ based on its function.
+2. In the case you are adding global packet handlers, add them in `node.ts`. If they only pertain to a specific network technology, then place them in the appropriate file in the `nodes` directory (if the packet handlers only pertain to end systems, place them in `end_system.ts`).
+3. In the `contructor()`, add lines at the bottom of the method to register each new packet handler. Each line should look like: `this.registerPktHandler(PKT_TYPE.[type], this.[handler name])`.
+
+In `src/core/network.ts`:
+1. 
