@@ -159,8 +159,9 @@ In `typedefs/packet.ts`:
 
 In `src/core/node.ts` OR `nodes/`:
 1. Create a packet handler `const` for each new packet type. You can use the `dataPktHandler` as a reference, but each packet handler's code will differ based on its function.
-2. In the case you are adding global packet handlers, add them in `node.ts`. If they only pertain to a specific network technology, then place them in the appropriate file in the `nodes` directory (if the packet handlers only pertain to end systems, place them in `end_system.ts`).
-3. In the `contructor()`, add lines at the bottom of the method to register each new packet handler. Each line should look like: `this.registerPktHandler(PKT_TYPE.[type], this.[handler name])`.
+    - In the case you are adding global packet handlers, add them in `node.ts`. If they only pertain to a specific network technology, then place them in the appropriate file in the `nodes` directory (if the packet handlers only pertain to end systems, place them in `end_system.ts`).
+2. In the `contructor()`, add lines at the bottom of the method to register each new packet handler. Each line should look like: `this.registerPktHandler(PKT_TYPE.[type], this.[handler name])`.
 
 In `src/core/network.ts`:
-1. 
+1. Modify `handlePkt(pkt: Packet)` to accomodate any changes in logic required by the introduction of new packet types.
+2. In `StartWebWorkers()`, add any new packet-message logic at the bottom of the method. Note that in the node's worker's `onMessage()`, there is logic linked back to the `pktHandler`. Update this if needed.
