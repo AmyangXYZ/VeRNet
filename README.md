@@ -2,7 +2,7 @@
 
 <img height="120" src="./logo.png"/>
 
-[VeRNet](https://vernet.app) is an open-source wireless network emulator built with Vue.js+TypeScript. It offers high-fidelity real-time network emulations with smooth animations.
+[VeRNet](https://vernet.amyang.dev) is an open-source wireless network emulator built with Vue.js+TypeScript. It offers high-fidelity real-time network emulations with smooth animations.
 
 
 <img src="./screenshot.png"/>
