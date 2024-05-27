@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import MenuBar from '@/components/MenuBar.vue'
 import ControlPanel from '@/components/ControlPanel.vue'
 import Topology from '@/components/NetworkTopology.vue'
@@ -28,4 +28,12 @@ import EventLogs from '@/components/EventLogs.vue'
   <transition name="el-zoom-in-center">
     <ScheduleTable style="position: absolute; left: 16px; top: 48px; min-width: 336px; width: 32%; z-index: 999" />
   </transition>
+</template> -->
+
+<script setup lang="ts">
+import BabylonScene from '@/components/BabylonScene.vue'
+</script>
+
+<template>
+  <BabylonScene />
 </template>
