@@ -4,6 +4,8 @@ import { ref } from 'vue'
 import { type Config } from '@/core/typedefs'
 import { NetworkHub } from '@/core/network'
 
+export const FPS = ref(0)
+
 export const Network = new NetworkHub(<Config>{
   seed: 11111,
   num_nodes: 20,

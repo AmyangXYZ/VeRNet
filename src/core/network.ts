@@ -62,16 +62,6 @@ export class NetworkHub {
     this.kdTreeTSN = new KDTree()
     this.kdTreeFiveGgNB = new KDTree()
 
-    // load preset topologies
-    const topos = import.meta.glob('@/topologies/*.json')
-    for (const path in topos) {
-      const name = path.split('/')[3].replace('.json', '')
-      this.PresetTopos[name] = {} // placeholder before fully load json files
-      topos[path]().then((f: any) => {
-        this.PresetTopos[name] = f.default
-      })
-    }
-
     watch(this.SelectedTopo, () => {
       this.LoadTopology()
     })
@@ -185,7 +175,19 @@ export class NetworkHub {
     this.Nodes.value = [<Node>{ id: 0 }] // placeholder to let node_id start from 1
     this.Links.value = {}
   }
-  LoadTopology() {
+  async LoadTopology() {
+    if (Object.keys(this.PresetTopos).length == 0) {
+      const topos = import.meta.glob('@/topologies/*.json')
+      await Promise.all(
+        Object.entries(topos).map(async ([path, load]) => {
+          const name = path.split('/')[3].replace('.json', '')
+          this.PresetTopos[name] = {} // placeholder before fully load json files
+          const f: any = await load()
+          this.PresetTopos[name] = f.default
+        })
+      )
+    }
+
     this.Running.value = false
     clearInterval(this.asnTimer)
     this.Links.value = {}

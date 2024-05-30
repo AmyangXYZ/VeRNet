@@ -1,31 +1,19 @@
 <script setup lang="tsx">
 import { onMounted, ref } from 'vue'
-import { useDrawTopology } from '@/hooks/useDrawTopology'
+import { useDrawTopology } from '@/hooks/useDrawTopologyBabylon'
 
-const chartDom = ref()
+const canvas = ref()
 onMounted(() => {
-  useDrawTopology(chartDom.value)
+  useDrawTopology(canvas.value)
 })
 </script>
 
 <template>
-  <div class="chart" ref="chartDom"></div>
+  <canvas class="canvas" ref="canvas"></canvas>
 </template>
 
 <style scoped>
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.item {
-  width: 180px;
-  text-align: center;
-}
-.in {
-  width: 88px;
-}
-.chart {
+.canvas {
   width: 100%;
   height: 100vh;
 }
