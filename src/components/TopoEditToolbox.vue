@@ -65,7 +65,7 @@ const exportTopo = () => {
       <el-col :span="6"> Load: </el-col>
       <el-col :span="18">
         <el-select v-model="Network.SelectedTopo.value" style="width: 100%; text-align-last: center">
-          <el-option v-for="(_, name) in Network.PresetTopos" :key="name" :label="name" :value="name" />
+          <el-option v-for="(_, name) in Network.PresetTopos.value" :key="name" :label="name" :value="name" />
         </el-select>
       </el-col>
     </el-row>

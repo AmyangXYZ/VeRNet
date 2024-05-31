@@ -12,6 +12,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@babylonjs/core": "^7.9.0",
     "@element-plus/icons-vue": "^2.1.0",
     "@tweenjs/tween.js": "^21.0.0",
     "@types/three": "^0.153.0",

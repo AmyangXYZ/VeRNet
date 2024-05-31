@@ -39,7 +39,7 @@ export class NetworkHub {
   kdTreeTSN: KDTree // TSN only
   kdTreeFiveGgNB: KDTree // 5G gNB only
 
-  PresetTopos: { [name: string]: any } = {}
+  PresetTopos = ref<{ [name: string]: any }>({})
   SelectedTopo = ref('5G-TSN-TSCH') // realistic topo example
   // SelectedTopo = ref('Routing test') // realistic topo example
 
@@ -176,14 +176,14 @@ export class NetworkHub {
     this.Links.value = {}
   }
   async LoadTopology() {
-    if (Object.keys(this.PresetTopos).length == 0) {
+    if (Object.keys(this.PresetTopos.value).length == 0) {
       const topos = import.meta.glob('@/topologies/*.json')
       await Promise.all(
         Object.entries(topos).map(async ([path, load]) => {
           const name = path.split('/')[3].replace('.json', '')
-          this.PresetTopos[name] = {} // placeholder before fully load json files
+          this.PresetTopos.value[name] = {} // placeholder before fully load json files
           const f: any = await load()
-          this.PresetTopos[name] = f.default
+          this.PresetTopos.value[name] = f.default
         })
       )
     }
@@ -214,7 +214,7 @@ export class NetworkHub {
         this.Nodes.value.push(n)
       }
     } else {
-      const topo = this.PresetTopos[this.SelectedTopo.value]
+      const topo = this.PresetTopos.value[this.SelectedTopo.value]
       for (const n of topo.nodes) {
         this.Nodes.value.push(<Node>{
           id: n.id,
