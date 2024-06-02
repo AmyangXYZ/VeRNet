@@ -15,13 +15,11 @@ import {
   Texture,
   BackgroundMaterial,
   Curve3,
-  ParticleSystem,
-  type Nullable
+  ParticleSystem
 } from '@babylonjs/core'
 import '@babylonjs/loaders'
 import { FPS, Network } from './useStates'
 import { NODE_TYPE, type Link } from '@/core/typedefs'
-import { number } from 'echarts'
 
 export async function useDrawTopology(canvas: HTMLCanvasElement) {
   const engine = new Engine(canvas, true, {}, true)
